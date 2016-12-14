@@ -8,10 +8,10 @@ import com.github.captokie.scorestage.web.ReqMappings;
 import com.github.captokie.scorestage.web.annotation.HtmlController;
 
 @HtmlController
-public class HomeHtmlCtrl {
+public class LoginHtmlCtrl {
 
-    @RequestMapping(value = { ReqMappings.INDEX, ReqMappings.HOME }, method = RequestMethod.GET)
+    @RequestMapping(value = ReqMappings.LOGIN, method = RequestMethod.GET)
     public String page() {
-        return Jsps.HOME;
+        return Jsps.LOGIN;
     }
 }

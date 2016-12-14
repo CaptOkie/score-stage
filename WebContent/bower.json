@@ -1,0 +1,8 @@
+{
+  "name": "score-stage",
+  "dependencies": {
+    "angular-material": "^1.1.1",
+    "angular-sanitize": "^1.6.0"
+  },
+  "private": true
+}
