@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
 <link rel="stylesheet" href="<spring:url value="${ReqMappings.RESOURCES}/angular/angular-csp.css"/>">
 <link rel="stylesheet" href="<spring:url value="${ReqMappings.RESOURCES}/angular-material/angular-material.min.css"/>">
+<link rel="stylesheet" href="<spring:url value="${ReqMappings.RESOURCES}/css/general.css"/>">
 
 <script type="text/javascript" src="<spring:url value="${ReqMappings.RESOURCES}/angular/angular.min.js"/>"></script>
 <script type="text/javascript" src="<spring:url value="${ReqMappings.RESOURCES}/angular-animate/angular-animate.min.js"/>"></script>
