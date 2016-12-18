@@ -5,6 +5,7 @@
 <tags:page title="Home">
     <jsp:attribute name="scripts">
         <script type="text/javascript" src="<spring:url value="${ReqMappings.RESOURCES}/vexflow/releases/vexflow-min.js"/>"></script>
+        <script type="text/javascript" src="<spring:url value="${ReqMappings.RESOURCES}/js/types/music-types.js"/>"></script>
         <script type="text/javascript" src="<spring:url value="${ReqMappings.RESOURCES}/js/components/music-score.js"/>"></script>
         <script type="text/javascript" src="<spring:url value="${ReqMappings.RESOURCES}/js/pages/home.js"/>"></script>
     </jsp:attribute>
