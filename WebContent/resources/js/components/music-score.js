@@ -30,10 +30,19 @@ angular.module('score-stage')
                 }
                 return new Vex.Flow.StaveNote({ clef : clef, keys : keys, duration : duration });
             });
-            var voice = new Vex.Flow.Voice({ beat_value : bar.time.upper, num_beats : bar.time.lower })
-            voice.setStrict(false).addTickables(notes);
             
-            var width = new Vex.Flow.Formatter().joinVoices([ voice ]).format([ voice ]).getMinTotalWidth();
+            var voice = new Vex.Flow.Voice({ beat_value : bar.time.upper, num_beats : bar.time.lower }).setStrict(false).addTickables(notes);
+            var formatter = new Vex.Flow.Formatter().joinVoices([ voice ]);
+            var stave = new Vex.Flow.Stave(0, 0, MAX_WIDTH);
+            
+            var width = formatter.preCalculateMinTotalWidth([ voice ]) * 2;
+            formatter.format([ voice ], width);
+            width += stave.getNoteStartX() + MAX_WIDTH - stave.getNoteEndX();
+            var modWidths = stave.getModifiers().reduce(function(prev, curr) {
+                return prev + curr.getWidth() + curr.getPadding();
+            }, 0);
+            width += modWidths;
+
             var newRow = (row.width + width) > MAX_WIDTH;
             if (newRow) {
                 row.top = (prev && prev.getBottomY()) || 0;
@@ -44,22 +53,26 @@ angular.module('score-stage')
                 row.left = row.width;
                 row.width += width;
             }
+            stave.setX(row.left).setY(row.top);
+
+//            var stave = new Vex.Flow.Stave(row.left, row.top, width);
+//            if (newRow) {
+//                stave.addClef(clef);
+//            }
+//            else if (!prev) {
+//                stave.addClef(clef);
+//                stave.addTimeSignature(bar.time.vexFormat());
+//            }
+//            console.log(row.left, stave.getNoteStartX())
+//            console.log(stave.getNoteStartX() - (row.left - width))
+//            console.log(row.left - stave.getNoteEndX())
+//            var extraWidth = (stave.getNoteStartX() - (row.left - width)) + (row.left - stave.getNoteEndX());
+//            width += extraWidth;
+//            row.width += extraWidth;
+//            row.left += extraWidth;
+//            stave.setWidth(width);
             
-            var stave = new Vex.Flow.Stave(row.left, row.top, width);
-            if (newRow) {
-                stave.addClef(clef);
-            }
-            else if (!prev) {
-                stave.addClef(clef);
-                stave.addTimeSignature(bar.time.vexFormat());
-            }
-            var extraWidth = stave.getModifiers().reduce(function(prev, curr) {
-                return prev + curr.getWidth() + curr.getPadding();
-            }, 0);
-            width += extraWidth;
-            row.width += extraWidth;
-            stave.setWidth(width);
-            stave.setContext(context).draw();
+            stave.setWidth(width).setContext(context).draw();
             voice.draw(context, stave);
             prev = stave;
         });
