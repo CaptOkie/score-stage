@@ -13,17 +13,12 @@ angular.module('score-stage')
         var context = renderer.getContext();
         
         var prev = undefined;
+        // Most recent top, bottom, and left, and total width
+        var row = { top : 0, left : 0, width : 0 };
         bars.forEach(function(bar) {
             
             var clef = 'treble';
-            var top = (prev && prev.getBottomY()) || 0;
-            
-            var stave = new Vex.Flow.Stave(0, top, MAX_WIDTH).addClef(clef);
-            if (!prev) {
-                stave.addTimeSignature(bar.time.vexFormat());
-            }
-            stave.setContext(context).draw();
-            
+            // Create the notes
             var notes = bar.ticks.map(function(tick) {
                 var keys = tick.notes.map(function(note) {
                     return note.letter + '/' + note.octave;
@@ -38,9 +33,34 @@ angular.module('score-stage')
             var voice = new Vex.Flow.Voice({ beat_value : bar.time.upper, num_beats : bar.time.lower })
             voice.setStrict(false).addTickables(notes);
             
-            new Vex.Flow.Formatter().joinVoices([ voice ]).format([ voice ], MAX_WIDTH);
-            voice.draw(context, stave);
+            var width = new Vex.Flow.Formatter().joinVoices([ voice ]).format([ voice ]).getMinTotalWidth();
+            var newRow = (row.width + width) > MAX_WIDTH;
+            if (newRow) {
+                row.top = (prev && prev.getBottomY()) || 0;
+                row.left = 0;
+                row.width = width;
+            }
+            else {
+                row.left = row.width;
+                row.width += width;
+            }
             
+            var stave = new Vex.Flow.Stave(row.left, row.top, width);
+            if (newRow) {
+                stave.addClef(clef);
+            }
+            else if (!prev) {
+                stave.addClef(clef);
+                stave.addTimeSignature(bar.time.vexFormat());
+            }
+            var extraWidth = stave.getModifiers().reduce(function(prev, curr) {
+                return prev + curr.getWidth() + curr.getPadding();
+            }, 0);
+            width += extraWidth;
+            row.width += extraWidth;
+            stave.setWidth(width);
+            stave.setContext(context).draw();
+            voice.draw(context, stave);
             prev = stave;
         });
         
