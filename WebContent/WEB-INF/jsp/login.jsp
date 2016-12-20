@@ -15,12 +15,12 @@
                 <md-card-content layout="column">
                     <md-input-container>
                         <label>Username</label>
-                        <input type="text" name="${ReqParams.USERNAME}" autofocus>
+                        <input type="text" name="${ReqParams.USERNAME}" autofocus required>
                     </md-input-container>
 
                     <md-input-container>
                         <label>Password</label>
-                        <input type="password" name="${ReqParams.PASSWORD}">
+                        <input type="password" name="${ReqParams.PASSWORD}" required>
                     </md-input-container>
                 </md-card-content>
                 

@@ -24,7 +24,8 @@ SS.TimeSignature.prototype.vexFormat = function() {
 SS.TimeSignature.C = new SS.TimeSignature(4, 4, 'C');
 SS.TimeSignature.C_BAR = new SS.TimeSignature(2, 2, 'C|');
 
-SS.Bar = function(time, ticks) {
+SS.Bar = function(time, keySig, ticks) {
     this.time = time;
+    this.keySig = keySig;
     this.ticks = ticks || [];
 };
