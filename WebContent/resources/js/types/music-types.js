@@ -1,8 +1,9 @@
 var SS = SS || {};
 
-SS.Note = function(letter, octave) {
+SS.Note = function(letter, octave, accidental) {
     this.letter = letter;
     this.octave = octave;
+    this.accidental = accidental;
 };
 
 SS.Tick = function(duration, notes) {

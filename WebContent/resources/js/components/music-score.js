@@ -21,8 +21,8 @@ angular.module('score-stage')
         var bars = [[3, 'C'], [3, 'Eb'], [3, 'Eb'], [3, 'Cb'], [4, 'Cb'], [4, 'Cb'], [3, 'E'], [4, 'E'], [4, 'C'], [4, 'C'],
                 [4, 'C'], [4, 'Db'], [5, 'Db'], [4, 'Db'], [4, 'C#']]
                     .map(function(items) {
-                        return new SS.Bar(new SS.TimeSignature(items[0], 4), items[1], [ new SS.Tick(2, [ new SS.Note('a', 4) ]), new SS.Tick(4, [ new SS.Note('b', 4) ]),
-                            new SS.Tick(2, []), new SS.Tick(4, []), new SS.Tick(4, [ new SS.Note('c', 5), new SS.Note('d', 5), new SS.Note('e', 5) ]) ]);
+                        return new SS.Bar(new SS.TimeSignature(items[0], 4), items[1], [ new SS.Tick(8, [ new SS.Note('a', 4, 'n') ]), new SS.Tick(8, [ new SS.Note('b', 4) ]),
+                            new SS.Tick(2, []), new SS.Tick(4, []), new SS.Tick(2, [ new SS.Note('c', 5, '#'), new SS.Note('d', 5), new SS.Note('e', 5) ]) ]);
                     });
         
         var renderer = new Vex.Flow.Renderer(element[0], Vex.Flow.Renderer.Backends.SVG);
@@ -43,6 +43,9 @@ angular.module('score-stage')
                 item.stave.setX(x).setWidth(staveWidth).setContext(context).draw();
                 item.formatter.format([ item.voice ], voiceWidth);
                 item.voice.draw(context, item.stave);
+                item.beams.forEach(function(beam) {
+                    beam.setContext(context).draw();
+                });
                 
                 prev = item;
             });
@@ -57,13 +60,25 @@ angular.module('score-stage')
                 var keys = tick.notes.map(function(note) {
                     return note.letter + '/' + note.octave;
                 });
+                var accidentals = tick.notes.filter(function(tick) {
+                    return tick.accidental;
+                }).map(function(tick) {
+                    return new Vex.Flow.Accidental(tick.accidental);
+                });
                 var duration = tick.duration + '';
                 if (tick.isRest()) {
                     keys = [ 'r/4' ];
                     duration += 'r';
                 }
-                return new Vex.Flow.StaveNote({ clef : clef, keys : keys, duration : duration, auto_stem: true });
+                var vexNote = new Vex.Flow.StaveNote({ clef : clef, keys : keys, duration : duration, auto_stem: true });
+                tick.notes.forEach(function(note, index) {
+                    if (note.accidental) {
+                        vexNote.addAccidental(index, new Vex.Flow.Accidental(note.accidental));
+                    }
+                });
+                return vexNote;
             });
+            var beams = Vex.Flow.Beam.generateBeams(notes);
             var voice = new Vex.Flow.Voice({ beat_value : bar.time.upper, num_beats : bar.time.lower }).setStrict(false).addTickables(notes);
             var formatter = new Vex.Flow.Formatter().joinVoices([ voice ]);
             var stave = new Vex.Flow.Stave(0, 0, MAX_WIDTH);
@@ -110,7 +125,7 @@ angular.module('score-stage')
             }
             stave.setX(row.left).setY(row.top).setWidth(totalWidth());
             
-            row.items.push({ bar : bar, stave : stave, voice : voice, formatter : formatter });
+            row.items.push({ bar : bar, stave : stave, voice : voice, beams : beams, formatter : formatter });
             row.left += totalWidth();
         });
         drawRow(row);
