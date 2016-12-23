@@ -25,8 +25,21 @@ SS.TimeSignature.prototype.vexFormat = function() {
 SS.TimeSignature.C = new SS.TimeSignature(4, 4, 'C');
 SS.TimeSignature.C_BAR = new SS.TimeSignature(2, 2, 'C|');
 
-SS.Bar = function(time, keySig, ticks) {
-    this.time = time;
+SS.Bar = function(timeSig, keySig, ticks, modifiers) {
+    this.timeSig = timeSig;
     this.keySig = keySig;
     this.ticks = ticks || [];
+    this.modifiers = modifiers || {};
+};
+SS.Bar.getBegin = function(type) {
+    switch (type) {
+        case 'REPEAT': return Vex.Flow.Barline.type.REPEAT_BEGIN;
+        default:       return undefined;
+    }
+};
+SS.Bar.getEnd = function(type) {
+    switch (type) {
+        case 'REPEAT': return Vex.Flow.Barline.type.REPEAT_END;
+        case 'END': return Vex.Flow.Barline.type.END;
+    }
 };

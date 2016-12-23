@@ -18,12 +18,21 @@ angular.module('score-stage')
     
     function link(scope, element, attrs) {
         
-        var bars = [[3, 'C'], [3, 'Eb'], [3, 'Eb'], [3, 'Cb'], [4, 'Cb'], [4, 'Cb'], [3, 'E'], [4, 'E'], [4, 'C'], [4, 'C'],
-                [4, 'C'], [4, 'Db'], [5, 'Db'], [4, 'Db'], [4, 'C#']]
-                    .map(function(items) {
-                        return new SS.Bar(new SS.TimeSignature(items[0], 4), items[1], [ new SS.Tick(8, [ new SS.Note('a', 4, 'n') ]), new SS.Tick(8, [ new SS.Note('b', 4) ]),
-                            new SS.Tick(2, []), new SS.Tick(4, []), new SS.Tick(2, [ new SS.Note('c', 5, '#'), new SS.Note('d', 5), new SS.Note('e', 5) ]) ]);
-                    });
+        var bars =
+            [
+                [3, 'C', { begin : 'REPEAT' }], [3, 'Eb', { end : 'REPEAT' }], [3, 'Eb', { begin : 'REPEAT' }], [3, 'Cb'], [4, 'Cb'], [4, 'Cb', { end : 'REPEAT' }],
+                [3, 'E', { begin : 'REPEAT', end : 'REPEAT' }], [4, 'E'], [4, 'C'], [4, 'C'], [4, 'C'], [4, 'Db'], [5, 'Db'], [4, 'Db'], [4, 'C#', { end : 'END' }]
+            ]
+            .map(function(items) {
+                return new SS.Bar(new SS.TimeSignature(items[0], 4), items[1],
+                        [
+                            new SS.Tick(8, [ new SS.Note('a', 4, 'n') ]),
+                            new SS.Tick(8, [ new SS.Note('b', 4, '#') ]),
+                            new SS.Tick(2, []),
+                            new SS.Tick(4, []),
+                            new SS.Tick(2, [ new SS.Note('a', 4, 'n'), new SS.Note('c', 5, 'n'), new SS.Note('e', 5, 'b') ])
+                        ], items[2]);
+            });
         
         var renderer = new Vex.Flow.Renderer(element[0], Vex.Flow.Renderer.Backends.SVG);
         var context = renderer.getContext();
@@ -58,38 +67,31 @@ angular.module('score-stage')
             // Create Vex.Flow items
             var notes = bar.ticks.map(function(tick) {
                 var keys = tick.notes.map(function(note) {
-                    return note.letter + '/' + note.octave;
-                });
-                var accidentals = tick.notes.filter(function(tick) {
-                    return tick.accidental;
-                }).map(function(tick) {
-                    return new Vex.Flow.Accidental(tick.accidental);
+                    return note.letter + note.accidental + '/' + note.octave;
                 });
                 var duration = tick.duration + '';
                 if (tick.isRest()) {
                     keys = [ 'r/4' ];
                     duration += 'r';
                 }
-                var vexNote = new Vex.Flow.StaveNote({ clef : clef, keys : keys, duration : duration, auto_stem: true });
-                tick.notes.forEach(function(note, index) {
-                    if (note.accidental) {
-                        vexNote.addAccidental(index, new Vex.Flow.Accidental(note.accidental));
-                    }
-                });
-                return vexNote;
+                return new Vex.Flow.StaveNote({ clef : clef, keys : keys, duration : duration, auto_stem: true });
             });
             var beams = Vex.Flow.Beam.generateBeams(notes);
-            var voice = new Vex.Flow.Voice({ beat_value : bar.time.upper, num_beats : bar.time.lower }).setStrict(false).addTickables(notes);
+            var voice = new Vex.Flow.Voice({ beat_value : bar.timeSig.upper, num_beats : bar.timeSig.lower }).setStrict(false).addTickables(notes);
+            Vex.Flow.Accidental.applyAccidentals([ voice ], bar.keySig);
             var formatter = new Vex.Flow.Formatter().joinVoices([ voice ]);
             var stave = new Vex.Flow.Stave(0, 0, MAX_WIDTH);
-            if (index === bars.length - 1) {
-                stave.setEndBarType(Vex.Flow.Barline.type.END);
+            if (bar.modifiers.begin) {
+                stave.setBegBarType(SS.Bar.getBegin(bar.modifiers.begin));
+            }
+            if (bar.modifiers.end) {
+                stave.setEndBarType(SS.Bar.getEnd(bar.modifiers.end));
             }
             
             // Add time signature if necessary
             var prev = row.items.length && row.items[row.items.length - 1];
-            if (!prev || prev.bar.time.vexFormat() !== bar.time.vexFormat()) {
-                stave.addTimeSignature(bar.time.vexFormat());
+            if (!prev || prev.bar.timeSig.vexFormat() !== bar.timeSig.vexFormat()) {
+                stave.addTimeSignature(bar.timeSig.vexFormat());
             }
             
             var keySig = undefined;
