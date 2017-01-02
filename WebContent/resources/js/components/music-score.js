@@ -145,6 +145,7 @@ angular.module('score-stage')
                         Vex.Flow.Accidental.applyAccidentals([ voice ], bar.keySig);
                         column.voices.push(voice);
                         var stave = new Vex.Flow.Stave(0, 0, MAX_WIDTH);
+                        stave.clef = staff.clef;
                         if (bar.modifiers.begin) {
                             stave.setBegBarType(SS.Bar.getBegin(bar.modifiers.begin));
                         }
