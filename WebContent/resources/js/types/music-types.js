@@ -43,3 +43,7 @@ SS.Bar.getEnd = function(type) {
         case 'END': return Vex.Flow.Barline.type.END;
     }
 };
+SS.Staff = function(clef, bars) {
+    this.clef = clef;
+    this.bars = bars;
+};
