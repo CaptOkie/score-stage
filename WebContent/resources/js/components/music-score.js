@@ -51,6 +51,10 @@ angular.module('score-stage')
         this.width += (this.formatter.preCalculateMinTotalWidth(this.voices) * BAR_SCALE);
     };
     
+    function getBeginBarline(stave) {
+        return stave.getModifiers(Vex.Flow.StaveModifier.Position.BEGIN, 'barlines')[0];
+    }
+    
     function link(scope, element, attrs) {
         
         var renderer = new Vex.Flow.Renderer(element[0], Vex.Flow.Renderer.Backends.SVG);
@@ -65,9 +69,15 @@ angular.module('score-stage')
                 column.x = (prev && (prev.x + prev.width)) || 0;
                 var y = row.y;
                 column.formatter.format(column.voices, width);
+                var barlineX = column.x;
                 column.staves.forEach(function(stave) {
-                    stave.setX(column.x).setY(y).setWidth(column.width).setNoteStartX(column.x + column.padding.left).setContext(context).draw();
+                    stave.setX(column.x).setY(y).setWidth(column.width).setNoteStartX(column.x + column.padding.left);
                     y += stave.getHeight();
+                    barlineX = Math.max(barlineX, getBeginBarline(stave).getX());
+                });
+                column.staves.forEach(function(stave) {
+                    getBeginBarline(stave).setX(barlineX);
+                    stave.setContext(context).draw();
                 });
                 column.voices.forEach(function(voice, index) {
                     voice.draw(context, column.staves[index]);
@@ -83,11 +93,11 @@ angular.module('score-stage')
                     new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).draw();
 
                     connector = SS.Bar.getBeginLarge(modifiers.begin);
-                    var shift = first.getModifierXShift();
+                    var shift = barlineX - column.x;
                     if (shift !== 0) {
                         new Vex.Flow.StaveConnector(first, last).setType(SS.Bar.getBeginLarge()).setContext(context).draw();
                     }
-                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).setXShift(first.getModifierXShift()).draw();
+                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift).draw();
                 }
                 prev = column;
             });
