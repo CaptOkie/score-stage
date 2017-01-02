@@ -30,12 +30,7 @@ angular.module('score-stage')
         this.bars = [];
     }
     Column.prototype.addStave = function(stave) {
-        if (this.staves.length) {
-            this.height += stave.getHeight();
-        }
-        else {
-            this.height += stave.getBottomY();
-        }
+        this.height += this.staves.length ? stave.getHeight() : stave.getBottomY();
         this.staves.push(stave);
         this.updatePadding(this.staves.length - 1);
     };
@@ -49,7 +44,11 @@ angular.module('score-stage')
         this.width += (this.padding.left + this.padding.right);
     };
     Column.prototype.joinVoices = function() {
-        this.width += (this.formatter.joinVoices(this.voices).preCalculateMinTotalWidth(this.voices) * BAR_SCALE);
+        var formatter = this.formatter;
+        this.voices.forEach(function(voice) {
+            formatter.joinVoices([ voice ]);
+        });
+        this.width += (this.formatter.preCalculateMinTotalWidth(this.voices) * BAR_SCALE);
     };
     
     function link(scope, element, attrs) {
@@ -60,14 +59,14 @@ angular.module('score-stage')
         
         function drawRow(row) {
             var prev = undefined;
-            row.columns.forEach(function(column) {
+            row.columns.forEach(function(column, index) {
                 column.width = (column.width / row.width) * MAX_WIDTH;
                 var width = column.width - column.padding.left - column.padding.right;
                 column.x = (prev && (prev.x + prev.width)) || 0;
                 var y = row.y;
                 column.formatter.format(column.voices, width);
                 column.staves.forEach(function(stave) {
-                    stave.setX(column.x).setY(y).setWidth(column.width).setContext(context).draw();
+                    stave.setX(column.x).setY(y).setWidth(column.width).setNoteStartX(column.x + column.padding.left).setContext(context).draw();
                     y += stave.getHeight();
                 });
                 column.voices.forEach(function(voice, index) {
@@ -76,6 +75,20 @@ angular.module('score-stage')
                 column.beams.forEach(function(beam) {
                     beam.setContext(context).draw();
                 });
+                if (column.staves.length > 1) {
+                    var first = column.staves[0];
+                    var last = column.staves[column.staves.length - 1];
+                    var modifiers = column.bars[0].modifiers;
+                    var connector = SS.Bar.getEndLarge(modifiers.end);
+                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).draw();
+
+                    connector = SS.Bar.getBeginLarge(modifiers.begin);
+                    var shift = first.getModifierXShift();
+                    if (shift !== 0) {
+                        new Vex.Flow.StaveConnector(first, last).setType(SS.Bar.getBeginLarge()).setContext(context).draw();
+                    }
+                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).setXShift(first.getModifierXShift()).draw();
+                }
                 prev = column;
             });
             row.width = MAX_WIDTH;
@@ -177,14 +190,14 @@ angular.module('score-stage')
     
     function link(scope, element, attrs) {
         
-        scope.staves = [{ clef : 'treble', octave : 4 }, { clef : 'bass', octave : 2 }, { clef : 'bass', octave : 2 }].map(function(item) {
+        scope.staves = [{ clef : 'treble', octave : 4 }, { clef : 'bass', octave : 2 }, { clef : 'bass', octave : 2 }].map(function(item, i) {
             
             var bars = [
                     [3, 'C', { begin : 'REPEAT' }], [3, 'Eb', { end : 'REPEAT' }], [3, 'Eb', { begin : 'REPEAT' }], [3, 'Cb'], [4, 'Cb'], [4, 'Cb', { end : 'REPEAT' }],
                     [3, 'E', { begin : 'REPEAT', end : 'REPEAT' }], [4, 'E'], [4, 'C'], [4, 'C'], [4, 'C'], [4, 'Db'], [5, 'Db'], [4, 'Db'], [4, 'C#', { end : 'END' }]
             ]
-            .map(function(items) {
-                return new SS.Bar(new SS.TimeSignature(items[0], 4), items[1],
+            .map(function(items, j) {
+                return new SS.Bar(new SS.TimeSignature(items[0], 4), i == 1 && j == 6 ? 'Eb' : items[1],
                         [
                             new SS.Tick(8, [ new SS.Note('a', item.octave, 'n') ]),
                             new SS.Tick(8, [ new SS.Note('b', item.octave, '#') ]),

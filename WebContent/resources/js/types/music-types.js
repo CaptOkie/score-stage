@@ -37,10 +37,24 @@ SS.Bar.getBegin = function(type) {
         default:       return undefined;
     }
 };
+SS.Bar.getBeginLarge = function(type) {
+    switch (type) {
+        case 'REPEAT': return Vex.Flow.StaveConnector.type.BOLD_DOUBLE_LEFT;
+        default:       return Vex.Flow.StaveConnector.type.SINGLE_LEFT;
+    }
+};
 SS.Bar.getEnd = function(type) {
     switch (type) {
         case 'REPEAT': return Vex.Flow.Barline.type.REPEAT_END;
-        case 'END': return Vex.Flow.Barline.type.END;
+        case 'END':    return Vex.Flow.Barline.type.END;
+        default:       return undefined;
+    }
+};
+SS.Bar.getEndLarge = function(type) {
+    switch (type) {
+        case 'REPEAT':
+        case 'END':    return Vex.Flow.StaveConnector.type.BOLD_DOUBLE_RIGHT;
+        default:       return Vex.Flow.StaveConnector.type.SINGLE_RIGHT;
     }
 };
 SS.Staff = function(clef, bars) {
