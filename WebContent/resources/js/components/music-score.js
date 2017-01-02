@@ -30,7 +30,7 @@ angular.module('score-stage')
         this.bars = [];
     }
     Column.prototype.addStave = function(stave) {
-        this.height += this.staves.length ? stave.getHeight() : stave.getBottomY();
+        this.height += stave.getBottomY() - stave.y;
         this.staves.push(stave);
         this.updatePadding(this.staves.length - 1);
     };
@@ -72,7 +72,7 @@ angular.module('score-stage')
                 var barlineX = column.x;
                 column.staves.forEach(function(stave) {
                     stave.setX(column.x).setY(y).setWidth(column.width).setNoteStartX(column.x + column.padding.left);
-                    y += stave.getHeight();
+                    y += stave.getBottomY() - stave.y;
                     barlineX = Math.max(barlineX, getBeginBarline(stave).getX());
                 });
                 column.staves.forEach(function(stave) {
@@ -201,7 +201,7 @@ angular.module('score-stage')
     
     function link(scope, element, attrs) {
         
-        scope.staves = [{ clef : 'treble', octave : 4 }, { clef : 'bass', octave : 2 }, { clef : 'bass', octave : 2 }].map(function(item, i) {
+        scope.staves = [{ clef : 'treble', octave : 3 }, { clef : 'bass', octave : 3 }].map(function(item, i) {
             
             var bars = [
                     [3, 'C', { begin : 'REPEAT' }], [3, 'Eb', { end : 'REPEAT' }], [3, 'Eb', { begin : 'REPEAT' }], [3, 'Cb'], [4, 'Cb'], [4, 'Cb', { end : 'REPEAT' }],
