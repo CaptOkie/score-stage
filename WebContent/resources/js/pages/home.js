@@ -16,8 +16,8 @@ angular.module('score-stage')
                     </div>
                 </md-toolbar>
                 
-                <md-content flex layout="column" layout-align="start center">
-                    <ss-music-score flex="none" class="md-margin" layout="column" layout-align="start center"></ss-music-score>
+                <md-content style="overflow-y: scroll;" flex="none" flex-gt-sm="100" layout="row" layout-align="center start">
+                    <ss-music-score flex="100" flex-gt-sm="66" class="md-margin"></ss-music-score>
                 </md-content>
             </div>`
     };
