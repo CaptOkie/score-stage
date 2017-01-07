@@ -12,14 +12,13 @@ angular.module('score-stage')
         
         function render() {
             element.children().empty();
-            console.log(scope.viewWidth, scope.maxWidth, scope.barScale, scope.row);
             if (!scope.viewWidth || !scope.maxWidth || !scope.barScale || !scope.row) {
                 return;
             }
             
             var prev = undefined;
             var height = 0;
-            scope.row.measures.forEach(function(measure, index) {
+            scope.row.measures.forEach(function(measure) {
                 measure.width = (measure.widthNoPadding() / scope.row.widthNoPadding()) * (scope.maxWidth - scope.row.totalPadding()) + measure.totalPadding();
                 measure.x = (prev && (prev.x + prev.width)) || measure.x;
                 measure.formatter.format(measure.voices, measure.widthNoPadding());
@@ -43,19 +42,46 @@ angular.module('score-stage')
                     beam.setContext(context).draw();
                 });
                 
-                if (measure.staves.length > 1) {
-                    var first = measure.staves[0];
-                    var last = measure.staves[measure.staves.length - 1];
-                    var connector = measure.vexEndLarge();
-                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).draw();
-
-                    connector = measure.vexBeginLarge();
-                    var shift = barlineX - measure.x;
-                    if (shift !== 0) {
-                        new Vex.Flow.StaveConnector(first, last).setType(Vex.Flow.StaveConnector.type.SINGLE_LEFT).setContext(context).draw();
+                var start = 0;
+                scope.groups.forEach(function(group, index) {
+                    var end = index === (scope.groups.length - 1) ? measure.staves.length : start + group.count;
+                    
+                    if (start < end - 1) {
+                        var first = measure.staves[start];
+                        var last = measure.staves[end - 1];
+                        var connector = measure.vexEndLarge();
+                        new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).draw();
+                        
+                        connector = measure.vexBeginLarge();
+                        var shift = barlineX - measure.x;
+                        if ((!connector || shift !== 0) && prev) {
+                            new Vex.Flow.StaveConnector(first, last).setType(Vex.Flow.StaveConnector.type.SINGLE_LEFT).setContext(context).draw();
+                        }
+                        if (connector) {
+                            new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift).draw();
+                        }
                     }
-                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift).draw();
+                    
+                    start = end;
+                });
+                if (!prev) {
+                    new Vex.Flow.StaveConnector(measure.staves[0], measure.staves[measure.staves.length - 1]).setType(Vex.Flow.StaveConnector.type.SINGLE_LEFT)
+                        .setContext(context).draw();
                 }
+                
+//                if (measure.staves.length > 1) {
+//                    var first = measure.staves[0];
+//                    var last = measure.staves[measure.staves.length - 1];
+//                    var connector = measure.vexEndLarge();
+//                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).draw();
+//
+//                    connector = measure.vexBeginLarge();
+//                    var shift = barlineX - measure.x;
+//                    if (shift !== 0) {
+//                        new Vex.Flow.StaveConnector(first, last).setType(Vex.Flow.StaveConnector.type.SINGLE_LEFT).setContext(context).draw();
+//                    }
+//                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift).draw();
+//                }
                 prev = measure;
                 height = Math.max(height, y);
             });

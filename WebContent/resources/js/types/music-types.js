@@ -59,7 +59,8 @@ SS.Measure.prototype.vexBegin = function() {
 SS.Measure.prototype.vexBeginLarge = function() {
     switch (this.modifiers.begin) {
         case 'REPEAT': return Vex.Flow.StaveConnector.type.BOLD_DOUBLE_LEFT;
-        default:       return Vex.Flow.StaveConnector.type.SINGLE_LEFT;
+//        default:       return Vex.Flow.StaveConnector.type.SINGLE_LEFT;
+        default:       return undefined;
     }
 };
 SS.Measure.prototype.vexEnd = function() {
@@ -99,4 +100,5 @@ SS.Group = function(name, abbr, count) {
     this.name = name;
     this.abbr = abbr;
     this.count = count;
+    this.visible = true;
 };
