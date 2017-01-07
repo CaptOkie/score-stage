@@ -59,7 +59,6 @@ SS.Measure.prototype.vexBegin = function() {
 SS.Measure.prototype.vexBeginLarge = function() {
     switch (this.modifiers.begin) {
         case 'REPEAT': return Vex.Flow.StaveConnector.type.BOLD_DOUBLE_LEFT;
-//        default:       return Vex.Flow.StaveConnector.type.SINGLE_LEFT;
         default:       return undefined;
     }
 };

@@ -69,19 +69,6 @@ angular.module('score-stage')
                         .setContext(context).draw();
                 }
                 
-//                if (measure.staves.length > 1) {
-//                    var first = measure.staves[0];
-//                    var last = measure.staves[measure.staves.length - 1];
-//                    var connector = measure.vexEndLarge();
-//                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).draw();
-//
-//                    connector = measure.vexBeginLarge();
-//                    var shift = barlineX - measure.x;
-//                    if (shift !== 0) {
-//                        new Vex.Flow.StaveConnector(first, last).setType(Vex.Flow.StaveConnector.type.SINGLE_LEFT).setContext(context).draw();
-//                    }
-//                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift).draw();
-//                }
                 prev = measure;
                 height = Math.max(height, y);
             });
