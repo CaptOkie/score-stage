@@ -7,86 +7,66 @@ angular.module('score-stage')
     
     function link(scope, element, attrs) {
         
-        var width = undefined;
-        var maxWidth = undefined;
-        var barScale = undefined;
-
         var renderer = new Vex.Flow.Renderer(element[0], Vex.Flow.Renderer.Backends.SVG);
         var context = renderer.getContext();
         
-        var queued = false;
         function render() {
-            if (queued) {
+            element.children().empty();
+            console.log(scope.viewWidth, scope.maxWidth, scope.barScale, scope.row);
+            if (!scope.viewWidth || !scope.maxWidth || !scope.barScale || !scope.row) {
                 return;
             }
-            queued = true;
             
-            scope.$applyAsync(function() {
-                if (width && maxWidth && barScale && scope.row) {
-                    element.children().empty();
-                    var prev = undefined;
-                    var height = 0;
-                    scope.row.measures.forEach(function(measure, index) {
-                        measure.width = (measure.widthNoPadding() / scope.row.widthNoPadding()) * (maxWidth - scope.row.totalPadding()) + measure.totalPadding();
-                        measure.x = (prev && (prev.x + prev.width)) || measure.x;
-                        measure.formatter.format(measure.voices, measure.widthNoPadding());
+            var prev = undefined;
+            var height = 0;
+            scope.row.measures.forEach(function(measure, index) {
+                measure.width = (measure.widthNoPadding() / scope.row.widthNoPadding()) * (scope.maxWidth - scope.row.totalPadding()) + measure.totalPadding();
+                measure.x = (prev && (prev.x + prev.width)) || measure.x;
+                measure.formatter.format(measure.voices, measure.widthNoPadding());
 
-                        var y = 0;
-                        var barlineX = measure.x;
-                        measure.staves.forEach(function(stave) {
-                            stave.setX(measure.x).setY(y).setWidth(measure.width).setNoteStartX(measure.x + measure.padding.left);
-                            y += stave.getBottomY() - stave.y;
-                            barlineX = Math.max(barlineX, getBeginBarline(stave).getX());
-                        });
-                        measure.staves.forEach(function(stave) {
-                            getBeginBarline(stave).setX(barlineX);
-                            stave.setContext(context).draw();
-                        });
-                        
-                        measure.voices.forEach(function(voice, index) {
-                            voice.draw(context, measure.staves[index]);
-                        });
-                        measure.beams.forEach(function(beam) {
-                            beam.setContext(context).draw();
-                        });
-                        
-                        if (measure.staves.length > 1) {
-                            var first = measure.staves[0];
-                            var last = measure.staves[measure.staves.length - 1];
-                            var connector = measure.vexEndLarge();
-                            new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).draw();
+                var y = 0;
+                var barlineX = measure.x;
+                measure.staves.forEach(function(stave) {
+                    stave.setX(measure.x).setY(y).setWidth(measure.width).setNoteStartX(measure.x + measure.padding.left);
+                    y += stave.getBottomY() - stave.y;
+                    barlineX = Math.max(barlineX, getBeginBarline(stave).getX());
+                });
+                measure.staves.forEach(function(stave) {
+                    getBeginBarline(stave).setX(barlineX);
+                    stave.setContext(context).draw();
+                });
+                
+                measure.voices.forEach(function(voice, index) {
+                    voice.draw(context, measure.staves[index]);
+                });
+                measure.beams.forEach(function(beam) {
+                    beam.setContext(context).draw();
+                });
+                
+                if (measure.staves.length > 1) {
+                    var first = measure.staves[0];
+                    var last = measure.staves[measure.staves.length - 1];
+                    var connector = measure.vexEndLarge();
+                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).draw();
 
-                            connector = measure.vexBeginLarge();
-                            var shift = barlineX - measure.x;
-                            if (shift !== 0) {
-                                new Vex.Flow.StaveConnector(first, last).setType(Vex.Flow.StaveConnector.type.SINGLE_LEFT).setContext(context).draw();
-                            }
-                            new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift).draw();
-                        }
-                        prev = measure;
-                        height = Math.max(height, y);
-                    });
-                    scope.row.width = maxWidth;
-                    renderer.resize(width, height);
+                    connector = measure.vexBeginLarge();
+                    var shift = barlineX - measure.x;
+                    if (shift !== 0) {
+                        new Vex.Flow.StaveConnector(first, last).setType(Vex.Flow.StaveConnector.type.SINGLE_LEFT).setContext(context).draw();
+                    }
+                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift).draw();
                 }
-                queued = false;
+                prev = measure;
+                height = Math.max(height, y);
             });
+            scope.row.width = scope.maxWidth;
+            renderer.resize(scope.viewWidth, height);
         }
-        
-        timeWatcher(scope, function() {
-            return element[0].offsetWidth;
-        }, function(newValue, oldValue) {
-            width = newValue;
-            maxWidth = newValue - 1;
-            render();
+        render();
+        scope.$on('$destroy', function() {
+            scope.row.offRender();
         });
-        
-        scope.$watch('barScale', function(newValue, oldValue) {
-            barScale = newValue;
-            render();
-        });
-        
-        scope.$watch('row', render);
+        scope.row.onRender(render);
     }
     
     return {
@@ -95,6 +75,8 @@ angular.module('score-stage')
         scope : {
             row : '<',
             groups : '<',
+            viewWidth : '<',
+            maxWidth : '<',
             barScale : '<'
         }
     };
@@ -105,6 +87,7 @@ angular.module('score-stage')
         this.measures = [];
         this.width = 0;
         this.padding = { left : 0, right: 0 };
+        this._queued = false;
     }
     Row.prototype.addMeasure = function(measure) {
         this.measures.push(measure);
@@ -122,10 +105,31 @@ angular.module('score-stage')
 
     function link(scope, element, attrs) {
 
+        Row.prototype.onRender = function(handler) {
+            this.renderHandler = handler;
+        };
+        Row.prototype.offRender = function() {
+            this.renderHandler = undefined;
+        };
+        Row.prototype.render = function() {
+            var self = this;
+            if (!self.renderHandler || self.queued) {
+                return;
+            }
+            
+            self._queued = true;
+            scope.$applyAsync(function() {
+                if (self.renderHandler) {
+                    self.renderHandler();
+                }
+                self._queued = false;
+            });
+        };
+
         scope.rows = undefined;
-        var width = undefined;
-        var maxWidth = undefined;
-        var barScale = undefined;
+        scope.width = undefined;
+        scope.maxWidth = undefined;
+        scope.barScale = scope.barScale || undefined;
         
         function getPrev(measure, index) {
             return measure && measure.bars[index];
@@ -139,7 +143,7 @@ angular.module('score-stage')
             queued = true;
             
             scope.$applyAsync(function() {
-                if (width && maxWidth && barScale && scope.measures) {
+                if (scope.width && scope.maxWidth && scope.barScale && scope.measures) {
                     
                     scope.rows = [];
                     var prevMeasure = undefined;
@@ -172,7 +176,7 @@ angular.module('score-stage')
                             
                             // ** CREATE STAVE ** //
                             
-                            var stave = new Vex.Flow.Stave(0, 0, maxWidth);
+                            var stave = new Vex.Flow.Stave(0, 0, scope.maxWidth);
                             // Set bar begin
                             var modifier = measure.vexBegin();
                             if (modifier) {
@@ -198,11 +202,14 @@ angular.module('score-stage')
                             }
                             measure.addStave(stave);
                         });
-                        measure.joinVoices(barScale);
+                        measure.joinVoices(scope.barScale);
                         var row = scope.rows.length && scope.rows[scope.rows.length - 1];
                         
                         // New Row
-                        if (!row || (row.width + measure.width) > maxWidth) {
+                        if (!row || (row.width + measure.width) > scope.maxWidth) {
+                            if (row) {
+                                row.render();
+                            }
                             row = new Row();
                             scope.rows.push(row);
                             measure.bars.forEach(function(bar, bIndex) {
@@ -223,13 +230,13 @@ angular.module('score-stage')
         timeWatcher(scope, function() {
             return element[0].offsetWidth;
         }, function(newValue, oldValue) {
-            width = newValue;
-            maxWidth = newValue - 1;
+            scope.width = newValue;
+            scope.maxWidth = newValue - 1;
             createRows();
         });
         
         scope.$watch('barScale', function(newValue, oldValue) {
-            barScale = newValue;
+            scope.barScale = newValue;
             createRows();
         });
         
@@ -248,7 +255,7 @@ angular.module('score-stage')
         },
         template :
             `<div layout="column">
-                <ss-score-row ng-repeat="row in rows" row="row" groups="groups" bar-scale="barScale"></ss-score-row>
+                <ss-score-row ng-repeat="row in rows" row="row" groups="groups" view-width="width" max-width="maxWidth" bar-scale="barScale"></ss-score-row>
             </div>`
     }
 } ])
