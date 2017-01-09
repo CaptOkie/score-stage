@@ -100,7 +100,7 @@ angular.module('score-stage')
         this.measures = [];
         this.width = 0;
         this.padding = { left : 0, right: 0 };
-        this._queued = false;
+        this.rendered = false;
     }
     Row.prototype.addMeasure = function(measure) {
         this.measures.push(measure);
@@ -126,119 +126,115 @@ angular.module('score-stage')
         };
         Row.prototype.render = function() {
             var self = this;
-            if (!self.renderHandler || self.queued) {
+            if (!self.renderHandler || self.rendered) {
                 return;
             }
+            self.rendered = true;
+            self.renderHandler();
             
-            self._queued = true;
             scope.$applyAsync(function() {
-                if (self.renderHandler) {
-                    self.renderHandler();
-                }
-                self._queued = false;
+                self.rendered = false;
             });
         };
 
-        scope.rows = undefined;
-        scope.width = undefined;
-        scope.maxWidth = undefined;
+        scope.rows = scope.rows || undefined;
+        scope.width = scope.width || undefined;
+        scope.maxWidth = scope.maxWidth || undefined;
         scope.barScale = scope.barScale || undefined;
         
         function getPrev(measure, index) {
             return measure && measure.bars[index];
         }
         
-        var queued = false;
+        var rendered = false;
         function createRows() {
-            if (queued) {
+            if (!scope.width || !scope.maxWidth || !scope.barScale || !scope.measures || rendered) {
                 return;
             }
-            queued = true;
+            rendered = true;
             
-            scope.$applyAsync(function() {
-                if (scope.width && scope.maxWidth && scope.barScale && scope.measures) {
+            scope.rows = [];
+            var prevMeasure = undefined;
+            scope.measures.forEach(function(measure, mIndex) {
+                measure.reset();
+                measure.bars.forEach(function(bar, bIndex) {
+                    var prev = getPrev(prevMeasure, bIndex);
                     
-                    scope.rows = [];
-                    var prevMeasure = undefined;
-                    scope.measures.forEach(function(measure, mIndex) {
-                        measure.reset();
-                        measure.bars.forEach(function(bar, bIndex) {
-                            var prev = getPrev(prevMeasure, bIndex);
-                            
-                            // ** CREATE VOICE ** //
-                            
-                            var notes = bar.ticks.map(function(tick) {
-                                var keys = tick.notes.map(function(note) {
-                                    return note.letter + note.accidental + '/' + note.octave;
-                                });
-                                var duration = tick.duration + '';
-                                if (tick.isRest()) {
-                                    keys = [ 'r/4' ];
-                                    duration += 'r';
-                                }
-                                return new Vex.Flow.StaveNote({ clef : bar.clef, keys : keys, duration : duration, auto_stem: true });
-                            });
-                            // Connect notes
-                            Vex.Flow.Beam.generateBeams(notes).forEach(function(beam) { 
-                                measure.beams.push(beam);
-                            });
-                            var voice = new Vex.Flow.Voice({ beat_value : measure.timeSig.upper, num_beats : measure.timeSig.lower }).setStrict(false).addTickables(notes);
-                            // Display correct accidentals
-                            Vex.Flow.Accidental.applyAccidentals([ voice ], bar.keySig);
-                            measure.voices.push(voice);
-                            
-                            // ** CREATE STAVE ** //
-                            
-                            var stave = new Vex.Flow.Stave(0, 0, scope.maxWidth);
-                            // Set bar begin
-                            var modifier = measure.vexBegin();
-                            if (modifier) {
-                                stave.setBegBarType(modifier);
-                            }
-                            // Set bar end
-                            modifier = measure.vexEnd();
-                            if (modifier) {
-                                stave.setEndBarType(modifier);
-                            }
-                            // Add time signature if necessary
-                            if (!prevMeasure || prevMeasure.timeSig.vexFormat !== measure.timeSig.vexFormat) {
-                                stave.addTimeSignature(measure.timeSig.vexFormat);
-                            }
-                            // Add key signature if necessary
-                            if (!prev || prev.keySig !== bar.keySig) {
-                                stave.setKeySignature(bar.keySig, prev && prev.keySig);
-                            }
-                            // Add clef
-                            stave.clef = bar.clef;
-                            if (!prev || prev.clef !== bar.clef) {
-                                stave.setClef(bar.clef);
-                            }
-                            measure.addStave(stave);
+                    // ** CREATE VOICE ** //
+                    
+                    var notes = bar.ticks.map(function(tick) {
+                        var keys = tick.notes.map(function(note) {
+                            return note.letter + note.accidental + '/' + note.octave;
                         });
-                        measure.joinVoices(scope.barScale);
-                        var row = scope.rows.length && scope.rows[scope.rows.length - 1];
-                        
-                        // New Row
-                        if (!row || (row.width + measure.width) > scope.maxWidth) {
-                            if (row) {
-                                row.render();
-                            }
-                            row = new Row();
-                            scope.rows.push(row);
-                            measure.bars.forEach(function(bar, bIndex) {
-                                var prev = getPrev(prevMeasure, bIndex);
-                                var cancelKey = prev && prev.keySig !== bar.keySig && prev.keySig;
-                                measure.staves[bIndex].setClef(bar.clef).setKeySignature(bar.keySig, cancelKey);
-                                measure.updatePadding(bIndex);
-                            });
+                        var duration = tick.duration + '';
+                        if (tick.isRest()) {
+                            keys = [ 'r/4' ];
+                            duration += 'r';
                         }
-                        row.addMeasure(measure);
-                        prevMeasure = measure;
+                        return new Vex.Flow.StaveNote({ clef : bar.clef, keys : keys, duration : duration, auto_stem: true });
+                    });
+                    // Connect notes
+                    Vex.Flow.Beam.generateBeams(notes).forEach(function(beam) { 
+                        measure.beams.push(beam);
+                    });
+                    var voice = new Vex.Flow.Voice({ beat_value : measure.timeSig.upper, num_beats : measure.timeSig.lower }).setStrict(false).addTickables(notes);
+                    // Display correct accidentals
+                    Vex.Flow.Accidental.applyAccidentals([ voice ], bar.keySig);
+                    measure.voices.push(voice);
+                    
+                    // ** CREATE STAVE ** //
+                    
+                    var stave = new Vex.Flow.Stave(0, 0, scope.maxWidth);
+                    // Set bar begin
+                    var modifier = measure.vexBegin();
+                    if (modifier) {
+                        stave.setBegBarType(modifier);
+                    }
+                    // Set bar end
+                    modifier = measure.vexEnd();
+                    if (modifier) {
+                        stave.setEndBarType(modifier);
+                    }
+                    // Add time signature if necessary
+                    if (!prevMeasure || prevMeasure.timeSig.vexFormat !== measure.timeSig.vexFormat) {
+                        stave.addTimeSignature(measure.timeSig.vexFormat);
+                    }
+                    // Add key signature if necessary
+                    if (!prev || prev.keySig !== bar.keySig) {
+                        stave.setKeySignature(bar.keySig, prev && prev.keySig);
+                    }
+                    // Add clef
+                    stave.clef = bar.clef;
+                    if (!prev || prev.clef !== bar.clef) {
+                        stave.setClef(bar.clef);
+                    }
+                    measure.addStave(stave);
+                });
+                measure.joinVoices(scope.barScale);
+                var row = scope.rows.length && scope.rows[scope.rows.length - 1];
+                
+                // New Row
+                if (!row || (row.width + measure.width) > scope.maxWidth) {
+                    if (row) {
+                        row.render();
+                    }
+                    row = new Row();
+                    scope.rows.push(row);
+                    measure.bars.forEach(function(bar, bIndex) {
+                        var prev = getPrev(prevMeasure, bIndex);
+                        var cancelKey = prev && prev.keySig !== bar.keySig && prev.keySig;
+                        measure.staves[bIndex].setClef(bar.clef).setKeySignature(bar.keySig, cancelKey);
+                        measure.updatePadding(bIndex);
                     });
                 }
-                queued = false;
+                row.addMeasure(measure);
+                prevMeasure = measure;
+            });
+            scope.$applyAsync(function() {
+                rendered = false;
             });
         }
+        createRows();
         
         timeWatcher(scope, function() {
             return element[0].offsetWidth;
