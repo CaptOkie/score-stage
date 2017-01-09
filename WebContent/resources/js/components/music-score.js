@@ -1,5 +1,11 @@
 angular.module('score-stage')
-.directive('ssScoreRow', [ 'timeWatcher', function(timeWatcher) {
+.factory('scoreConstants', [ function() {
+    return {
+        xShift : 75,
+        minWidth : 100
+    };
+} ])
+.directive('ssScoreRow', [ 'timeWatcher', 'scoreConstants', function(timeWatcher, scoreConstants) {
     
     function getBeginBarline(stave) {
         return stave.getModifiers(Vex.Flow.StaveModifier.Position.BEGIN, 'barlines')[0];
@@ -20,7 +26,7 @@ angular.module('score-stage')
             var height = 0;
             scope.row.measures.forEach(function(measure) {
                 measure.width = (measure.widthNoPadding() / scope.row.widthNoPadding()) * (scope.maxWidth - scope.row.totalPadding()) + measure.totalPadding();
-                measure.x = (prev && (prev.x + prev.width)) || measure.x;
+                measure.x = (prev && (prev.x + prev.width)) || scoreConstants.xShift;
                 measure.formatter.format(measure.voices, measure.widthNoPadding());
 
                 var y = 0;
@@ -46,20 +52,23 @@ angular.module('score-stage')
                 scope.groups.forEach(function(group, index) {
                     var end = index === (scope.groups.length - 1) ? measure.staves.length : start + group.count;
                     
-                    if (start < end - 1) {
-                        var first = measure.staves[start];
-                        var last = measure.staves[end - 1];
-                        var connector = measure.vexEndLarge();
-                        new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).draw();
-                        
-                        connector = measure.vexBeginLarge();
-                        var shift = barlineX - measure.x;
-                        if ((!connector || shift !== 0) && prev) {
-                            new Vex.Flow.StaveConnector(first, last).setType(Vex.Flow.StaveConnector.type.SINGLE_LEFT).setContext(context).draw();
+                    var first = measure.staves[start];
+                    var last = measure.staves[end - 1];
+                    var connector = measure.vexEndLarge();
+                    new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).draw();
+                    
+                    connector = measure.vexBeginLarge();
+                    var shift = barlineX - measure.x;
+                    if (!connector || shift !== 0) {
+                        var type = prev ? Vex.Flow.StaveConnector.type.SINGLE_LEFT : Vex.Flow.StaveConnector.type.DOUBLE;
+                        var conn = new Vex.Flow.StaveConnector(first, last).setType(type);
+                        if (!prev) {
+                            conn.setText(group.abbr);
                         }
-                        if (connector) {
-                            new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift).draw();
-                        }
+                        conn.setContext(context).draw();
+                    }
+                    if (connector) {
+                        new Vex.Flow.StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift).draw();
                     }
                     
                     start = end;
@@ -94,7 +103,7 @@ angular.module('score-stage')
         }
     };
 } ])
-.directive('ssScore', [ 'timeWatcher', function(timeWatcher) {
+.directive('ssScore', [ 'timeWatcher', 'scoreConstants', function(timeWatcher, scoreConstants) {
     
     function Row() {
         this.measures = [];
@@ -210,7 +219,7 @@ angular.module('score-stage')
                     }
                     measure.addStave(stave);
                 });
-                measure.joinVoices(scope.barScale);
+                measure.joinVoices(scoreConstants.minWidth, scope.barScale);
                 var row = scope.rows.length && scope.rows[scope.rows.length - 1];
                 
                 // New Row
@@ -240,7 +249,7 @@ angular.module('score-stage')
             return element[0].offsetWidth;
         }, function(newValue, oldValue) {
             scope.width = newValue;
-            scope.maxWidth = newValue - 1;
+            scope.maxWidth = newValue - 1 - scoreConstants.xShift;
             createRows();
         });
         

@@ -87,12 +87,12 @@ SS.Measure.prototype.updatePadding = function(index) {
     this.padding.right = Math.max(this.padding.right, stave.getWidth() - (stave.getNoteEndX() - stave.getX()));
     this.width += this.totalPadding();
 };
-SS.Measure.prototype.joinVoices = function(barScale) {
+SS.Measure.prototype.joinVoices = function(minWidth, barScale) {
     var formatter = this.formatter = new Vex.Flow.Formatter();
     this.voices.forEach(function(voice) {
         formatter.joinVoices([ voice ]);
     });
-    this.width += (this.formatter.preCalculateMinTotalWidth(this.voices) * barScale);
+    this.width += (Math.max(this.formatter.preCalculateMinTotalWidth(this.voices) || minWidth, minWidth) * barScale);
 };
 
 SS.Group = function(name, abbr, count) {
