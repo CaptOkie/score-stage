@@ -1,5 +1,5 @@
 angular.module('score-stage')
-.factory('timeWatcher', [ '$timeout', function($timeout) {
+.factory('watcher', [ '$timeout', function($timeout) {
     
     return function(scope, func, callback) {
         var value = undefined;
@@ -15,13 +15,13 @@ angular.module('score-stage')
                 value = newValue;
                 scope.$apply();
             }
-            $timeout(watch, 100, false);
+            requestAnimationFrame(watch);
         }
-        $timeout(watch, 100, false);
         function cancel() {
             cancelled = true;
         }
         scope.$on('$destroy', cancel);
+        requestAnimationFrame(watch);
         return cancel;
     };
 } ]);

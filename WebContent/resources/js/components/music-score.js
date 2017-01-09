@@ -5,7 +5,7 @@ angular.module('score-stage')
         minWidth : 100
     };
 } ])
-.directive('ssScoreRow', [ 'timeWatcher', 'scoreConstants', function(timeWatcher, scoreConstants) {
+.directive('ssScoreRow', [ 'scoreConstants', function(scoreConstants) {
     
     function getBeginBarline(stave) {
         return stave.getModifiers(Vex.Flow.StaveModifier.Position.BEGIN, 'barlines')[0];
@@ -103,7 +103,7 @@ angular.module('score-stage')
         }
     };
 } ])
-.directive('ssScore', [ 'timeWatcher', 'scoreConstants', function(timeWatcher, scoreConstants) {
+.directive('ssScore', [ 'watcher', 'scoreConstants', function(watcher, scoreConstants) {
     
     function Row() {
         this.measures = [];
@@ -245,7 +245,7 @@ angular.module('score-stage')
         }
         createRows();
         
-        timeWatcher(scope, function() {
+        watcher(scope, function() {
             return element[0].offsetWidth;
         }, function(newValue, oldValue) {
             scope.width = newValue;
