@@ -9,7 +9,9 @@
     "build-prod": "webpack -p"
   },
   "dependencies": {
-    "vue": "^2.1.8"
+    "vexflow": "^1.2.83",
+    "vue": "^2.1.8",
+    "vue-material": "^0.6.3"
   },
   "devDependencies": {
     "babel-core": "^6.21.0",

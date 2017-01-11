@@ -2,11 +2,12 @@ var path = require('path')
 var webpack = require('webpack')
 
 module.exports = {
-    entry: './src/main.js',
+    entry: { 
+        login : './src/pages/login/login.js'
+    },
     output: {
-        path: path.resolve(__dirname, './dist'),
-        publicPath: '/dist/',
-        filename: 'build.js'
+        path: path.resolve(__dirname, '../score-stage-server/WebContent/resources/'),
+        filename: '[name].js'
     },
     module: {
         rules: [
@@ -42,10 +43,6 @@ module.exports = {
         alias: {
           'vue$': 'vue/dist/vue.common.js'
         }
-    },
-    devServer: {
-        historyApiFallback: true,
-        noInfo: true
     },
     performance: {
         hints: false
