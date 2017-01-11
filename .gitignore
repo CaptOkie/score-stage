@@ -17,5 +17,6 @@ hs_err_pid*
 .settings/
 /target/
 
-# bower resources
-bower_components/
+# npm
+node_modules/
+
