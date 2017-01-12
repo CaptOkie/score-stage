@@ -16,7 +16,8 @@
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
-<script type="text/javascript" src="<spring:url value="${ReqMappings.RESOURCES}/${page}.js"/>"></script>
+<link rel="stylesheet" href="<spring:url value="${ReqMappings.RESOURCES}/${page}/index.css"/>" type="text/css">
+<script type="text/javascript" src="<spring:url value="${ReqMappings.RESOURCES}/${page}/index.js"/>"></script>
 </head>
 
 <body>
