@@ -3,7 +3,7 @@ var path = require('path')
 var webpack = require('webpack')
 
 module.exports = {
-    entry: { 
+    entry: {
         login : './src/pages/login/login.js'
     },
     output: {
@@ -40,7 +40,7 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                loader: ExtractTextPlugin.extract({ loader: 'css-loader?sourceMap' })
+                loader: ExtractTextPlugin.extract({ loader: 'css-loader' })
             }
         ]
     },
