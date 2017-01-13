@@ -17,7 +17,7 @@
 <script>
 	import '../../proxies/mdToolbar';
 	import '../../proxies/mdLayout';
-	import ssMusicScore from '../../components/ssMusicScore';
+	import ssMusicScore from '../../components/ss-music-score';
 
 	export default {
 		name : 'home',

@@ -1,2 +1,2 @@
-import ssMusicScore from './ssMusicScore.vue';
+import ssMusicScore from './ss-music-score.vue';
 export default ssMusicScore

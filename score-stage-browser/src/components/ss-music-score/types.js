@@ -126,6 +126,31 @@ class Group {
     }
 }
 
+class Row {
+    constructor() {
+        this.measures = [];
+        this.width = 0;
+        this.padding = { left : 0, right: 0 };
+        this.rendered = false;
+    }
+
+    addMeasure(measure) {
+        this.measures.push(measure);
+        measure.x = this.width;
+        this.width += measure.width;
+        this.padding.left += measure.padding.left;
+        this.padding.right += measure.padding.right;
+    }
+
+    widthNoPadding() {
+        return this.width - this.totalPadding();
+    }
+
+    totalPadding() {
+        return this.padding.left + this.padding.right;
+    }
+}
+
 export default {
     Note,
     Tick,
