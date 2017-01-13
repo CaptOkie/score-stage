@@ -4,6 +4,6 @@
 
 <tags:page title="Home" page="home">
     <jsp:body>
-        <p>Stuff</p>
+        <div id="home"></div>
     </jsp:body>
 </tags:page>
