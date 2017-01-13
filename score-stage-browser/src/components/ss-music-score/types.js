@@ -1,5 +1,5 @@
 import Vex from 'vexflow';
-const { Barline, StaveConnector } = Vex.Flow;
+const { Barline, StaveConnector, Formatter } = Vex.Flow;
 
 class Note {
     constructor(letter, octave, accidental) {
@@ -109,7 +109,7 @@ class Measure {
     }
 
     joinVoices(minWidth, barScale) {
-        var formatter = this.formatter = new Vex.Flow.Formatter();
+        var formatter = this.formatter = new Formatter();
         this.voices.forEach(function(voice) {
             formatter.joinVoices([ voice ]);
         });
@@ -151,11 +151,12 @@ class Row {
     }
 }
 
-export default {
+export {
     Note,
     Tick,
     TimeSignature,
     Bar,
     Measure,
-    Group
+    Group,
+    Row
 }
