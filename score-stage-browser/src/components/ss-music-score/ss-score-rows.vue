@@ -1,7 +1,7 @@
 <template>
-	<md-layout md-column md-flex v-watch.width="onWidthChanged">
-		<ss-score-row v-for="row in rows" :row="row" :groups="groups" :view-width="width" :max-width="maxWidth" :bar-scale="barScale"></ss-score-row>
-	</md-layout>
+    <md-layout md-column md-flex v-watch.width="onWidthChanged">
+        <ss-score-row v-for="row in rows" :row="row" :groups="groups" :view-width="width" :max-width="maxWidth" :bar-scale="barScale"></ss-score-row>
+    </md-layout>
 </template>
 
 <script>
@@ -19,17 +19,17 @@ function getPrev(measure, index) {
 }
 
 export default {
-	name : 'ss-score-rows',
-	props : [ 'measures', 'groups', 'barScale' ],
-	data() {
-		return {
-			width : 0,
-			maxWidth : 0
-		};
-	},
-	computed : {
-		rows() {
-			if (!this.width || !this.maxWidth || !this.barScale || !this.measures) {
+    name : 'ss-score-rows',
+    props : [ 'measures', 'groups', 'barScale' ],
+    data() {
+        return {
+            width : 0,
+            maxWidth : 0
+        };
+    },
+    computed : {
+        rows() {
+            if (!this.width || !this.maxWidth || !this.barScale || !this.measures) {
                 return;
             }
 
@@ -104,16 +104,16 @@ export default {
                 prevMeasure = measure;
             });
             return rows;
-		}
-	},
-	methods : {
-		onWidthChanged(data) {
-			this.width = data.newWidth;
-			this.maxWidth = this.width - 1 - constants.xShift;
-		}
-	},
-	components : {
-		ssScoreRow
-	}
+        }
+    },
+    methods : {
+        onWidthChanged(data) {
+            this.width = data.newWidth;
+            this.maxWidth = this.width - 1 - constants.xShift;
+        }
+    },
+    components : {
+        ssScoreRow
+    }
 }
 </script>

@@ -1,16 +1,16 @@
 import Vue from 'vue';
 
 Vue.directive('watch', {
-	bind(el, binding) {
-		let checkWidth = binding.modifiers.width;
-		let checkHeight = binding.modifiers.height;
-		if (!checkWidth && !checkHeight) {
-			checkWidth = checkHeight = true;
-		}
-		let width = el.offsetWidth;
-		let height = el.offsetHeight;
+    bind(el, binding) {
+        let checkWidth = binding.modifiers.width;
+        let checkHeight = binding.modifiers.height;
+        if (!checkWidth && !checkHeight) {
+            checkWidth = checkHeight = true;
+        }
+        let width = el.offsetWidth;
+        let height = el.offsetHeight;
 
-		function watch() {
+        function watch() {
             if (el.dataset.watchCancel) {
                 return;
             }
@@ -25,8 +25,8 @@ Vue.directive('watch', {
             requestAnimationFrame(watch);
         }
         requestAnimationFrame(watch);
-	},
-	unbind(el) {
-		el.dataset.watchCancel = true;
-	}
+    },
+    unbind(el) {
+        el.dataset.watchCancel = true;
+    }
 });

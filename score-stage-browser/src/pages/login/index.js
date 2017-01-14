@@ -9,5 +9,5 @@ import mdIcon from 'Proxies/mdIcon';
 import 'Src/common.css';
 
 window.addEventListener('load', function() {
-	new Vue({ el : '#login' });
+    new Vue({ el : '#login' });
 });

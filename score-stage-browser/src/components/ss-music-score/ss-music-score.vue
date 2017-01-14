@@ -1,9 +1,9 @@
 <template>
-	<md-card class="md-flex" style="overflow: visible;">
-		<md-card-content>
-			<ss-score-rows :measures="measures" :groups="groups" :bar-scale="2"></ss-score-rows>
-		</md-card-content>
-	</md-card>
+    <md-card class="md-flex" style="overflow: visible;">
+        <md-card-content>
+            <ss-score-rows :measures="measures" :groups="groups" :bar-scale="2"></ss-score-rows>
+        </md-card-content>
+    </md-card>
 </template>
 
 <script>
@@ -12,9 +12,9 @@ import ssScoreRows from './ss-score-rows.vue';
 import { Measure, TimeSignature, Tick, Note, Bar, Group } from './types';
 
 export default {
-	name : 'ss-music-score',
-	data() {
-		let measures = [
+    name : 'ss-music-score',
+    data() {
+        let measures = [
             new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
             new Measure(new TimeSignature(3,4), [], { end : 'REPEAT' }),
             new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
@@ -56,9 +56,9 @@ export default {
         ];
 
         return { groups, measures };
-	},
-	components : {
-		ssScoreRows
-	}
+    },
+    components : {
+        ssScoreRows
+    }
 }
 </script>
