@@ -43,8 +43,6 @@ class Measure {
         this.timeSig = timeSig;
         this.bars = bars;
         this.modifiers = modifiers;
-        
-        this.reset();
     }
 
     reset() {
@@ -139,7 +137,6 @@ class Row {
         this.measures = [];
         this.width = 0;
         this.padding = { left : 0, right: 0 };
-        this.rendered = false;
     }
 
     addMeasure(measure) {

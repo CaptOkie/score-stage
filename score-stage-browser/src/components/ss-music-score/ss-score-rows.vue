@@ -1,13 +1,14 @@
 <template>
     <md-layout md-column md-flex v-watch.width="onWidthChanged">
-        <ss-score-row v-for="(row, index) in rows" :ss-index="index" :ss-row="row" :ss-groups="ssGroups" :ss-width="width" :ss-max-width="maxWidth" :ss-bar-scale="ssBarScale"></ss-score-row>
+        <div v-for="(row, index) in rows" v-score-row="{ width, maxWidth, barScale : ssBarScale, row, groups : ssGroups, index }"></div>
     </md-layout>
 </template>
 
 <script>
 import Vue from 'vue';
 import 'Proxies/mdLayout';
-import ssScoreRow from './ss-score-row.vue';
+import './score-row';
+// import ssScoreRow from './ss-score-row.vue';
 import 'Directives/watch';
 import constants from './constants';
 import { Row } from './types';
@@ -108,9 +109,6 @@ export default {
             this.width = data.newWidth;
             this.maxWidth = this.width - 1 - constants.xShift;
         }
-    },
-    components : {
-        ssScoreRow
     }
 }
 </script>
