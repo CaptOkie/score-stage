@@ -15,20 +15,20 @@
 </template>
 
 <script>
-	import '../../proxies/mdToolbar';
-	import '../../proxies/mdLayout';
-	import ssMusicScore from '../../components/ss-music-score';
+import 'Proxies/mdToolbar';
+import 'Proxies/mdLayout';
+import ssMusicScore from 'Components/ss-music-score';
 
-	export default {
-		name : 'home',
-		components : {
-			ssMusicScore
-		}
+export default {
+	name : 'home',
+	components : {
+		ssMusicScore
 	}
+}
 </script>
 
 <style>
-	body {
-		overflow-y: scroll;
-	}
+body {
+	overflow-y: scroll;
+}
 </style>

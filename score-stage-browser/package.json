@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "build": "webpack",
-    "build-prod": "webpack -p"
+    "build-prod": "NODE_ENV=production webpack -p"
   },
   "dependencies": {
     "vexflow": "^1.2.83",

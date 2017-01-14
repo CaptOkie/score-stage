@@ -115,6 +115,14 @@ class Measure {
         });
         this.width += (Math.max(this.formatter.preCalculateMinTotalWidth(this.voices) || minWidth, minWidth) * barScale);
     }
+
+    adjustWidth(maxWidth, row) {
+        this.width = (this.widthNoPadding() / row.widthNoPadding()) * (maxWidth - row.totalPadding()) + this.totalPadding();
+    }
+
+    format() {
+        this.formatter.format(this.voices, this.widthNoPadding());
+    }
 }
 
 class Group {

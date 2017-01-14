@@ -1,12 +1,12 @@
 import Vue from 'vue';
 
-import mdLayout from '../../proxies/mdLayout';
-import mdCard from '../../proxies/mdCard';
-import mdInputContainer from '../../proxies/mdInputContainer';
-import mdButton from '../../proxies/mdButton';
-import mdIcon from '../../proxies/mdIcon';
+import mdLayout from 'Proxies/mdLayout';
+import mdCard from 'Proxies/mdCard';
+import mdInputContainer from 'Proxies/mdInputContainer';
+import mdButton from 'Proxies/mdButton';
+import mdIcon from 'Proxies/mdIcon';
 
-import '../../common.css';
+import 'Src/common.css';
 
 window.addEventListener('load', function() {
 	new Vue({ el : '#login' });

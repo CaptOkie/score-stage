@@ -47,20 +47,24 @@ module.exports = {
     },
     resolve: {
         alias: {
-          'vue$': 'vue/dist/vue.common.js'
+          'vue$': 'vue/dist/vue.common.js',
+          'Src' : path.resolve(__dirname, 'src'),
+          'Proxies' : path.resolve(__dirname, 'src/proxies'),
+          'Components' : path.resolve(__dirname, 'src/components'),
+          'Directives' : path.resolve(__dirname, 'src/directives')
         }
     },
     performance: {
         hints: false
     },
-    devtool: '#eval-source-map',
+    devtool: 'eval-source-map',
     plugins: [
         new ExtractTextPlugin({ filename: '[name]/index.css', disable: false, allChunks: true })
     ]
 }
 
 if (process.env.NODE_ENV === 'production') {
-    module.exports.devtool = '#source-map'
+    module.exports.devtool = 'nosources-source-map'
     // http://vue-loader.vuejs.org/en/workflow/production.html
     module.exports.plugins = (module.exports.plugins || []).concat([
         new webpack.DefinePlugin({

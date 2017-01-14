@@ -1,36 +1,53 @@
 <template>
-	<div></div>
+    <div></div>
 </template>
 
 <script>
-	import constants from './constants';
-	import Vex from 'vexflow';
-	const { StaveModifier, Renderer, StaveConnector } = Vex.Flow;
+import Vue from 'vue';
+import constants from './constants';
+import Vex from 'vexflow';
+const { StaveModifier, Renderer, StaveConnector } = Vex.Flow;
 
-    function getBeginBarline(stave) {
-        return stave.getModifiers(StaveModifier.Position.BEGIN, 'barlines')[0];
-    }
-    
-	export default {
-		name : 'ss-score-row',
-		props : [ 'row', 'groups', 'viewWidth', 'maxWidth', 'barScale' ],
-		mounted() {
-	        var renderer = new Renderer(this.$el, Renderer.Backends.SVG);
-	        var context = renderer.getContext();
-	        
-            if (!this.viewWidth || !this.maxWidth || !this.barScale || !this.row) {
+function getBeginBarline(stave) {
+    return stave.getModifiers(StaveModifier.Position.BEGIN, 'barlines')[0];
+}
+
+export default {
+    name : 'ss-score-row',
+    props : [ 'row', 'groups', 'viewWidth', 'maxWidth', 'barScale' ],
+    data() {
+        return { renderer : undefined, unwatch : undefined };
+    },
+    computed : {
+        renderData() {
+            return { width : this.viewWidth, maxWidth : this.maxWidth, barScale : this.barScale, row : this.row, groups : this.groups, renderer : this.renderer };
+        }
+    },
+    methods : {
+        watch(data, oldData) {
+            console.log('watch-trigger');
+            const { width, maxWidth, barScale, row, groups, renderer } = data;
+            if (!width || !maxWidth || !barScale || !row || !groups || !renderer) {
                 return;
             }
-            
-            var prev = undefined;
-            var height = 0;
-            this.row.measures.forEach(measure => {
-                measure.width = (measure.widthNoPadding() / this.row.widthNoPadding()) * (this.maxWidth - this.row.totalPadding()) + measure.totalPadding();
-                measure.x = (prev && (prev.x + prev.width)) || constants.xShift;
-                measure.formatter.format(measure.voices, measure.widthNoPadding());
+            this.unwatch();
+            this.unwatch = undefined;
 
-                var y = 0;
-                var barlineX = measure.x;
+            const svg = this.$el.getElementsByTagName('svg')[0];
+            while (svg.lastChild) {
+                svg.removeChild(svg.lastChild);
+            }
+
+            const context = renderer.getContext();
+            let prev = undefined;
+            let height = 0;
+            row.measures.forEach(measure => {
+                measure.adjustWidth(maxWidth, row);
+                measure.x = (prev && (prev.x + prev.width)) || constants.xShift;
+                measure.format();
+
+                let y = 0;
+                let barlineX = measure.x;
                 measure.staves.forEach(stave => {
                     stave.setX(measure.x).setY(y).setWidth(measure.width).setNoteStartX(measure.x + measure.padding.left);
                     y += stave.getBottomY() - stave.y;
@@ -44,20 +61,20 @@
                 measure.voices.forEach((voice, index) => voice.draw(context, measure.staves[index]));
                 measure.beams.forEach(beam => beam.setContext(context).draw());
                 
-                var start = 0;
-                this.groups.forEach((group, index) => {
-                    var end = index === (this.groups.length - 1) ? measure.staves.length : start + group.count;
+                let start = 0;
+                groups.forEach((group, index) => {
+                    const end = index === (groups.length - 1) ? measure.staves.length : start + group.count;
                     
-                    var first = measure.staves[start];
-                    var last = measure.staves[end - 1];
-                    var connector = measure.vexEndLarge();
+                    const first = measure.staves[start];
+                    const last = measure.staves[end - 1];
+                    let connector = measure.vexEndLarge();
                     new StaveConnector(first, last).setType(connector).setContext(context).draw();
                     
                     connector = measure.vexBeginLarge();
-                    var shift = barlineX - measure.x;
+                    let shift = barlineX - measure.x;
                     if (!connector || shift !== 0) {
-                        var type = prev ? StaveConnector.type.SINGLE_LEFT : StaveConnector.type.DOUBLE;
-                        var conn = new StaveConnector(first, last).setType(type);
+                        let type = prev ? StaveConnector.type.SINGLE_LEFT : StaveConnector.type.DOUBLE;
+                        let conn = new StaveConnector(first, last).setType(type);
                         if (!prev) {
                             conn.setText(group.abbr);
                         }
@@ -76,8 +93,19 @@
                 prev = measure;
                 height = Math.max(height, y);
             });
-            this.row.width = this.maxWidth;
-            renderer.resize(this.viewWidth, height);
-		}
-	}
+            row.width = maxWidth;
+            renderer.resize(width, height);
+
+            Vue.nextTick(() => {
+                this.unwatch = this.$watch('renderData', this.watch);
+            });
+        }
+    },
+    mounted() {
+        this.renderer = new Renderer(this.$el, Renderer.Backends.SVG);
+    },
+    created() {
+        this.unwatch = this.$watch('renderData', this.watch);
+    },
+}
 </script>
