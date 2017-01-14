@@ -14,18 +14,18 @@ function getBeginBarline(stave) {
 
 export default {
     name : 'ss-score-row',
-    props : [ 'row', 'groups', 'viewWidth', 'maxWidth', 'barScale' ],
+    props : [ 'ssIndex', 'ssRow', 'ssGroups', 'ssWidth', 'ssMaxWidth', 'ssBarScale' ],
     data() {
         return { renderer : undefined, unwatch : undefined };
     },
     computed : {
         renderData() {
-            return { width : this.viewWidth, maxWidth : this.maxWidth, barScale : this.barScale, row : this.row, groups : this.groups, renderer : this.renderer };
+            return { width : this.ssWidth, maxWidth : this.ssMaxWidth, barScale : this.ssBarScale, row : this.ssRow, groups : this.ssGroups, renderer : this.renderer };
         }
     },
     methods : {
         watch(data, oldData) {
-            console.log('watch-trigger');
+            console.log('watch-trigger', this.ssIndex);
             const { width, maxWidth, barScale, row, groups, renderer } = data;
             if (!width || !maxWidth || !barScale || !row || !groups || !renderer) {
                 return;
@@ -33,7 +33,7 @@ export default {
             this.unwatch();
             this.unwatch = undefined;
 
-            const svg = this.$el.getElementsByTagName('svg')[0];
+            const svg = this.$el.childNodes[0];
             while (svg.lastChild) {
                 svg.removeChild(svg.lastChild);
             }

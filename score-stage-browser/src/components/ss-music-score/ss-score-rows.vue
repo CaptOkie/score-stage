@@ -1,6 +1,6 @@
 <template>
     <md-layout md-column md-flex v-watch.width="onWidthChanged">
-        <ss-score-row v-for="row in rows" :row="row" :groups="groups" :view-width="width" :max-width="maxWidth" :bar-scale="barScale"></ss-score-row>
+        <ss-score-row v-for="(row, index) in rows" :ss-index="index" :ss-row="row" :ss-groups="ssGroups" :ss-width="width" :ss-max-width="maxWidth" :ss-bar-scale="ssBarScale"></ss-score-row>
     </md-layout>
 </template>
 
@@ -20,22 +20,19 @@ function getPrev(measure, index) {
 
 export default {
     name : 'ss-score-rows',
-    props : [ 'measures', 'groups', 'barScale' ],
+    props : [ 'ssMeasures', 'ssGroups', 'ssBarScale' ],
     data() {
-        return {
-            width : 0,
-            maxWidth : 0
-        };
+        return { width : 0, maxWidth : 0 };
     },
     computed : {
         rows() {
-            if (!this.width || !this.maxWidth || !this.barScale || !this.measures) {
-                return;
+            if (!this.width || !this.maxWidth || !this.ssBarScale || !this.ssMeasures) {
+                return undefined;
             }
 
             const rows = [];
             let prevMeasure = undefined;
-            this.measures.forEach((measure, mIndex) => {
+            this.ssMeasures.forEach((measure, mIndex) => {
                 measure.reset();
                 measure.bars.forEach((bar, bIndex) => {
                     const prev = getPrev(prevMeasure, bIndex);
@@ -86,7 +83,7 @@ export default {
                     }
                     measure.addStave(stave);
                 });
-                measure.joinVoices(constants.minWidth, this.barScale);
+                measure.joinVoices(constants.minWidth, this.ssBarScale);
                 let row = rows.length && rows[rows.length - 1];
                 
                 // New Row
