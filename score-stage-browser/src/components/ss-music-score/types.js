@@ -21,14 +21,15 @@ class Tick {
 }
 
 class TimeSignature {
+    static get C() { return new TimeSignature(4, 4, 'C'); }
+    static get C_BAR() { return new TimeSignature(2, 2, 'C|'); }
+
     constructor(upper, lower, vexFormat = upper + '/' + lower) {
         this.upper = upper;
         this.lower = lower;
         this.vexFormat = vexFormat;
     }
 }
-TimeSignature.C = new TimeSignature(4, 4, 'C');
-TimeSignature.C_BAR = new TimeSignature(2, 2, 'C|');
 
 class Bar {
     constructor(clef, keySig, ticks = []) {

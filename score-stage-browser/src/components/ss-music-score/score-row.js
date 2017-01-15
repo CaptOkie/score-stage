@@ -12,7 +12,6 @@ function update(el, binding) {
     const { width, maxWidth, barScale, row, groups, rowIndex } = binding.value;
     const renderer = renderers[rowIndex] = renderers[rowIndex] || new Renderer(el, Renderer.Backends.SVG);
     el.dataset.rowIndex = rowIndex;
-    console.log('watch-trigger', rowIndex);
     if (!width || !maxWidth || !barScale || !row || !groups) {
         return;
     }
@@ -62,7 +61,8 @@ function update(el, binding) {
                 let type = prev ? StaveConnector.type.SINGLE_LEFT : StaveConnector.type.DOUBLE;
                 let conn = new StaveConnector(first, last).setType(type);
                 if (!prev) {
-                    conn.setText(group.abbr);
+                    const textShift = context.measureText(group.abbr).width - constants.xShift + 40;
+                    conn.setText(group.abbr, { shift_x : textShift });
                 }
                 conn.setContext(context).draw();
             }
