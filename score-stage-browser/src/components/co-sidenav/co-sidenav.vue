@@ -1,5 +1,5 @@
 <template>
-    <md-sidenav ref="sidenav" class="md-left md-fixed">
+    <md-sidenav ref="sidenav" class="md-left">
         <md-toolbar class="md-account-header">
             <p>{{coContextPath}}</p>
         </md-toolbar>

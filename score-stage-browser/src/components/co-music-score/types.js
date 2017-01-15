@@ -116,7 +116,7 @@ class Measure {
     }
 
     adjustWidth(maxWidth, row) {
-        this.width = (this.widthNoPadding() / row.widthNoPadding()) * (maxWidth - row.totalPadding()) + this.totalPadding();
+        this.width = Math.round((this.widthNoPadding() / row.widthNoPadding()) * (maxWidth - row.totalPadding()) + this.totalPadding());
     }
 
     format() {

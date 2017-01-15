@@ -1,6 +1,6 @@
 <template>
     <md-layout md-column md-flex v-co-watch.width="onWidthChanged">
-        <div v-for="(row, rowIndex) in rows" v-co-score-row="{ width, maxWidth, barScale : coBarScale, row, groups : coGroups, rowIndex }"></div>
+        <canvas v-for="(row, index) in rows" :id="'_co-sr-' + index" v-co-score-row="{ width, maxWidth, barScale : coBarScale, row, groups : coGroups }"></canvas>
     </md-layout>
 </template>
 
@@ -105,7 +105,7 @@ export default {
     methods : {
         onWidthChanged(data) {
             this.width = data.newWidth;
-            this.maxWidth = this.width - 1 - constants.xShift;
+            this.maxWidth = this.width - 2 - constants.xShift;
         }
     },
     directives : {

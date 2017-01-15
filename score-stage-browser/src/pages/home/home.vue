@@ -10,9 +10,9 @@
 
             <md-layout md-row>
                 <md-layout md-flex="15" md-hide-small md-hide-xsmall></md-layout>
-                <md-layout md-flex="70" md-flex-small="100" md-flex-xsmall="100" class="md-padding">
+                <div class="md-flex-70 md-flex-small md-flex-xsmall md-padding">
                     <co-music-score></co-music-score>
-                </md-layout>
+                </div>
                 <md-layout md-flex="15" md-hide-small md-hide-xsmall></md-layout>
             </md-layout>
         </div>
