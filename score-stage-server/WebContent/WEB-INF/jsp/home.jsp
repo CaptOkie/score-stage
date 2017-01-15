@@ -4,6 +4,6 @@
 
 <tags:page title="Home" page="home">
     <jsp:body>
-        <div id="home"></div>
+        <co-home co-context-path="<spring:url value="/"/>"></co-home>
     </jsp:body>
 </tags:page>
