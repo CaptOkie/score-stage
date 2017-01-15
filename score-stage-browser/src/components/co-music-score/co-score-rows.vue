@@ -1,15 +1,13 @@
 <template>
-    <md-layout md-column md-flex v-watch.width="onWidthChanged">
-        <div v-for="(row, rowIndex) in rows" v-score-row="{ width, maxWidth, barScale : ssBarScale, row, groups : ssGroups, rowIndex }"></div>
+    <md-layout md-column md-flex v-co-watch.width="onWidthChanged">
+        <div v-for="(row, rowIndex) in rows" v-co-score-row="{ width, maxWidth, barScale : coBarScale, row, groups : coGroups, rowIndex }"></div>
     </md-layout>
 </template>
 
 <script>
-import Vue from 'vue';
 import 'Proxies/mdLayout';
-import './score-row';
-// import ssScoreRow from './ss-score-row.vue';
-import 'Directives/watch';
+import coScoreRow from './co-score-row';
+import coWatch from 'Directives/co-watch';
 import constants from './constants';
 import { Row } from './types';
 import Vex from 'vexflow';
@@ -20,20 +18,20 @@ function getPrev(measure, index) {
 }
 
 export default {
-    name : 'ss-score-rows',
-    props : [ 'ssMeasures', 'ssGroups', 'ssBarScale' ],
+    name : 'co-score-rows',
+    props : [ 'coMeasures', 'coGroups', 'coBarScale' ],
     data() {
         return { width : 0, maxWidth : 0 };
     },
     computed : {
         rows() {
-            if (!this.width || !this.maxWidth || !this.ssBarScale || !this.ssMeasures) {
+            if (!this.width || !this.maxWidth || !this.coBarScale || !this.coMeasures) {
                 return undefined;
             }
 
             const rows = [];
             let prevMeasure = undefined;
-            this.ssMeasures.forEach((measure, mIndex) => {
+            this.coMeasures.forEach((measure, mIndex) => {
                 measure.reset();
                 measure.bars.forEach((bar, bIndex) => {
                     const prev = getPrev(prevMeasure, bIndex);
@@ -84,7 +82,7 @@ export default {
                     }
                     measure.addStave(stave);
                 });
-                measure.joinVoices(constants.minWidth, this.ssBarScale);
+                measure.joinVoices(constants.minWidth, this.coBarScale);
                 let row = rows.length && rows[rows.length - 1];
                 
                 // New Row
@@ -109,6 +107,10 @@ export default {
             this.width = data.newWidth;
             this.maxWidth = this.width - 1 - constants.xShift;
         }
+    },
+    directives : {
+        coScoreRow,
+        coWatch
     }
 }
 </script>

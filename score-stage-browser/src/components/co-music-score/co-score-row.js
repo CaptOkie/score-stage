@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import constants from './constants';
 import Vex from 'vexflow';
 const { StaveModifier, Renderer, StaveConnector } = Vex.Flow;
@@ -80,10 +79,10 @@ function update(el, binding) {
     renderer.resize(width, height);
 }
 
-Vue.directive('score-row', {
+export default {
     bind : update,
     update,
     unbind(el, binding) {
         renderers[el.dataset.rowIndex] = undefined;
     }
-});
+}

@@ -1,6 +1,4 @@
-import Vue from 'vue';
-
-Vue.directive('watch', {
+export default {
     bind(el, binding) {
         let checkWidth = binding.modifiers.width;
         let checkHeight = binding.modifiers.height;
@@ -29,4 +27,4 @@ Vue.directive('watch', {
     unbind(el) {
         el.dataset.watchCancel = true;
     }
-});
+}

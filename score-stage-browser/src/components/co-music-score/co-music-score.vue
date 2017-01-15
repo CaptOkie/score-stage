@@ -1,18 +1,18 @@
 <template>
     <md-card class="md-flex" style="overflow: visible;">
         <md-card-content>
-            <ss-score-rows :ss-measures="measures" :ss-groups="groups" :ss-bar-scale="2"></ss-score-rows>
+            <co-score-rows :co-measures="measures" :co-groups="groups" :co-bar-scale="2"></co-score-rows>
         </md-card-content>
     </md-card>
 </template>
 
 <script>
 import 'Proxies/mdCard';
-import ssScoreRows from './ss-score-rows.vue';
+import coScoreRows from './co-score-rows.vue';
 import { Measure, TimeSignature, Tick, Note, Bar, Group } from './types';
 
 export default {
-    name : 'ss-music-score',
+    name : 'co-music-score',
     data() {
         return { groups : undefined, measures : undefined };
     },
@@ -22,7 +22,7 @@ export default {
         }
     },
     components : {
-        ssScoreRows
+        coScoreRows
     },
     created() {
         // More accurate behaviour
