@@ -1,6 +1,6 @@
 <template>
     <md-layout md-column md-flex v-watch.width="onWidthChanged">
-        <div v-for="(row, index) in rows" v-score-row="{ width, maxWidth, barScale : ssBarScale, row, groups : ssGroups, index }"></div>
+        <div v-for="(row, rowIndex) in rows" v-score-row="{ width, maxWidth, barScale : ssBarScale, row, groups : ssGroups, rowIndex }"></div>
     </md-layout>
 </template>
 

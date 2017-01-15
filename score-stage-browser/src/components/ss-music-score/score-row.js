@@ -9,10 +9,10 @@ function getBeginBarline(stave) {
 
 var renderers = {};
 function update(el, binding) {
-    const { width, maxWidth, barScale, row, groups, index } = binding.value;
-    const renderer = renderers[index] = renderers[index] || new Renderer(el, Renderer.Backends.SVG);
-    el.dataset.rowIndex = index;
-    console.log('watch-trigger', index);
+    const { width, maxWidth, barScale, row, groups, rowIndex } = binding.value;
+    const renderer = renderers[rowIndex] = renderers[rowIndex] || new Renderer(el, Renderer.Backends.SVG);
+    el.dataset.rowIndex = rowIndex;
+    console.log('watch-trigger', rowIndex);
     if (!width || !maxWidth || !barScale || !row || !groups) {
         return;
     }
@@ -45,6 +45,9 @@ function update(el, binding) {
         measure.beams.forEach(beam => beam.setContext(context).draw());
         
         let start = 0;
+        if (!prev) {
+            new StaveConnector(measure.staves[0], measure.staves[measure.staves.length - 1]).setType(StaveConnector.type.SINGLE_LEFT).setContext(context).draw();
+        }
         groups.forEach((group, index) => {
             const end = index === (groups.length - 1) ? measure.staves.length : start + group.count;
             
@@ -69,9 +72,6 @@ function update(el, binding) {
             
             start = end;
         });
-        if (!prev) {
-            new StaveConnector(measure.staves[0], measure.staves[measure.staves.length - 1]).setType(StaveConnector.type.SINGLE_LEFT).setContext(context).draw();
-        }
         
         prev = measure;
         height = Math.max(height, y);
@@ -82,7 +82,7 @@ function update(el, binding) {
 
 Vue.directive('score-row', {
     bind : update,
-    update : update,
+    update,
     unbind(el, binding) {
         renderers[el.dataset.rowIndex] = undefined;
     }
