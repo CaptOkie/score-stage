@@ -3,12 +3,16 @@
 <%@ attribute name="page" required="true"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security"%>
 
 <!DOCTYPE html>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimal-ui" />
+<security:csrfMetaTags/>
+<meta name="_contextPath" content="${pageContext.request.contextPath}"/>
+
 <c:if test="${empty title}">
     <c:set var="title">Score Stage</c:set>
 </c:if>

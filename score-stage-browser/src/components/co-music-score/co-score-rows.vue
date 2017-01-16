@@ -105,7 +105,7 @@ export default {
     methods : {
         onWidthChanged(data) {
             this.width = data.newWidth;
-            this.maxWidth = this.width - 2 - constants.xShift;
+            this.maxWidth = this.width - 1 - constants.xShift;
         }
     },
     directives : {

@@ -1,7 +1,7 @@
 import Vue from 'vue';
-import coHome from './home.vue';
-import 'Src/common.css';
+import home from './home.vue';
+import 'Common/index.css';
 
 window.addEventListener('load', function() {
-    new Vue({ el : 'co-home', components : { coHome } });
+    new Vue({ el : '#home', render : h => h(home) });
 });

@@ -20,9 +20,9 @@ export default {
                 width = newWidth;
                 height = newHeight;
             }
-            setTimeout(watch, 0);
+            requestAnimationFrame(watch);
         }
-        setTimeout(watch, 0);
+        requestAnimationFrame(watch);
     },
     unbind(el) {
         el.dataset.watchCancel = true;

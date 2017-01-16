@@ -6,7 +6,7 @@ import mdInputContainer from 'Proxies/mdInputContainer';
 import mdButton from 'Proxies/mdButton';
 import mdIcon from 'Proxies/mdIcon';
 
-import 'Src/common.css';
+import 'Common/index.css';
 
 window.addEventListener('load', function() {
     new Vue({ el : '#login' });

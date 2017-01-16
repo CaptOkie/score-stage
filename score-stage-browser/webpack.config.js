@@ -48,10 +48,10 @@ module.exports = {
     resolve: {
         alias: {
           'vue$': 'vue/dist/vue.common.js',
-          'Src' : path.resolve(__dirname, 'src'),
           'Proxies' : path.resolve(__dirname, 'src/proxies'),
           'Components' : path.resolve(__dirname, 'src/components'),
-          'Directives' : path.resolve(__dirname, 'src/directives')
+          'Directives' : path.resolve(__dirname, 'src/directives'),
+          'Common' : path.resolve(__dirname, 'src/common')
         }
     },
     performance: {
