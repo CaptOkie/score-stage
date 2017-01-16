@@ -7,7 +7,7 @@
 
         <md-layout md-row>
             <div class="md-flex-15 md-flex-small-0"></div>
-            <div class="md-flex-70 md-flex-small md-padding">
+            <div class="md-flex-70 md-flex-small-100 md-padding">
                 <co-music-score></co-music-score>
             </div>
             <div class="md-flex-15 md-flex-small-0"></div>
@@ -32,11 +32,11 @@ export default {
 
 <style>
 body, #music-score-page {
-    height: 100%;
     width: 100%;
 }
 
 body {
+    min-height: 100%;
     overflow-y: scroll;
 }
 </style>

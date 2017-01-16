@@ -9,7 +9,8 @@ function getBeginBarline(stave) {
 
 var renderers = {};
 function update(el, binding) {
-    const { width, maxWidth, barScale, row, groups } = binding.value;
+    const { common, row } = binding.value;
+    const { width, maxWidth, barScale, groups } = common;
     const id = el.id;
     const isCanvas = el.tagName.toLowerCase() === 'canvas';
     const renderer = renderers[id] = renderers[id] || new Renderer(el, isCanvas ? Renderer.Backends.CANVAS : Renderer.Backends.SVG);
@@ -87,7 +88,7 @@ function update(el, binding) {
     }
 
     // Check if attached to document
-    if (document.getElementById(id)) {
+    if (isCanvas || document.getElementById(id)) {
         render();
     }
     else {
