@@ -4,7 +4,7 @@
 <%@ taglib tagdir="/WEB-INF/tags/" prefix="tags"%>
 
 <tags:page page="login">
-    <md-layout id="login" v-cloak md-column>
+    <md-layout id="login-page" v-cloak md-column>
         <md-layout md-row md-align="center">
             <h1 class="md-display-1 md-primary">Score Stage</h1>
         </md-layout>

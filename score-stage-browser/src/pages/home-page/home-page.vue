@@ -1,17 +1,17 @@
 <template>
-    <div id="home">
+    <div id="home-page">
         <md-toolbar>
             <h1 class="md-title md-flex">Score Stage</h1>
             <co-logout v-once></co-logout>
         </md-toolbar>
 
         <md-layout md-row md-align="center">
-            <div class="md-flex-small-100 md-flex-medium-70 md-flex-50">
+            <div class="md-flex-small md-flex-medium-70 md-flex-50">
                 <md-layout md-row style="flex-wrap: nowrap;" class="md-margin">
                     <h1 class="md-display-1 md-flex-100" style="min-width: 50%;">Music Scores</h1>
 
                     <md-layout md-column md-align="center">
-                        <md-button class="md-fab" style="margin-right: 0;">
+                        <md-button v-once :href="MUSIC_SCORE" class="md-fab" style="margin-right: 0;">
                             <md-icon>add</md-icon>
                         </md-button>
                     </md-layout>
@@ -28,9 +28,6 @@
                     </md-list-item>
                 </md-list>
             </div>
-            <!-- <div class="md-flex-70 md-flex-small md-flex-xsmall md-padding">
-                <co-music-score></co-music-score>
-            </div> -->
         </md-layout>
     </div>
 </template>
@@ -43,11 +40,12 @@ import 'Proxies/mdIcon';
 import 'Proxies/mdList';
 import 'Proxies/mdWhiteframe';
 import coLogout from 'Components/co-logout';
+import { MUSIC_SCORE } from 'Common/urls';
 
 export default {
     name : 'home',
     data() {
-        return { scores : [ 1, 2, 3, 4, 5 ] };
+        return { MUSIC_SCORE, scores : [ 1, 2, 3, 4, 5 ] };
     },
     components : {
         coLogout
@@ -56,15 +54,6 @@ export default {
 </script>
 
 <style>
-body, #home {
-    height: 100%;
-    width: 100%;
-}
-
-body {
-    overflow-y: scroll;
-}
-
 .md-list-item.md-margin {
     margin-top: 8px;
     margin-bottom: 8px;

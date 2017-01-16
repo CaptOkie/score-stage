@@ -4,8 +4,9 @@ var webpack = require('webpack')
 
 module.exports = {
     entry: {
-        login: './src/pages/login/index.js',
-        home: './src/pages/home/index.js'
+        'login': './src/pages/login-page/index.js',
+        'home': './src/pages/home-page/index.js',
+        'music-score': './src/pages/music-score-page/index.js'
     },
     output: {
         path: path.resolve(__dirname, '../score-stage-server/WebContent/resources/'),

@@ -2,8 +2,8 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@ taglib tagdir="/WEB-INF/tags/" prefix="tags"%>
 
-<tags:page title="Home" page="home">
+<tags:page title="Music Score" page="music-score">
     <jsp:body>
-        <div id="home-page"></div>
+        <div id="music-score-page"></div>
     </jsp:body>
 </tags:page>
