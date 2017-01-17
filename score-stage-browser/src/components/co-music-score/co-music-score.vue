@@ -25,6 +25,9 @@ export default {
         coScoreRows
     },
     created() {
+        // this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
+        // this.groups = [ new Group('Default', 'Def') ];
+
         // More accurate behaviour
         setTimeout(() => {
             this.measures = [

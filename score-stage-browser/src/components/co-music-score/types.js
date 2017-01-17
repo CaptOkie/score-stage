@@ -54,6 +54,7 @@ class Measure {
         this.formatter = undefined;
         this.voices = [];
         this.beams = [];
+        this.connectors = [];
     }
 
     widthNoPadding() {
@@ -122,6 +123,32 @@ class Measure {
     format() {
         this.formatter.format(this.voices, this.widthNoPadding());
     }
+
+    getStave(y) {
+        let prev = undefined;
+        for (const stave of this.staves) {
+            if (stave.y > y) {
+                break;
+            }
+            prev = stave;
+        }
+        return stave;
+    }
+
+    getFirst(field) {
+        return this[field][0]
+    }
+
+    getLast(field) {
+        field = this[field];
+        return field[field.length - 1];
+    }
+
+    draw() {
+        [ 'staves', 'voices', 'beams', 'connectors' ].forEach(field => {
+            this[field].forEach(item => item.draw())
+        });
+    }
 }
 
 class Group {
@@ -154,6 +181,29 @@ class Row {
 
     totalPadding() {
         return this.padding.left + this.padding.right;
+    }
+
+    getMeasure(x) {
+        let prev = undefined;
+        for (const measure of this.measures) {
+            if (measure.x > x) {
+                break;
+            }
+            prev = measure;
+        }
+        return prev;
+    }
+
+    getFirst() {
+        return this.measures[0];
+    }
+
+    getLast() {
+        return this.measures[this.measures.length - 1];
+    }
+
+    draw() {
+        this.measures.forEach(measure => measure.draw());
     }
 }
 

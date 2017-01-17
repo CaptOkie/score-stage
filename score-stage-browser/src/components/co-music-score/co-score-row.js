@@ -26,7 +26,6 @@ function update(el, binding) {
             }
         }
 
-        const toDraw = [];
         const context = renderer.getContext();
         let prev = undefined;
         let height = 0;
@@ -44,15 +43,17 @@ function update(el, binding) {
             });
             measure.staves.forEach(stave => {
                 getBeginBarline(stave).setX(barlineX);
-                toDraw.push(stave.setContext(context));
+                stave.setContext(context);
             });
             
-            measure.voices.forEach((voice, index) => toDraw.push(voice.setContext(context).setStave(measure.staves[index])));
-            measure.beams.forEach(beam => toDraw.push(beam.setContext(context)));
+            measure.voices.forEach((voice, index) => voice.setContext(context).setStave(measure.staves[index]));
+            measure.beams.forEach(beam => beam.setContext(context));
             
             let start = 0;
             if (!prev) {
-                toDraw.push(new StaveConnector(measure.staves[0], measure.staves[measure.staves.length - 1]).setType(StaveConnector.type.SINGLE_LEFT).setContext(context));
+                const conn = new StaveConnector(measure.staves[0], measure.staves[measure.staves.length - 1])
+                    .setType(StaveConnector.type.SINGLE_LEFT).setContext(context);
+                measure.connectors.push(conn);
             }
             groups.forEach((group, index) => {
                 const end = index === (groups.length - 1) ? measure.staves.length : start + group.count;
@@ -60,7 +61,7 @@ function update(el, binding) {
                 const first = measure.staves[start];
                 const last = measure.staves[end - 1];
                 let connector = measure.vexEndLarge();
-                toDraw.push(new StaveConnector(first, last).setType(connector).setContext(context));
+                measure.connectors.push(new StaveConnector(first, last).setType(connector).setContext(context));
                 
                 connector = measure.vexBeginLarge();
                 let shift = barlineX - measure.x;
@@ -70,10 +71,10 @@ function update(el, binding) {
                     if (!prev) {
                         conn.setText(group.abbr);
                     }
-                    toDraw.push(conn.setContext(context));
+                    measure.connectors.push(conn.setContext(context));
                 }
                 if (connector) {
-                    toDraw.push(new StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift));
+                    measure.connectors.push(new StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift));
                 }
                 
                 start = end;
@@ -84,7 +85,7 @@ function update(el, binding) {
         });
         row.width = maxWidth;
         renderer.resize(width, height);
-        toDraw.forEach(drawable => drawable.draw());
+        row.draw();
     }
 
     // Check if attached to document

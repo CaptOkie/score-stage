@@ -1,8 +1,8 @@
 <template>
     <md-layout md-column md-flex v-co-watch.width="onWidthChanged">
-        <canvas class="_co-score-row-canvas" v-for="(row, index) in rows" :id="'_co-score-row-' + index" v-co-score-row="{ common, row }"
+        <canvas class="_co-score-row-canvas" v-for="(row, index) in rows" :id="getCanvasId(index)" v-co-score-row="{ common, row }"
                 @click.prevent="click($event, index)" @mousemove.prevent="mousemove($event, index)" @contextmenu.prevent="contextmenu($event, index)">
-         </canvas>
+        </canvas>
 
         <md-menu ref="menu" style="display: none;" :md-size="5" :md-offset-x="menuX" :md-offset-y="menuY">
             <div md-menu-trigger></div>
@@ -34,6 +34,72 @@ import { Row } from './types';
 import Vex from 'vexflow';
 const { StaveNote, Beam, Voice, Accidental, Stave } = Vex.Flow;
 
+class Position {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+class Canvas {
+    static createId(index) { return '_co-score-row-' + index; }
+
+    constructor(index) {
+        this.index = index;
+        this.id = Canvas.createId(index);
+        this.el = document.getElementById(this.id);
+        this.context = this.el.getContext('2d');
+    }
+
+    getPosition(event) {
+        const rect = this.el.getBoundingClientRect();
+        return new Position(event.clientX - rect.left, event.clientY - rect.top);
+    }
+
+    drawLine(startX, startY, endX, endY, options = {}) {
+        this.context.save();
+        this.context.beginPath();
+        this.context.moveTo(startX, startY);
+        if (options.width) {
+            this.context.lineWidth = options.width;
+        }
+        this.context.lineTo(endX, endY);
+        if (options.stroke) {
+            this.context.strokeStyle = options.stroke;
+        }
+        if (options.alpha !== undefined && options.alpha !== null) {
+            this.context.globalAlpha = options.alpha;
+        }
+        this.context.stroke();
+        this.context.closePath();
+        this.context.restore();
+    }
+
+    drawCursor(measure) {
+        const box = measure.voices.reduce((prev, voice) => {
+            const first = voice.getTickables()[0];
+            if (first) {
+                const box = first.getBoundingBox();
+                if (prev.x > box.x) {
+                    return box;
+                }
+            }
+            return prev;
+        }, { x : 0, width : 0 });
+        const stave = measure.getLast('staves');
+        let x = box.x + (box.width / 2);
+        if (!x) {
+            x = stave.getNoteStartX() + 24;
+        }
+        this.drawLine(x, 0, x, stave.getBottomY(), { width : 3, stroke : '#2196F3', alpha : 0.5 });
+    }
+
+    drawMeasure(measure) {
+        this.context.clearRect(measure.x, 0, measure.width, measure.getLast('staves').getBottomY());
+        measure.draw();
+    }
+}
+
 function getPrev(measure, index) {
     return measure && measure.bars[index];
 }
@@ -42,7 +108,7 @@ export default {
     name : 'co-score-rows',
     props : [ 'coMeasures', 'coGroups', 'coBarScale' ],
     data() {
-        return { width : 0, maxWidth : 0, menuX : 0, menuY : 0 };
+        return { width : 0, maxWidth : 0, menuX : 0, menuY : 0, measure : undefined, canvas : undefined };
     },
     computed : {
         common() {
@@ -123,6 +189,16 @@ export default {
                 row.addMeasure(measure);
                 prevMeasure = measure;
             });
+            this.$nextTick(() => {
+                let index = (this.canvas && this.canvas.index) || 0;
+                if (index >= this.rows.length) {
+                    index = 0;
+                }
+                this.canvas = new Canvas(index);
+                const row = this.rows[index];
+                this.measure = (this.measure && row.getMeasure(this.measure.x)) || row.getFirst();
+                this.canvas.drawCursor(this.measure);
+            });
             return rows;
         }
     },
@@ -131,8 +207,19 @@ export default {
             this.width = data.newWidth;
             this.maxWidth = this.width - 1 - constants.xShift;
         },
+        getCanvasId : Canvas.createId,
         click(event, index) {
-            console.log('Clicked row', index);
+            const canvas = this.canvas && this.canvas.index === index ? this.canvas : new Canvas(index);
+            const pos = canvas.getPosition(event);
+            const row = this.rows[index];
+            const measure = row.getMeasure(pos.x) || this.measure;
+
+            if (this.measure) {
+                this.canvas.drawMeasure(this.measure);
+            }
+            canvas.drawCursor(measure);
+            this.measure = measure;
+            this.canvas = canvas;
         },
         mousemove(event, index) {
             console.log('Mouse moved', index);
@@ -140,7 +227,10 @@ export default {
         contextmenu(event, index) {
             this.menuX = event.clientX;
             this.menuY = event.clientY;
-            this.$nextTick(() => { this.$refs.menu.open() });
+            this.$nextTick(() => {
+                this.$refs.menu.open()
+                this.click(event, index);
+            });
         }
     },
     directives : {

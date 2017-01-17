@@ -8,7 +8,7 @@
         <md-layout md-row>
             <div class="md-flex-15 md-flex-small-0"></div>
             <div class="md-flex-70 md-flex-small-100 md-padding">
-                <co-music-score></co-music-score>
+                <co-music-score style="min-height: 750px;"></co-music-score>
             </div>
             <div class="md-flex-15 md-flex-small-0"></div>
         </md-layout>
