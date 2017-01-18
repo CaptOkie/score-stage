@@ -1,14 +1,14 @@
 <template>
     <md-card class="md-flex" style="overflow: visible;">
         <md-card-content>
-            <co-score-rows :co-measures="measures" :co-groups="groups" :co-bar-scale="2"></co-score-rows>
+            <co-score-editor :co-measures="measures" :co-groups="groups" :co-bar-scale="2"></co-score-editor>
         </md-card-content>
     </md-card>
 </template>
 
 <script>
 import 'Proxies/mdCard';
-import coScoreRows from './co-score-rows.vue';
+import coScoreEditor from './co-score-editor.vue';
 import { Measure, TimeSignature, Tick, Note, Bar, Group } from './types';
 
 export default {
@@ -22,7 +22,7 @@ export default {
         }
     },
     components : {
-        coScoreRows
+        coScoreEditor
     },
     created() {
         // this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];

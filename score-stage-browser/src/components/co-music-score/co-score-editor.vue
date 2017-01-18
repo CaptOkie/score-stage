@@ -1,7 +1,6 @@
 <template>
     <md-layout md-column md-flex v-co-watch.width="onWidthChanged">
-        <canvas class="_co-score-row-canvas" v-for="(row, index) in rows" :id="getCanvasId(index)" v-co-score-row="{ common, row }"
-                @click.prevent="click($event, index)" @mousemove.prevent="mousemove($event, index)" @contextmenu.prevent="contextmenu($event, index)">
+        <canvas @click.prevent="click($event)" @mousemove.prevent="mousemove($event)" @contextmenu.prevent="contextmenu($event)">
         </canvas>
 
         <md-menu ref="menu" style="display: none;" :md-size="5" :md-offset-x="menuX" :md-offset-y="menuY">
@@ -27,78 +26,11 @@
 import 'Proxies/mdLayout';
 import 'Proxies/mdIcon';
 import 'Proxies/mdMenu';
-import coScoreRow from './co-score-row';
 import coWatch from 'Directives/co-watch';
 import constants from './constants';
-import { Row } from './types';
+import { Row, Rows, Position, Canvas } from './types';
 import Vex from 'vexflow';
-const { StaveNote, Beam, Voice, Accidental, Stave } = Vex.Flow;
-
-class Position {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-}
-
-class Canvas {
-    static createId(index) { return '_co-score-row-' + index; }
-
-    constructor(index) {
-        this.index = index;
-        this.id = Canvas.createId(index);
-        this.el = document.getElementById(this.id);
-        this.context = this.el.getContext('2d');
-    }
-
-    getPosition(event) {
-        const rect = this.el.getBoundingClientRect();
-        return new Position(event.clientX - rect.left, event.clientY - rect.top);
-    }
-
-    drawLine(startX, startY, endX, endY, options = {}) {
-        this.context.save();
-        this.context.beginPath();
-        this.context.moveTo(startX, startY);
-        if (options.width) {
-            this.context.lineWidth = options.width;
-        }
-        this.context.lineTo(endX, endY);
-        if (options.stroke) {
-            this.context.strokeStyle = options.stroke;
-        }
-        if (options.alpha !== undefined && options.alpha !== null) {
-            this.context.globalAlpha = options.alpha;
-        }
-        this.context.stroke();
-        this.context.closePath();
-        this.context.restore();
-    }
-
-    drawCursor(measure) {
-        const box = measure.voices.reduce((prev, voice) => {
-            const first = voice.getTickables()[0];
-            if (first) {
-                const box = first.getBoundingBox();
-                if (prev.x > box.x) {
-                    return box;
-                }
-            }
-            return prev;
-        }, { x : 0, width : 0 });
-        const stave = measure.getLast('staves');
-        let x = box.x + (box.width / 2);
-        if (!x) {
-            x = stave.getNoteStartX() + 24;
-        }
-        this.drawLine(x, 0, x, stave.getBottomY(), { width : 3, stroke : '#2196F3', alpha : 0.5 });
-    }
-
-    drawMeasure(measure) {
-        this.context.clearRect(measure.x, 0, measure.width, measure.getLast('staves').getBottomY());
-        measure.draw();
-    }
-}
+const { StaveNote, Beam, Voice, Accidental, Stave, Renderer } = Vex.Flow;
 
 function getPrev(measure, index) {
     return measure && measure.bars[index];
@@ -108,14 +40,14 @@ export default {
     name : 'co-score-rows',
     props : [ 'coMeasures', 'coGroups', 'coBarScale' ],
     data() {
-        return { width : 0, maxWidth : 0, menuX : 0, menuY : 0, measure : undefined, canvas : undefined };
+        return {
+            width : 0, maxWidth : 0, menuX : 0, menuY : 0,
+            measure : undefined, canvas : undefined, renderer : undefined
+        };
     },
     computed : {
-        common() {
-            return { width : this.width, maxWidth : this.maxWidth, barScale : this.coBarScale, groups : this.coGroups };
-        },
         rows() {
-            if (!this.width || !this.maxWidth || !this.coBarScale || !this.coMeasures) {
+            if (!this.width || !this.maxWidth || !this.coBarScale || !this.coMeasures || !this.coGroups) {
                 return undefined;
             }
 
@@ -177,7 +109,7 @@ export default {
                 
                 // New Row
                 if (!row || (row.width + measure.width) > this.maxWidth) {
-                    row = new Row();
+                    row = new Row(row ? row.y + row.height : 0);
                     rows.push(row);
                     measure.bars.forEach((bar, bIndex) => {
                         let prev = getPrev(prevMeasure, bIndex);
@@ -189,17 +121,9 @@ export default {
                 row.addMeasure(measure);
                 prevMeasure = measure;
             });
-            this.$nextTick(() => {
-                let index = (this.canvas && this.canvas.index) || 0;
-                if (index >= this.rows.length) {
-                    index = 0;
-                }
-                this.canvas = new Canvas(index);
-                const row = this.rows[index];
-                this.measure = (this.measure && row.getMeasure(this.measure.x)) || row.getFirst();
-                this.canvas.drawCursor(this.measure);
-            });
-            return rows;
+            this.measure = rows[0].measures[0];
+            rows.forEach(row => row.setup(this.renderer.getContext(), this.maxWidth, this.coGroups));
+            return new Rows(rows);
         }
     },
     methods : {
@@ -207,34 +131,46 @@ export default {
             this.width = data.newWidth;
             this.maxWidth = this.width - 1 - constants.xShift;
         },
-        getCanvasId : Canvas.createId,
-        click(event, index) {
-            const canvas = this.canvas && this.canvas.index === index ? this.canvas : new Canvas(index);
-            const pos = canvas.getPosition(event);
-            const row = this.rows[index];
-            const measure = row.getMeasure(pos.x) || this.measure;
-
-            if (this.measure) {
-                this.canvas.drawMeasure(this.measure);
-            }
-            canvas.drawCursor(measure);
-            this.measure = measure;
-            this.canvas = canvas;
+        click(event) {
+            const pos = this.canvas.getPosition(event);
+            const row = this.rows.getRow(pos.y);
+            this.measure = row.getMeasure(pos.x) || this.measure;
         },
-        mousemove(event, index) {
-            console.log('Mouse moved', index);
+        mousemove(event) {
+            const pos = this.canvas.getPosition(event);
+            // console.log('Mouse moved', pos);
         },
-        contextmenu(event, index) {
+        contextmenu(event) {
+            this.click(event);
             this.menuX = event.clientX;
             this.menuY = event.clientY;
             this.$nextTick(() => {
                 this.$refs.menu.open()
-                this.click(event, index);
             });
         }
     },
+    watch : {
+        measure(newVal, oldVal) {
+            if (this.canvas) {
+                if (oldVal) {
+                    this.canvas.drawMeasure(oldVal);
+                }
+                if (newVal) {
+                    this.canvas.drawCursor(newVal);
+                }
+            }
+        },
+        rows(rows) {
+            const row = rows.getLast();
+            this.renderer.resize(this.width, row.y + row.height);
+            rows.draw();
+        }
+    },
+    mounted() {
+        this.canvas = new Canvas(this.$el.firstChild);
+        this.renderer = new Renderer(this.canvas.el, Renderer.Backends.CANVAS);
+    },
     directives : {
-        coScoreRow,
         coWatch
     }
 }

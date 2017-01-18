@@ -1,5 +1,6 @@
+import constants from './constants';
 import Vex from 'vexflow';
-const { Barline, StaveConnector, Formatter } = Vex.Flow;
+const { Barline, StaveConnector, Formatter, StaveModifier } = Vex.Flow;
 
 class Note {
     constructor(letter, octave, accidental) {
@@ -48,7 +49,9 @@ class Measure {
 
     reset() {
         this.x = 0;
+        this.y = 0;
         this.width = 0;
+        this.height = 0;
         this.padding = { left : 0, right : 0 };
         this.staves = [];
         this.formatter = undefined;
@@ -97,6 +100,9 @@ class Measure {
 
     addStave(stave) {
         this.staves.push(stave);
+        stave.setY(this.height);
+        this.height += (stave.getBottomY() - stave.y);
+
         this.updatePadding(this.staves.length - 1);
     }
 
@@ -117,7 +123,9 @@ class Measure {
     }
 
     adjustWidth(maxWidth, row) {
+        console.log('Before', this.width);
         this.width = Math.floor((this.widthNoPadding() / row.widthNoPadding()) * (maxWidth - row.totalPadding()) + this.totalPadding());
+        console.log('After', this.width);
     }
 
     format() {
@@ -136,12 +144,23 @@ class Measure {
     }
 
     getFirst(field) {
-        return this[field][0]
+        return this[field][0];
     }
 
     getLast(field) {
         field = this[field];
         return field[field.length - 1];
+    }
+
+    setPosition(x, y) {
+        this.x = x;
+        this.y = y;
+        let prev = undefined;
+        this.staves.forEach(stave => {
+            let y = prev ? prev.getBottomY() : this.y;
+            stave.setY(y);
+            prev = stave;
+        });
     }
 
     draw() {
@@ -161,16 +180,20 @@ class Group {
 }
 
 class Row {
-    constructor() {
+    constructor(y) {
         this.measures = [];
+        this.x = 0;
+        this.y = y;
         this.width = 0;
+        this.height = 0;
         this.padding = { left : 0, right: 0 };
     }
 
     addMeasure(measure) {
         this.measures.push(measure);
-        measure.x = this.width;
+        measure.setPosition(this.width, this.y);
         this.width += measure.width;
+        this.height = Math.max(this.height, measure.height);
         this.padding.left += measure.padding.left;
         this.padding.right += measure.padding.right;
     }
@@ -202,8 +225,158 @@ class Row {
         return this.measures[this.measures.length - 1];
     }
 
+    setup(context, maxWidth, groups) {
+        function getBeginBarline(stave) {
+            return stave.getModifiers(StaveModifier.Position.BEGIN, 'barlines')[0];
+        }
+
+        let prev = undefined;
+        this.measures.forEach(measure => {
+            measure.adjustWidth(maxWidth, this);
+            measure.x = (prev && (prev.x + prev.width)) || constants.xShift;
+            measure.format();
+
+            let barlineX = measure.x;
+            measure.staves.forEach(stave => {
+                stave.setX(measure.x).setWidth(measure.width).setNoteStartX(measure.x + measure.padding.left);
+                barlineX = Math.max(barlineX, getBeginBarline(stave).getX());
+            });
+            measure.staves.forEach(stave => {
+                getBeginBarline(stave).setX(barlineX);
+                stave.setContext(context);
+            });
+            
+            measure.voices.forEach((voice, index) => voice.setContext(context).setStave(measure.staves[index]));
+            measure.beams.forEach(beam => beam.setContext(context));
+            
+            let start = 0;
+            if (!prev) {
+                const conn = new StaveConnector(measure.staves[0], measure.staves[measure.staves.length - 1])
+                    .setType(StaveConnector.type.SINGLE_LEFT).setContext(context);
+                measure.connectors.push(conn);
+            }
+            groups.forEach((group, index) => {
+                const end = index === (groups.length - 1) ? measure.staves.length : start + group.count;
+                
+                const first = measure.staves[start];
+                const last = measure.staves[end - 1];
+                let connector = measure.vexEndLarge();
+                measure.connectors.push(new StaveConnector(first, last).setType(connector).setContext(context));
+                
+                connector = measure.vexBeginLarge();
+                let shift = barlineX - measure.x;
+                if (!connector || shift !== 0) {
+                    let type = prev ? StaveConnector.type.SINGLE_LEFT : StaveConnector.type.DOUBLE;
+                    let conn = new StaveConnector(first, last).setType(type);
+                    if (!prev) {
+                        conn.setText(group.abbr);
+                    }
+                    measure.connectors.push(conn.setContext(context));
+                }
+                if (connector) {
+                    measure.connectors.push(new StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift));
+                }
+                
+                start = end;
+            });
+            
+            prev = measure;
+        });
+        this.width = maxWidth;
+    }
+
     draw() {
         this.measures.forEach(measure => measure.draw());
+    }
+}
+
+class Rows {
+    constructor(rows) {
+        this.rows = rows;
+    }
+
+    getRow(y) {
+        let prev = undefined;
+        for (const row of this.rows) {
+            if (row.y > y) {
+                break;
+            }
+            prev = row;
+        }
+        return prev;
+    }
+
+    draw() {
+        this.rows.forEach(row => row.draw());
+    }
+
+    getLast() {
+        return this.rows[this.rows.length - 1];
+    }
+}
+
+class Position {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+class Canvas {
+    constructor(el) {
+        this.el = el;
+        this.context = el.getContext('2d');
+    }
+
+    getPosition(event) {
+        const rect = this.el.getBoundingClientRect();
+        return new Position(event.clientX - rect.left, event.clientY - rect.top);
+    }
+
+    drawLine(startX, startY, endX, endY, options = {}) {
+        this.context.save();
+        this.context.beginPath();
+        this.context.moveTo(startX, startY);
+        if (options.width) {
+            this.context.lineWidth = options.width;
+        }
+        this.context.lineTo(endX, endY);
+        if (options.stroke) {
+            this.context.strokeStyle = options.stroke;
+        }
+        if (options.alpha !== undefined && options.alpha !== null) {
+            this.context.globalAlpha = options.alpha;
+        }
+        this.context.stroke();
+        this.context.closePath();
+        this.context.restore();
+        return this;
+    }
+
+    drawCursor(measure) {
+        const box = measure.voices.reduce((prev, voice) => {
+            const first = voice.getTickables()[0];
+            if (first) {
+                const box = first.getBoundingBox();
+                if (prev.x > box.x) {
+                    return box;
+                }
+            }
+            return prev;
+        }, { x : 0, width : 0 });
+        const stave = measure.getLast('staves');
+        let x = box.x + (box.width / 2);
+        if (!x) {
+            x = stave.getNoteStartX() + 24;
+        }
+        this.drawLine(x, measure.y, x, stave.getBottomY(), { width : 3, stroke : '#2196F3', alpha : 0.5 });
+        return this;
+    }
+
+    drawMeasure(measure) {
+        this.context.clearRect(measure.x, measure.y, measure.width, measure.getLast('staves').getBottomY() - measure.y);
+        measure.draw();
+        return this;
     }
 }
 
@@ -214,5 +387,8 @@ export {
     Bar,
     Measure,
     Group,
-    Row
+    Row,
+    Rows,
+    Position,
+    Canvas
 }
