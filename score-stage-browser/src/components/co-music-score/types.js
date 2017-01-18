@@ -123,9 +123,7 @@ class Measure {
     }
 
     adjustWidth(maxWidth, row) {
-        console.log('Before', this.width);
         this.width = Math.floor((this.widthNoPadding() / row.widthNoPadding()) * (maxWidth - row.totalPadding()) + this.totalPadding());
-        console.log('After', this.width);
     }
 
     format() {
@@ -310,6 +308,10 @@ class Rows {
         this.rows.forEach(row => row.draw());
     }
 
+    getFirst() {
+        return this.rows[0];
+    }
+
     getLast() {
         return this.rows[this.rows.length - 1];
     }
@@ -353,8 +355,26 @@ class Canvas {
         return this;
     }
 
-    drawCursor(measure) {
-        const box = measure.voices.reduce((prev, voice) => {
+    clearRect(x, y, width, height) {
+        this.context.clearRect(x, y, width, height);
+        return this;
+    }
+}
+
+class MeasureCursor {
+    static get TYPE() { return 'MeasureCursor'; }
+
+    constructor(index, measure) {
+        this.index = index;
+        this.measure = measure;
+    }
+
+    get type() {
+        return MeasureCursor.TYPE;
+    }
+    
+    draw(canvas) {
+        const box = this.measure.voices.reduce((prev, voice) => {
             const first = voice.getTickables()[0];
             if (first) {
                 const box = first.getBoundingBox();
@@ -364,18 +384,18 @@ class Canvas {
             }
             return prev;
         }, { x : 0, width : 0 });
-        const stave = measure.getLast('staves');
+        const stave = this.measure.getLast('staves');
         let x = box.x + (box.width / 2);
         if (!x) {
             x = stave.getNoteStartX() + 24;
         }
-        this.drawLine(x, measure.y, x, stave.getBottomY(), { width : 3, stroke : '#2196F3', alpha : 0.5 });
+        canvas.drawLine(x, this.measure.y, x, stave.getBottomY(), { width : 3, stroke : '#2196F3', alpha : 0.5 });
         return this;
     }
 
-    drawMeasure(measure) {
-        this.context.clearRect(measure.x, measure.y, measure.width, measure.getLast('staves').getBottomY() - measure.y);
-        measure.draw();
+    clear(canvas) {
+        canvas.clearRect(this.measure.x, this.measure.y, this.measure.width, this.measure.getLast('staves').getBottomY() - this.measure.y);
+        this.measure.draw();
         return this;
     }
 }
@@ -390,5 +410,6 @@ export {
     Row,
     Rows,
     Position,
-    Canvas
+    Canvas,
+    MeasureCursor
 }

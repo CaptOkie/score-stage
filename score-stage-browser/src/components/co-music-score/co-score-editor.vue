@@ -28,7 +28,7 @@ import 'Proxies/mdIcon';
 import 'Proxies/mdMenu';
 import coWatch from 'Directives/co-watch';
 import constants from './constants';
-import { Row, Rows, Position, Canvas } from './types';
+import { Row, Rows, Position, Canvas, MeasureCursor } from './types';
 import Vex from 'vexflow';
 const { StaveNote, Beam, Voice, Accidental, Stave, Renderer } = Vex.Flow;
 
@@ -37,12 +37,12 @@ function getPrev(measure, index) {
 }
 
 export default {
-    name : 'co-score-rows',
+    name : 'co-score-editor',
     props : [ 'coMeasures', 'coGroups', 'coBarScale' ],
     data() {
         return {
             width : 0, maxWidth : 0, menuX : 0, menuY : 0,
-            measure : undefined, canvas : undefined, renderer : undefined
+            cursor : undefined, canvas : undefined, renderer : undefined
         };
     },
     computed : {
@@ -121,7 +121,6 @@ export default {
                 row.addMeasure(measure);
                 prevMeasure = measure;
             });
-            this.measure = rows[0].measures[0];
             rows.forEach(row => row.setup(this.renderer.getContext(), this.maxWidth, this.coGroups));
             return new Rows(rows);
         }
@@ -134,7 +133,17 @@ export default {
         click(event) {
             const pos = this.canvas.getPosition(event);
             const row = this.rows.getRow(pos.y);
-            this.measure = row.getMeasure(pos.x) || this.measure;
+            const measure = row.getMeasure(pos.x);
+            if (measure) {
+                let index = row.measures.indexOf(measure);
+                for (let curr of this.rows.rows) {
+                    if (curr === row) {
+                        break;
+                    }
+                    index += curr.measures.length;
+                }
+                this.cursor = new MeasureCursor(index, measure);
+            }
         },
         mousemove(event) {
             const pos = this.canvas.getPosition(event);
@@ -150,13 +159,13 @@ export default {
         }
     },
     watch : {
-        measure(newVal, oldVal) {
+        cursor(newVal, oldVal) {
             if (this.canvas) {
                 if (oldVal) {
-                    this.canvas.drawMeasure(oldVal);
+                    oldVal.clear(this.canvas);
                 }
                 if (newVal) {
-                    this.canvas.drawCursor(newVal);
+                    newVal.draw(this.canvas);
                 }
             }
         },
@@ -164,6 +173,8 @@ export default {
             const row = rows.getLast();
             this.renderer.resize(this.width, row.y + row.height);
             rows.draw();
+            const index = Math.min(this.cursor ? this.cursor.index : 0, this.coMeasures.length - 1);
+            this.cursor = new MeasureCursor(index, this.coMeasures[index]);
         }
     },
     mounted() {
