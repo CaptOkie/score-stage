@@ -5,8 +5,8 @@ export default {
         if (!checkWidth && !checkHeight) {
             checkWidth = checkHeight = true;
         }
-        let width = el.offsetWidth;
-        let height = el.offsetHeight;
+        let width = undefined;
+        let height = undefined;
 
         function watch() {
             if (el.dataset.watchCancel) {
@@ -22,7 +22,7 @@ export default {
             }
             requestAnimationFrame(watch);
         }
-        requestAnimationFrame(watch);
+        watch();
     },
     unbind(el) {
         el.dataset.watchCancel = true;

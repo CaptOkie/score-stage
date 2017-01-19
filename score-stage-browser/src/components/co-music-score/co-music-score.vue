@@ -1,13 +1,14 @@
 <template>
     <md-card class="md-flex" style="overflow: visible;">
         <md-card-content>
-            <co-score-editor :co-measures="measures" :co-groups="groups" :co-bar-scale="2"></co-score-editor>
+            <co-score-editor v-if="loaded" :co-measures="measures" :co-groups="groups" :co-bar-scale="2"></co-score-editor>
         </md-card-content>
     </md-card>
 </template>
 
 <script>
 import 'Proxies/mdCard';
+import 'Proxies/mdSpinner';
 import coScoreEditor from './co-score-editor.vue';
 import { Measure, TimeSignature, Tick, Note, Bar, Group } from './types';
 
@@ -46,7 +47,7 @@ export default {
             ].map(function(measure) {
                 
                 let ticks = [
-                    new Tick(8, [ new Note('a', 3, 'n') ]),
+                    new Tick(8, [ new Note('a', 3, 'n'), new Note('b', 3, 'n') ]),
                     new Tick(8, [ new Note('b', 3, '#') ]),
                     new Tick(2, []),
                     new Tick(4, []),

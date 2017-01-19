@@ -41,11 +41,14 @@ export default {
     props : [ 'coMeasures', 'coGroups', 'coBarScale' ],
     data() {
         return {
-            width : 0, maxWidth : 0, menuX : 0, menuY : 0,
+            width : 0, menuX : 0, menuY : 0,
             cursor : undefined, canvas : undefined, renderer : undefined
         };
     },
     computed : {
+        maxWidth() {
+            return this.width - 1 - constants.xShift;
+        },
         rows() {
             if (!this.width || !this.maxWidth || !this.coBarScale || !this.coMeasures || !this.coGroups) {
                 return undefined;
@@ -128,7 +131,6 @@ export default {
     methods : {
         onWidthChanged(data) {
             this.width = data.newWidth;
-            this.maxWidth = this.width - 1 - constants.xShift;
         },
         click(event) {
             const pos = this.canvas.getPosition(event);
@@ -147,7 +149,6 @@ export default {
         },
         mousemove(event) {
             const pos = this.canvas.getPosition(event);
-            // console.log('Mouse moved', pos);
         },
         contextmenu(event) {
             this.click(event);

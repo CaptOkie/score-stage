@@ -372,22 +372,27 @@ class MeasureCursor {
     get type() {
         return MeasureCursor.TYPE;
     }
-    
+
     draw(canvas) {
-        const box = this.measure.voices.reduce((prev, voice) => {
+        const stave = this.measure.getLast('staves');
+        const startX = stave.getNoteStartX();
+        const { left, right } = this.measure.voices.reduce((prev, voice) => {
             const first = voice.getTickables()[0];
-            if (first) {
-                const box = first.getBoundingBox();
-                if (prev.x > box.x) {
-                    return box;
+            if (first && !first.shouldIgnoreTicks()) {
+                const left = first.getNoteHeadBeginX();
+                const right = first.getNoteHeadEndX();
+                if (!prev.left || left < prev.left) {
+                    prev.left = left;
+                }
+                if (!prev.right || right > prev.right) {
+                    prev.right = right;
                 }
             }
             return prev;
-        }, { x : 0, width : 0 });
-        const stave = this.measure.getLast('staves');
-        let x = box.x + (box.width / 2);
-        if (!x) {
-            x = stave.getNoteStartX() + 24;
+        }, { left : undefined, right : undefined });
+        let x = startX + 24;
+        if (left && right) {
+            x = (left + right) / 2;
         }
         canvas.drawLine(x, this.measure.y, x, stave.getBottomY(), { width : 3, stroke : '#2196F3', alpha : 0.5 });
         return this;
