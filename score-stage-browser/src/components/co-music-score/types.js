@@ -394,7 +394,7 @@ class MeasureCursor {
         if (left && right) {
             x = (left + right) / 2;
         }
-        canvas.drawLine(x, this.measure.y, x, stave.getBottomY(), { width : 3, stroke : '#2196F3', alpha : 0.5 });
+        canvas.drawLine(x, this.measure.y, x, stave.getBottomY(), { width : 3, stroke : '#E91E63', alpha : 0.5 });
         return this;
     }
 
