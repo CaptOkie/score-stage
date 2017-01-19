@@ -1,18 +1,18 @@
 <template>
     <md-layout md-column md-flex v-co-watch.width="onWidthChanged">
-        <canvas @click.prevent="click($event)" @mousemove.prevent="mousemove($event)" @contextmenu.prevent="contextmenu($event)">
+        <canvas @click.prevent="click" @mousemove.prevent="mousemove" @contextmenu.prevent="contextmenu">
         </canvas>
 
         <md-menu ref="menu" style="display: none;" :md-size="5" :md-offset-x="menuX" :md-offset-y="menuY">
             <div md-menu-trigger></div>
             <md-menu-content>
-                <md-menu-item>
+                <md-menu-item @click="addMeasures">
                     <md-icon>playlist_add</md-icon>
                     <span>Add measures...</span>
                     <span class="md-list-action" style="margin-right: 0;">Ctrl+A</span>
                 </md-menu-item>
 
-                <md-menu-item>
+                <md-menu-item @click="deleteMeasure">
                     <md-icon>delete_sweep</md-icon>
                     <span>Delete measure</span>
                     <span class="md-list-action" style="margin-right: 0;">Ctrl+D</span>
@@ -154,15 +154,19 @@ export default {
             this.click(event);
             this.menuX = event.clientX;
             this.menuY = event.clientY;
-            this.$nextTick(() => {
-                this.$refs.menu.open()
-            });
+            this.$nextTick(() => this.$refs.menu.open());
+        },
+        addMeasures(event) {
+            this.$emit('add-measures', this.cursor.index);
+        },
+        deleteMeasure(event) {
+            this.$emit('delete-measure', this.cursor.index);
         }
     },
     watch : {
         cursor(newVal, oldVal) {
             if (this.canvas) {
-                if (oldVal) {
+                if (oldVal && !oldVal.cleared) {
                     oldVal.clear(this.canvas);
                 }
                 if (newVal) {
@@ -174,7 +178,11 @@ export default {
             const row = rows.getLast();
             this.renderer.resize(this.width, row.y + row.height);
             rows.draw();
-            const index = Math.min(this.cursor ? this.cursor.index : 0, this.coMeasures.length - 1);
+            let index = 0;
+            if (this.cursor) {
+                index = Math.min(this.cursor.index, this.coMeasures.length - 1);
+                this.cursor.cleared = true;
+            }
             this.cursor = new MeasureCursor(index, this.coMeasures[index]);
         }
     },
