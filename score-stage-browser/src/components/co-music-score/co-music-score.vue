@@ -3,18 +3,22 @@
         <md-card-content>
             <co-score-editor v-if="loaded" :co-measures="measures" :co-groups="groups" :co-bar-scale="2"
                     @add-measures="addMeasures" @delete-measure="deleteMeasure" @set-time-signature="setTimeSig"
-                    @cursor-changed="cursorChanged">
+                    @set-clef="setClef" @set-key-signature="setKeySig" @cursor-changed="cursorChanged">
             </co-score-editor>
         </md-card-content>
 
         <co-time-signature-dialog ref="timeSigDialog">
         </co-time-signature-dialog>
+
+        <co-key-signature-dialog ref="keySigDialog">
+        </co-key-signature-dialog>
     </md-card>
 </template>
 
 <script>
 import 'Proxies/mdCard';
 import coTimeSignatureDialog from './co-time-signature-dialog.vue';
+import coKeySignatureDialog from './co-key-signature-dialog.vue';
 import coScoreEditor from './co-score-editor.vue';
 import { Measure, TimeSignature, Tick, Note, Bar, Group } from './types';
 
@@ -52,6 +56,14 @@ export default {
         setTimeSig() {
             this.$refs.timeSigDialog.show(this.cursor.measure.timeSig, data => {
                 this.cursor.measure.timeSig = data.timeSig;
+            });
+        },
+        setClef() {
+
+        },
+        setKeySig() {
+            this.$refs.keySigDialog.show(this.cursor.bar.keySig, data => {
+                this.cursor.bar.keySig = data.keySig;
             });
         },
         cursorChanged(cursor) {
@@ -108,6 +120,7 @@ export default {
     },
     components : {
         coTimeSignatureDialog,
+        coKeySignatureDialog,
         coScoreEditor
     }
 }

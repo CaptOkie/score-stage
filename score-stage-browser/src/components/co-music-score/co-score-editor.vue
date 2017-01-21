@@ -19,7 +19,7 @@
                 </md-menu-item>
 
                 <md-menu-item @click="setTimeSig" class="md-inset">
-                    <span>Set time signature</span>
+                    <span>Edit time signature</span>
                     <span class="md-list-action _co-score-key-text">Ctrl+T</span>
                 </md-menu-item>
 
@@ -27,12 +27,12 @@
 
                 <md-menu-item @click="setKeySig">
                     <md-icon>vpn_key</md-icon>
-                    <span>Set key signature</span>
+                    <span>Change key signature</span>
                     <span class="md-list-action _co-score-key-text">Ctrl+K</span>
                 </md-menu-item>
 
                 <md-menu-item @click="setClef" class="md-inset">
-                    <span>Set clef</span>
+                    <span>Change clef</span>
                     <span class="md-list-action _co-score-key-text">Ctrl+L</span>
                 </md-menu-item>
             </md-menu-content>
@@ -185,10 +185,10 @@ export default {
             this.$emit('set-time-signature');
         },
         setClef(event) {
-
+            this.$emit('set-clef');
         },
         setKeySig(event) {
-
+            this.$emit('set-key-signature');
         }
     },
     watch : {

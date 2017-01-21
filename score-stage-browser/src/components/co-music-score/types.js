@@ -387,12 +387,28 @@ class SingleCursor {
         return MeasureCursor.TYPE;
     }
 
+    get bar() {
+        return this.measure.bars[this.barIndex];
+    }
+
+    get stave() {
+        return this.measure.staves[this.barIndex];
+    }
+
+    get voice() {
+        return this.measure.voices[this.barIndex];
+    }
+
+    get tick() {
+        return this.voice.getTickables()[this.tickIndex];
+    }
+
     draw(canvas) {
-        const stave = this.measure.staves[this.barIndex];
+        const stave = this.stave;
         const startX = stave.getNoteStartX();
         let left = 0;
         let right = 0;
-        const tick = this.measure.voices[this.barIndex].getTickables()[this.tickIndex];
+        const tick = this.tick;
         if (tick && !tick.shouldIgnoreTicks()) {
             left = tick.getNoteHeadBeginX();
             right = tick.getNoteHeadEndX();
