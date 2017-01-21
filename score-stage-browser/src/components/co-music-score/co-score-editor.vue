@@ -8,7 +8,7 @@
             <md-menu-content>
                 <md-menu-item @click="addMeasures">
                     <md-icon>playlist_add</md-icon>
-                    <span>Add measures...</span>
+                    <span>Add measure</span>
                     <span class="md-list-action _co-score-key-text">Ctrl+A</span>
                 </md-menu-item>
 
@@ -18,12 +18,22 @@
                     <span class="md-list-action _co-score-key-text">Ctrl+D</span>
                 </md-menu-item>
 
+                <md-menu-item @click="setTimeSig" class="md-inset">
+                    <span>Set time signature</span>
+                    <span class="md-list-action _co-score-key-text">Ctrl+T</span>
+                </md-menu-item>
+
                 <md-divider></md-divider>
 
-                <md-menu-item @click="setTimeSig">
-                    <md-icon>access_time</md-icon>
-                    <span>Set Time Signature</span>
-                    <span class="md-list-action _co-score-key-text">Ctrl+T</span>
+                <md-menu-item @click="setKeySig">
+                    <md-icon>vpn_key</md-icon>
+                    <span>Set key signature</span>
+                    <span class="md-list-action _co-score-key-text">Ctrl+K</span>
+                </md-menu-item>
+
+                <md-menu-item @click="setClef" class="md-inset">
+                    <span>Set clef</span>
+                    <span class="md-list-action _co-score-key-text">Ctrl+L</span>
                 </md-menu-item>
             </md-menu-content>
         </md-menu>
@@ -172,6 +182,12 @@ export default {
         },
         setTimeSig(event) {
             this.$emit('set-time-signature');
+        },
+        setClef(event) {
+
+        },
+        setKeySig(event) {
+
         }
     },
     watch : {

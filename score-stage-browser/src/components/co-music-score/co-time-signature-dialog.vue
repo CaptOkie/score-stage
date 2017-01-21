@@ -1,6 +1,6 @@
 <template>
     <md-dialog ref="dialog">
-        <md-dialog-title>Time Signature</md-dialog-title>
+        <md-dialog-title>Time signature</md-dialog-title>
 
         <md-dialog-content>
             <md-layout md-column>
