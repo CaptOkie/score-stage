@@ -28,7 +28,7 @@ import 'Proxies/mdIcon';
 import 'Proxies/mdMenu';
 import coWatch from 'Directives/co-watch';
 import constants from './constants';
-import { Row, Rows, Position, Canvas, MeasureCursor } from './types';
+import { Row, Rows, Position, Canvas, SingleCursor } from './types';
 import Vex from 'vexflow';
 const { StaveNote, Beam, Voice, Accidental, Stave, Renderer } = Vex.Flow;
 
@@ -41,8 +41,7 @@ export default {
     props : [ 'coMeasures', 'coGroups', 'coBarScale' ],
     data() {
         return {
-            width : 0, menuX : 0, menuY : 0,
-            cursor : undefined, canvas : undefined, renderer : undefined
+            width : 0, menuX : 0, menuY : 0, cursor : undefined
         };
     },
     computed : {
@@ -144,7 +143,7 @@ export default {
                     }
                     index += curr.measures.length;
                 }
-                this.cursor = new MeasureCursor(index, measure);
+                this.cursor = new SingleCursor(index, measure, measure.getBarIndex(pos.y));
             }
         },
         mousemove(event) {
@@ -157,10 +156,10 @@ export default {
             this.$nextTick(() => this.$refs.menu.open());
         },
         addMeasures(event) {
-            this.$emit('add-measures', this.cursor.index);
+            this.$emit('add-measures');
         },
         deleteMeasure(event) {
-            this.$emit('delete-measure', this.cursor.index);
+            this.$emit('delete-measure');
         }
     },
     watch : {
@@ -173,17 +172,20 @@ export default {
                     newVal.draw(this.canvas);
                 }
             }
+            this.$emit('cursor-changed', newVal);
         },
         rows(rows) {
             const row = rows.getLast();
             this.renderer.resize(this.width, row.y + row.height);
             rows.draw();
             let index = 0;
+            let barIndex = 0;
             if (this.cursor) {
                 index = Math.min(this.cursor.index, this.coMeasures.length - 1);
+                barIndex = this.cursor.barIndex;
                 this.cursor.cleared = true;
             }
-            this.cursor = new MeasureCursor(index, this.coMeasures[index]);
+            this.cursor = new SingleCursor(index, this.coMeasures[index], barIndex);
         }
     },
     mounted() {

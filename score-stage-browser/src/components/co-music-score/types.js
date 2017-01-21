@@ -130,15 +130,15 @@ class Measure {
         this.formatter.format(this.voices, this.widthNoPadding());
     }
 
-    getStave(y) {
-        let prev = undefined;
-        for (const stave of this.staves) {
+    getBarIndex(y) {
+        let prev = 0;
+        for (const [index, stave] of this.staves.entries()) {
             if (stave.y > y) {
                 break;
             }
-            prev = stave;
+            prev = index;
         }
-        return stave;
+        return prev;
     }
 
     getFirst(field) {
@@ -361,12 +361,13 @@ class Canvas {
     }
 }
 
-class MeasureCursor {
+class SingleCursor {
     static get TYPE() { return 'MeasureCursor'; }
 
-    constructor(index, measure) {
+    constructor(index, measure, barIndex) {
         this.index = index;
         this.measure = measure;
+        this.barIndex = barIndex;
     }
 
     get type() {
@@ -374,7 +375,7 @@ class MeasureCursor {
     }
 
     draw(canvas) {
-        const stave = this.measure.getLast('staves');
+        const stave = this.measure.staves[this.barIndex];
         const startX = stave.getNoteStartX();
         const { left, right } = this.measure.voices.reduce((prev, voice) => {
             const first = voice.getTickables()[0];
@@ -394,13 +395,20 @@ class MeasureCursor {
         if (left && right) {
             x = (left + right) / 2;
         }
-        canvas.drawLine(x, this.measure.y, x, stave.getBottomY(), { width : 3, stroke : '#E91E63', alpha : 0.5 });
+        canvas.drawLine(x, stave.y, x, stave.getBottomY(), { width : 3, stroke : '#E91E63', alpha : 0.5 });
         return this;
     }
 
     clear(canvas) {
-        canvas.clearRect(this.measure.x, this.measure.y, this.measure.width, this.measure.getLast('staves').getBottomY() - this.measure.y);
+        let x = this.measure.x;
+        let width = this.measure.width;
+        if (x === constants.xShift) {
+            x = 0;
+            width += constants.xShift;
+        }
+        canvas.clearRect(x, this.measure.y, width, this.measure.getLast('staves').getBottomY() - this.measure.y);
         this.measure.draw();
+        this.cleared = true;
         return this;
     }
 }
@@ -416,5 +424,5 @@ export {
     Rows,
     Position,
     Canvas,
-    MeasureCursor
+    SingleCursor
 }
