@@ -1,21 +1,29 @@
 <template>
     <md-layout md-column md-flex v-co-watch.width="onWidthChanged">
-        <canvas @click.prevent="click" @mousemove.prevent="mousemove" @contextmenu.prevent="contextmenu">
+        <canvas class="_co-score-canvas" @click.prevent="click" @mousemove.prevent="mousemove" @contextmenu.prevent="contextmenu">
         </canvas>
 
-        <md-menu ref="menu" style="display: none;" :md-size="5" :md-offset-x="menuX" :md-offset-y="menuY">
+        <md-menu ref="menu" style="display: none;" :md-size="6" :md-offset-x="menuX" :md-offset-y="menuY">
             <div md-menu-trigger></div>
             <md-menu-content>
                 <md-menu-item @click="addMeasures">
                     <md-icon>playlist_add</md-icon>
                     <span>Add measures...</span>
-                    <span class="md-list-action" style="margin-right: 0;">Ctrl+A</span>
+                    <span class="md-list-action _co-score-key-text">Ctrl+A</span>
                 </md-menu-item>
 
                 <md-menu-item @click="deleteMeasure">
                     <md-icon>delete_sweep</md-icon>
                     <span>Delete measure</span>
-                    <span class="md-list-action" style="margin-right: 0;">Ctrl+D</span>
+                    <span class="md-list-action _co-score-key-text">Ctrl+D</span>
+                </md-menu-item>
+
+                <md-divider></md-divider>
+
+                <md-menu-item @click="setTimeSig">
+                    <md-icon>access_time</md-icon>
+                    <span>Set Time Signature</span>
+                    <span class="md-list-action _co-score-key-text">Ctrl+T</span>
                 </md-menu-item>
             </md-menu-content>
         </md-menu>
@@ -25,6 +33,7 @@
 <script>
 import 'Proxies/mdLayout';
 import 'Proxies/mdIcon';
+import 'Proxies/mdDivider';
 import 'Proxies/mdMenu';
 import coWatch from 'Directives/co-watch';
 import constants from './constants';
@@ -143,7 +152,7 @@ export default {
                     }
                     index += curr.measures.length;
                 }
-                this.cursor = new SingleCursor(index, measure, measure.getBarIndex(pos.y));
+                this.cursor = SingleCursor.fromPosition(index, measure, pos);
             }
         },
         mousemove(event) {
@@ -160,6 +169,9 @@ export default {
         },
         deleteMeasure(event) {
             this.$emit('delete-measure');
+        },
+        setTimeSig(event) {
+            this.$emit('set-time-signature');
         }
     },
     watch : {
@@ -180,12 +192,14 @@ export default {
             rows.draw();
             let index = 0;
             let barIndex = 0;
+            let tickIndex = 0;
             if (this.cursor) {
                 index = Math.min(this.cursor.index, this.coMeasures.length - 1);
                 barIndex = this.cursor.barIndex;
+                tickIndex = this.cursor.tickIndex;
                 this.cursor.cleared = true;
             }
-            this.cursor = new SingleCursor(index, this.coMeasures[index], barIndex);
+            this.cursor = new SingleCursor(index, this.coMeasures[index], barIndex, tickIndex);
         }
     },
     mounted() {
@@ -199,10 +213,15 @@ export default {
 </script>
 
 <style>
-    ._co-score-row-canvas {
+    ._co-score-canvas {
         user-select: none;
         -webkit-user-select: none;
         -ms-user-select: none;
         -moz-user-select: none;
+    }
+
+    .md-list-item .md-list-item-holder .md-list-action._co-score-key-text {
+        margin-right: 0;
+        color: rgba(0, 0, 0, .57);
     }
 </style>

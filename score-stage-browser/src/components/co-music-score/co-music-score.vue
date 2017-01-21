@@ -2,15 +2,19 @@
     <md-card class="md-flex" style="overflow: visible;">
         <md-card-content>
             <co-score-editor v-if="loaded" :co-measures="measures" :co-groups="groups" :co-bar-scale="2"
-                    @add-measures="addMeasures" @delete-measure="deleteMeasure" @cursor-changed="cursorChanged">
+                    @add-measures="addMeasures" @delete-measure="deleteMeasure" @set-time-signature="setTimeSig"
+                    @cursor-changed="cursorChanged">
             </co-score-editor>
         </md-card-content>
+
+        <co-time-signature-dialog ref="timeSigDialog">
+        </co-time-signature-dialog>
     </md-card>
 </template>
 
 <script>
 import 'Proxies/mdCard';
-import 'Proxies/mdSpinner';
+import coTimeSignatureDialog from './co-time-signature-dialog.vue';
 import coScoreEditor from './co-score-editor.vue';
 import { Measure, TimeSignature, Tick, Note, Bar, Group } from './types';
 
@@ -44,6 +48,11 @@ export default {
                     modifiers.end = modifiers.end || 'END';
                 }
             }
+        },
+        setTimeSig() {
+            this.$refs.timeSigDialog.show(this.cursor.measure.timeSig, data => {
+                this.cursor.measure.timeSig = data.timeSig;
+            });
         },
         cursorChanged(cursor) {
             this.cursor = cursor;
@@ -98,6 +107,7 @@ export default {
         }, 0);
     },
     components : {
+        coTimeSignatureDialog,
         coScoreEditor
     }
 }

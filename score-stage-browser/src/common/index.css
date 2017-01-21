@@ -9,3 +9,7 @@
 .md-margin {
     margin: 16px;
 }
+
+.md-radio-container {
+    cursor: pointer;
+}

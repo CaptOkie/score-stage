@@ -22,8 +22,8 @@ class Tick {
 }
 
 class TimeSignature {
-    static get C() { return new TimeSignature(4, 4, 'C'); }
-    static get C_BAR() { return new TimeSignature(2, 2, 'C|'); }
+    static get COMMON() { return new TimeSignature(4, 4, 'C'); }
+    static get CUT() { return new TimeSignature(2, 2, 'C|'); }
 
     constructor(upper, lower, vexFormat = upper + '/' + lower) {
         this.upper = upper;
@@ -132,7 +132,7 @@ class Measure {
 
     getBarIndex(y) {
         let prev = 0;
-        for (const [index, stave] of this.staves.entries()) {
+        for (const [ index, stave ] of this.staves.entries()) {
             if (stave.y > y) {
                 break;
             }
@@ -364,10 +364,23 @@ class Canvas {
 class SingleCursor {
     static get TYPE() { return 'MeasureCursor'; }
 
-    constructor(index, measure, barIndex) {
+    static fromPosition(index, measure, pos) {
+        const barIndex = measure.getBarIndex(pos.y);
+        let tickIndex = 0;
+        for (const [ i, tick ] of measure.voices[barIndex].getTickables().entries()) {
+            if (!tick.shouldIgnoreTicks() && tick.getNoteHeadBeginX() > pos.x) {
+                break;
+            }
+            tickIndex = i;
+        }
+        return new SingleCursor(index, measure, barIndex, tickIndex);
+    }
+
+    constructor(index, measure, barIndex, tickIndex) {
         this.index = index;
         this.measure = measure;
         this.barIndex = barIndex;
+        this.tickIndex = tickIndex;
     }
 
     get type() {
@@ -377,20 +390,13 @@ class SingleCursor {
     draw(canvas) {
         const stave = this.measure.staves[this.barIndex];
         const startX = stave.getNoteStartX();
-        const { left, right } = this.measure.voices.reduce((prev, voice) => {
-            const first = voice.getTickables()[0];
-            if (first && !first.shouldIgnoreTicks()) {
-                const left = first.getNoteHeadBeginX();
-                const right = first.getNoteHeadEndX();
-                if (!prev.left || left < prev.left) {
-                    prev.left = left;
-                }
-                if (!prev.right || right > prev.right) {
-                    prev.right = right;
-                }
-            }
-            return prev;
-        }, { left : undefined, right : undefined });
+        let left = 0;
+        let right = 0;
+        const tick = this.measure.voices[this.barIndex].getTickables()[this.tickIndex];
+        if (tick && !tick.shouldIgnoreTicks()) {
+            left = tick.getNoteHeadBeginX();
+            right = tick.getNoteHeadEndX();
+        }
         let x = startX + 24;
         if (left && right) {
             x = (left + right) / 2;
