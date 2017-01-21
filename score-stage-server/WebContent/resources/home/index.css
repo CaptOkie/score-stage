@@ -1660,7 +1660,7 @@ img.md-icon {
     margin: 16px;
 }
 
-.md-radio-container {
+.md-radio-container, .md-radio-label {
     cursor: pointer;
 }
 .md-list-item.md-margin {

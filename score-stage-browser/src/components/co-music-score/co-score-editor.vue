@@ -5,7 +5,7 @@
 
         <md-menu ref="menu" style="display: none;" :md-size="6" :md-offset-x="menuX" :md-offset-y="menuY">
             <div md-menu-trigger></div>
-            <md-menu-content>
+            <md-menu-content v-md-menu-list-class.md-dense>
                 <md-menu-item @click="addMeasures">
                     <md-icon>playlist_add</md-icon>
                     <span>Add measure</span>
@@ -46,6 +46,7 @@ import 'Proxies/mdIcon';
 import 'Proxies/mdDivider';
 import 'Proxies/mdMenu';
 import coWatch from 'Directives/co-watch';
+import mdMenuListClass from 'Directives/md-menu-list-class';
 import constants from './constants';
 import { Row, Rows, Position, Canvas, SingleCursor } from './types';
 import Vex from 'vexflow';
@@ -223,7 +224,8 @@ export default {
         this.renderer = new Renderer(this.canvas.el, Renderer.Backends.CANVAS);
     },
     directives : {
-        coWatch
+        coWatch,
+        mdMenuListClass
     }
 }
 </script>

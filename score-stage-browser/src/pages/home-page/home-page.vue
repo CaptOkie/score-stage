@@ -24,7 +24,7 @@
                             <span>Some extra info</span>
                         </div>
 
-                        <md-icon class="md-list-action md-size-2x">account_circle</md-icon>
+                        <md-icon class="md-size-2x">account_circle</md-icon>
                     </md-list-item>
                 </md-list>
             </div>
