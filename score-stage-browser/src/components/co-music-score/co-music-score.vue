@@ -71,11 +71,12 @@ export default {
         }
     },
     created() {
-        // this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
-        // this.groups = [ new Group('Default', 'Def') ];
 
         // More accurate behaviour
         setTimeout(() => {
+            // this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
+            // this.groups = [ new Group('Default', 'Def') ];
+            
             this.measures = [
                 new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
                 new Measure(new TimeSignature(3,4), [], { end : 'REPEAT' }),

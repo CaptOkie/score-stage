@@ -1,0 +1,11 @@
+html.co-disable-scroll,
+html.co-disable-scroll > body{
+    position: fixed; 
+    width: 100%;
+}
+html.co-disable-scroll {
+    overflow-y: hidden;
+}
+html.co-disable-scroll > body {
+    overflow-y: scroll;
+}

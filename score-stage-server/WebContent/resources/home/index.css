@@ -1652,6 +1652,12 @@ img.md-icon {
     display: none;
 }
 
+html,
+body {
+    min-height: 100%;
+    height: auto !important;
+}
+
 .md-padding {
     padding: 16px;
 }

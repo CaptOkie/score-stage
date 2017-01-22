@@ -52,6 +52,7 @@ module.exports = {
           'Proxies' : path.resolve(__dirname, 'src/proxies'),
           'Components' : path.resolve(__dirname, 'src/components'),
           'Directives' : path.resolve(__dirname, 'src/directives'),
+          'Services' : path.resolve(__dirname, 'src/services'),
           'Common' : path.resolve(__dirname, 'src/common')
         }
     },

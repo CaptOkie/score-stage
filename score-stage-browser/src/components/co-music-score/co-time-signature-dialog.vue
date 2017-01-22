@@ -1,5 +1,5 @@
 <template>
-    <md-dialog ref="dialog">
+    <md-dialog ref="dialog" @open="onOpen" @close="onClose">
         <md-dialog-title>Time signature</md-dialog-title>
 
         <md-dialog-content>
@@ -11,12 +11,12 @@
 
             <md-input-container>
                 <label>Beat Count</label>
-                <md-input :disabled="!isCustom" type="number" v-model="custom.upper"></md-input>
+                <md-input :disabled="!isCustom" type="number" v-model="upper"></md-input>
             </md-input-container>
 
             <md-input-container>
                 <label>Beat Unit</label>
-                <md-input :disabled="!isCustom" type="number" v-model="custom.lower"></md-input>
+                <md-input :disabled="!isCustom" type="number" v-model="lower"></md-input>
             </md-input-container>
         </md-dialog-content>
 
@@ -32,12 +32,29 @@ import 'Proxies/mdLayout';
 import 'Proxies/mdDialog';
 import 'Proxies/mdRadio';
 import 'Proxies/mdInputContainer';
+import coScroll from 'Services/co-scroll';
 import { TimeSignature } from './types';
+
+function toSelect(current) {
+    switch (current.vexFormat) {
+        case TimeSignature.COMMON.vexFormat: return 'common';
+        case TimeSignature.CUT.vexFormat:    return 'cut';
+        default:                             return 'custom';
+    }
+}
+
+function toReturn(selected, upper, lower) {
+    switch (selected) {
+        case 'common': return TimeSignature.COMMON;
+        case 'cut':    return TimeSignature.CUT;
+        default:       return new TimeSignature(upper, lower);
+    }
+}
 
 export default {
     name : 'co-time-signature-dialog',
     data() {
-        return { common : TimeSignature.COMMON, cut : TimeSignature.CUT, custom : new TimeSignature(4, 4), selected : 'common' };
+        return { upper : 4, lower : 4, selected : 'common' };
     },
     computed : {
         isCustom() {
@@ -47,20 +64,24 @@ export default {
     methods : {
         show(current, success) {
             this.success = success;
-            this.selected = (current === this.common && 'common') || (current === this.cut && 'cut') || 'custom';
-            if (this.isCustom) {
-                this.custom = current;
-            }
+            this.selected = toSelect(current);
+            this.upper = current.upper;
+            this.lower = current.lower;
             this.$refs.dialog.open();
         },
         cancel() {
-            this.custom = new TimeSignature(4, 4);
             this.$refs.dialog.close();
         },
         okay() {
-            const timeSig = this[this.selected];
+            const timeSig = toReturn(this.selected, this.upper, this.lower);
             this.success({ timeSig });
             this.cancel();
+        },
+        onOpen() {
+            coScroll.disable();
+        },
+        onClose() {
+            coScroll.enable();
         }
     }
 }

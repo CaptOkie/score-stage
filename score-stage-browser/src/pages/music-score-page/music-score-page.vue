@@ -36,7 +36,6 @@ body, #music-score-page {
 }
 
 body {
-    min-height: 100%;
     overflow-y: scroll;
 }
 </style>
