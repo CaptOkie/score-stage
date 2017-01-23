@@ -1,6 +1,6 @@
 <template>
     <md-layout md-column md-flex v-co-watch.width="onWidthChanged">
-        <canvas class="_co-score-canvas" @click.prevent="click" @mousemove.prevent="mousemove" @contextmenu.prevent="contextmenu">
+        <canvas class="co-score-canvas" @click.prevent="click" @mousemove.prevent="mousemove" @contextmenu.prevent="contextmenu">
         </canvas>
 
         <md-menu ref="menu" style="display: none;" :md-size="6" :md-offset-x="menuX" :md-offset-y="menuY">
@@ -9,18 +9,18 @@
                 <md-menu-item @click="addMeasures">
                     <md-icon>playlist_add</md-icon>
                     <span>Add measure</span>
-                    <span class="md-list-action _co-score-key-text">Ctrl+A</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+A</span>
                 </md-menu-item>
 
                 <md-menu-item @click="deleteMeasure">
                     <md-icon>delete_sweep</md-icon>
                     <span>Delete measure</span>
-                    <span class="md-list-action _co-score-key-text">Ctrl+D</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+D</span>
                 </md-menu-item>
 
                 <md-menu-item @click="setTimeSig" class="md-inset">
                     <span>Edit time signature</span>
-                    <span class="md-list-action _co-score-key-text">Ctrl+T</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+T</span>
                 </md-menu-item>
 
                 <md-divider></md-divider>
@@ -28,12 +28,12 @@
                 <md-menu-item @click="setKeySig">
                     <md-icon>vpn_key</md-icon>
                     <span>Change key signature</span>
-                    <span class="md-list-action _co-score-key-text">Ctrl+K</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+K</span>
                 </md-menu-item>
 
                 <md-menu-item @click="setClef" class="md-inset">
                     <span>Change clef</span>
-                    <span class="md-list-action _co-score-key-text">Ctrl+L</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+L</span>
                 </md-menu-item>
             </md-menu-content>
         </md-menu>
@@ -47,7 +47,7 @@ import 'Proxies/mdDivider';
 import 'Proxies/mdMenu';
 import coWatch from 'Directives/co-watch';
 import mdMenuListClass from 'Directives/md-menu-list-class';
-import constants from './constants';
+import { X_SHIFT, MIN_WIDTH } from './constants';
 import { Row, Rows, Position, Canvas, SingleCursor } from './types';
 import Vex from 'vexflow';
 const { StaveNote, Beam, Voice, Accidental, Stave, Renderer } = Vex.Flow;
@@ -66,7 +66,7 @@ export default {
     },
     computed : {
         maxWidth() {
-            return this.width - 1 - constants.xShift;
+            return this.width - 1 - X_SHIFT;
         },
         rows() {
             if (!this.width || !this.maxWidth || !this.coBarScale || !this.coMeasures || !this.coGroups) {
@@ -126,7 +126,7 @@ export default {
                     }
                     measure.addStave(stave);
                 });
-                measure.joinVoices(constants.minWidth, this.coBarScale);
+                measure.joinVoices(MIN_WIDTH, this.coBarScale);
                 let row = rows.length && rows[rows.length - 1];
                 
                 // New Row
@@ -231,15 +231,15 @@ export default {
 </script>
 
 <style>
-    ._co-score-canvas {
-        user-select: none;
-        -webkit-user-select: none;
-        -ms-user-select: none;
-        -moz-user-select: none;
-    }
+.co-score-canvas {
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+}
 
-    .md-list-item .md-list-item-holder .md-list-action._co-score-key-text {
-        margin-right: 0;
-        color: rgba(0, 0, 0, .57);
-    }
+.md-list-item .md-list-item-holder .md-list-action.co-score-key-text {
+    margin-right: 0;
+    color: rgba(0, 0, 0, .57);
+}
 </style>

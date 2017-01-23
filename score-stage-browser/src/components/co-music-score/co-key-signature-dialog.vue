@@ -3,11 +3,26 @@
         <md-dialog-title>Key signature</md-dialog-title>
 
         <md-dialog-content>
-            <md-layout md-row>
-                <md-layout md-column v-for="(type, i) in keyTypes">
-                    <md-radio v-for="(sig, j) in type.keySigs" v-model="keySig" :id="'key-sig' + i + '-' + j" name="key-sig" :md-value="sig.key">
-                        {{sig.label}}
-                    </md-radio>
+            <md-layout md-column>
+                <md-radio name="co-key-sig" id="co-key-sig-empty" :md-value="empty.key" v-model="keySig"
+                        class="co-key-sig-radio" style="justify-content: center;">
+                    <img v-once :src="empty.label" width="96"></img>
+                </md-radio>
+
+                <md-layout md-row>
+                    <md-layout md-column style="margin-right: 16px;">
+                        <md-radio v-for="(sig, index) in flats" :key="index" name="co-key-sig" :id="'co-key-sig-flat-' + index"
+                                :md-value="sig.key" v-model="keySig" class="co-key-sig-radio">
+                            <img v-once :src="sig.label" width="96"></img>
+                        </md-radio>
+                    </md-layout>
+
+                    <md-layout md-column style="margin-left: 16px;">
+                        <md-radio v-for="(sig, index) in sharps" :key="index" name="co-key-sig" :id="'co-key-sig-sharp-' + index"
+                                :md-value="sig.key" v-model="keySig" class="co-key-sig-radio">
+                            <img v-once :src="sig.label" width="96"></img>
+                        </md-radio>
+                    </md-layout>
                 </md-layout>
             </md-layout>
         </md-dialog-content>
@@ -23,25 +38,18 @@
 import 'Proxies/mdLayout';
 import 'Proxies/mdDialog';
 import 'Proxies/mdRadio';
-import 'Proxies/mdInputContainer';
+import 'Proxies/mdButton';
 import coScroll from 'Services/co-scroll';
-import { Flow } from 'vexflow';
-
-function parseKeySpec(key) {
-    const data = Flow.keySignature.keySpecs[key];
-    const minor = key[key.length - 1].toLowerCase() === 'm';
-    const acc = (key.length > (minor ? 2 : 1) && data.acc && (data.acc.toLowerCase() === 'b' ? '♭' : '♯')) || '';
-    const label = key[0].toUpperCase() + acc + ' ' + (minor ? 'Minor' : 'Major');
-    return { key, label, minor };
-}
+import { KEY_SIGNATURES } from './constants';
 
 export default {
     name : 'co-key-signature-dialog',
     data() {
-        const keySigs = Object.keys(Flow.keySignature.keySpecs).map(parseKeySpec);
-        const majors = { label : 'Major', keySigs : keySigs.filter(keySig => !keySig.minor) };
-        const minors = { label : 'Minor', keySigs : keySigs.filter(keySig => keySig.minor) };
-        return { keyTypes : [ majors, minors ], keySig : keySigs[0].key };
+        const empty = KEY_SIGNATURES[0];
+        const index = (KEY_SIGNATURES.length + 1) / 2;
+        const flats = KEY_SIGNATURES.slice(1, index);
+        const sharps = KEY_SIGNATURES.slice(index, KEY_SIGNATURES.length);
+        return { empty, flats, sharps, keySig : KEY_SIGNATURES[0].key };
     },
     methods : {
         show(current, success) {
@@ -65,3 +73,13 @@ export default {
     }
 }
 </script>
+
+<style>
+.md-radio.co-key-sig-radio {
+    align-items: center;
+    margin: 0;
+}
+.md-radio.co-key-sig-radio .md-radio-label {
+    height: auto;
+}
+</style>

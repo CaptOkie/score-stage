@@ -4,9 +4,9 @@
 
         <md-dialog-content>
             <md-layout md-column>
-                <md-radio v-model="selected" id="time-sig-common" md-value="common">Common Time</md-radio>
-                <md-radio v-model="selected" id="time-sig-cut" md-value="cut">Cut Time</md-radio>
-                <md-radio v-model="selected" id="time-sig-custom" md-value="custom">Custom</md-radio>
+                <md-radio v-model="selected" name="time-sig" id="time-sig-common" md-value="common">Common Time</md-radio>
+                <md-radio v-model="selected" name="time-sig" id="time-sig-cut" md-value="cut">Cut Time</md-radio>
+                <md-radio v-model="selected" name="time-sig" id="time-sig-custom" md-value="custom">Custom</md-radio>
             </md-layout>
 
             <md-input-container>

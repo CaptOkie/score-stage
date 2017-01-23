@@ -1,4 +1,4 @@
-import constants from './constants';
+import { X_SHIFT } from './constants';
 import Vex from 'vexflow';
 const { Barline, StaveConnector, Formatter, StaveModifier } = Vex.Flow;
 
@@ -231,7 +231,7 @@ class Row {
         let prev = undefined;
         this.measures.forEach(measure => {
             measure.adjustWidth(maxWidth, this);
-            measure.x = (prev && (prev.x + prev.width)) || constants.xShift;
+            measure.x = (prev && (prev.x + prev.width)) || X_SHIFT;
             measure.format();
 
             let barlineX = measure.x;
@@ -424,9 +424,9 @@ class SingleCursor {
     clear(canvas) {
         let x = this.measure.x;
         let width = this.measure.width;
-        if (x === constants.xShift) {
+        if (x === X_SHIFT) {
             x = 0;
-            width += constants.xShift;
+            width += X_SHIFT;
         }
         canvas.clearRect(x, this.measure.y, width, this.measure.getLast('staves').getBottomY() - this.measure.y);
         this.measure.draw();

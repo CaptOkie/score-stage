@@ -35,9 +35,10 @@ module.exports = {
             },
             {
                 test: /\.(png|jpg|gif|svg)$/,
-                loader: 'file-loader',
+                loader: 'url-loader',
                 options: {
-                    name: '[name].[ext]?[hash]'
+                    name: 'imgs/[name].[ext]',
+                    publicPath: 'res/'
                 }
             },
             {

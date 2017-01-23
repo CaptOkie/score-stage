@@ -7,11 +7,9 @@
             </co-score-editor>
         </md-card-content>
 
-        <co-time-signature-dialog ref="timeSigDialog">
-        </co-time-signature-dialog>
-
-        <co-key-signature-dialog ref="keySigDialog">
-        </co-key-signature-dialog>
+        <co-time-signature-dialog ref="timeSigDialog"></co-time-signature-dialog>
+        <co-key-signature-dialog ref="keySigDialog"></co-key-signature-dialog>
+        <co-clef-dialog ref="clefDialog"></co-clef-dialog>
     </md-card>
 </template>
 
@@ -19,6 +17,7 @@
 import 'Proxies/mdCard';
 import coTimeSignatureDialog from './co-time-signature-dialog.vue';
 import coKeySignatureDialog from './co-key-signature-dialog.vue';
+import coClefDialog from './co-clef-dialog.vue';
 import coScoreEditor from './co-score-editor.vue';
 import { Measure, TimeSignature, Tick, Note, Bar, Group } from './types';
 
@@ -58,12 +57,14 @@ export default {
                 this.cursor.measure.timeSig = data.timeSig;
             });
         },
-        setClef() {
-
-        },
         setKeySig() {
             this.$refs.keySigDialog.show(this.cursor.bar.keySig, data => {
                 this.cursor.bar.keySig = data.keySig;
+            });
+        },
+        setClef() {
+            this.$refs.clefDialog.show(this.cursor.bar.clef, data => {
+                this.cursor.bar.clef = data.clef;
             });
         },
         cursorChanged(cursor) {
@@ -76,7 +77,7 @@ export default {
         setTimeout(() => {
             // this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
             // this.groups = [ new Group('Default', 'Def') ];
-            
+
             this.measures = [
                 new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
                 new Measure(new TimeSignature(3,4), [], { end : 'REPEAT' }),
@@ -122,6 +123,7 @@ export default {
     components : {
         coTimeSignatureDialog,
         coKeySignatureDialog,
+        coClefDialog,
         coScoreEditor
     }
 }

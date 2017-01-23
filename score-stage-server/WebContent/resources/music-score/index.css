@@ -2085,6 +2085,23 @@ to {
 /* Responsive Breakpoints */
 /* Transitions - Based on Angular Material */
 /* Elevation - Based on Angular Material */
+.md-image {
+  opacity: 0;
+  filter: saturate(20%);
+}
+.md-image.md-black-output {
+    filter: brightness(0.4) saturate(20%);
+}
+.md-image.md-loaded {
+    opacity: 1;
+    filter: saturate(100%);
+    transition: opacity 1.1s cubic-bezier(0.25, 0.8, 0.25, 1), filter 2.2s 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/*# sourceMappingURL=index.css.map*//* Common */
+/* Responsive Breakpoints */
+/* Transitions - Based on Angular Material */
+/* Elevation - Based on Angular Material */
 .md-icon {
   width: 24px;
   min-width: 24px;
@@ -2715,13 +2732,21 @@ html.co-disable-scroll {
 html.co-disable-scroll > body {
     overflow-y: scroll;
 }
-._co-score-canvas {
+.md-radio.co-key-sig-radio {
+    align-items: center;
+    margin: 0;
+}
+.md-radio.co-key-sig-radio .md-radio-label {
+    height: auto;
+}
+
+.co-score-canvas {
     user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
     -moz-user-select: none;
 }
-.md-list-item .md-list-item-holder .md-list-action._co-score-key-text {
+.md-list-item .md-list-item-holder .md-list-action.co-score-key-text {
     margin-right: 0;
     color: rgba(0, 0, 0, .57);
 }
