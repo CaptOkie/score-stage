@@ -49,7 +49,7 @@ export default {
         const index = (KEY_SIGNATURES.length + 1) / 2;
         const flats = KEY_SIGNATURES.slice(1, index);
         const sharps = KEY_SIGNATURES.slice(index, KEY_SIGNATURES.length);
-        return { empty, flats, sharps, keySig : KEY_SIGNATURES[0].key };
+        return { empty, flats, sharps, keySig : empty.key };
     },
     methods : {
         show(current, success) {

@@ -1,20 +1,24 @@
-import { cMajor, fMajor, bFlatMajor, eFlatMajor, aFlatMajor, dFlatMajor, gFlatMajor, cFlatMajor,
-    gMajor, dMajor, aMajor, eMajor, bMajor, fSharpMajor, cSharpMajor } from './imgs';
+import {
+    cMajor, fMajor, bFlatMajor, eFlatMajor, aFlatMajor, dFlatMajor, gFlatMajor, cFlatMajor,
+    gMajor, dMajor, aMajor, eMajor, bMajor, fSharpMajor, cSharpMajor,
+
+    alto, baritoneC, baritoneF, bass, frenchViolin, mezzoSoprano, soprano, subbass, tenor, treble, percussion
+} from './imgs';
 
 const X_SHIFT = 75;
 const MIN_WIDTH = 100;
 const CLEFS = [
-    { key : 'treble',        label : 'Treble'        },
-    { key : 'bass',          label : 'Bass'          },
-    { key : 'tenor',         label : 'Tenor'         },
-    { key : 'alto',          label : 'Alto'          },
-    { key : 'soprano',       label : 'Soprano'       },
-    { key : 'percussion',    label : 'Percussion'    },
-    { key : 'mezzo-soprano', label : 'Mezzo-soprano' },
-    { key : 'baritone-c',    label : 'Baritone C'    },
-    { key : 'baritone-f',    label : 'Baritone F'    },
-    { key : 'subbass',       label : 'Subbass'       },
-    { key : 'french',        label : 'French violin' }
+    { key : 'percussion',    label : percussion   },
+    { key : 'french',        label : frenchViolin },
+    { key : 'soprano',       label : soprano      },
+    { key : 'alto',          label : alto         },
+    { key : 'baritone-c',    label : baritoneC    },
+    { key : 'bass',          label : bass         },
+    { key : 'treble',        label : treble       },
+    { key : 'mezzo-soprano', label : mezzoSoprano },
+    { key : 'tenor',         label : tenor        },
+    { key : 'baritone-f',    label : baritoneF    },
+    { key : 'subbass',       label : subbass      },
 ];
 const KEY_SIGNATURES = [
     { key : 'C',  label : cMajor      },
