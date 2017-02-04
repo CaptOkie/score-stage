@@ -6,11 +6,11 @@
             <md-layout md-column>
                 <md-layout md-row>
                     <md-radio v-model="selected" name="time-sig" id="time-sig-common" md-value="common" class="co-time-sig-radio">
-                        <img v-once :src="commonTime" width="48"></img>
+                        <img v-once :src="commonTime" width="32"></img>
                     </md-radio>
 
                     <md-radio v-model="selected" name="time-sig" id="time-sig-cut" md-value="cut" class="co-time-sig-radio">
-                        <img v-once :src="cutTime" width="48"></img>
+                        <img v-once :src="cutTime" width="32"></img>
                     </md-radio>
                 </md-layout>
 

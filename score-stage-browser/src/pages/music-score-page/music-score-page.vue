@@ -1,7 +1,9 @@
 <template>
     <div id="music-score-page">
         <md-toolbar>
-            <h1 class="md-title md-flex">Score Stage</h1>
+            <h1 class="md-title md-flex">
+                <a class="co-text-link" v-once :href="INDEX">Score Stage</a>
+            </h1>
             <co-logout v-once></co-logout>
         </md-toolbar>
 
@@ -18,11 +20,15 @@
 <script>
 import 'Proxies/mdToolbar';
 import 'Proxies/mdLayout';
+import { INDEX } from 'Common/urls';
 import coLogout from 'Components/co-logout';
 import coMusicScore from 'Components/co-music-score';
 
 export default {
     name : 'home',
+    data() {
+        return { INDEX };
+    },
     components : {
         coLogout,
         coMusicScore

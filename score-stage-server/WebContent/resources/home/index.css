@@ -1686,6 +1686,16 @@ body {
 .md-radio-container, .md-radio-label {
     cursor: pointer;
 }
+
+a:not(.md-button).co-text-link,
+a:not(.md-button).co-text-link:hover {
+    color: inherit !important;
+}
+a:not(.md-button):not(.md-bottom-bar-item),
+a:not(.md-button):not(.md-bottom-bar-item):hover {
+    text-decoration: none !important;
+}
+
 .md-list-item.md-margin {
     margin-top: 8px;
     margin-bottom: 8px;

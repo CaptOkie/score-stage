@@ -2177,7 +2177,17 @@ body {
 
 .md-radio-container, .md-radio-label {
     cursor: pointer;
-}/* Common */
+}
+
+a:not(.md-button).co-text-link,
+a:not(.md-button).co-text-link:hover {
+    color: inherit !important;
+}
+a:not(.md-button):not(.md-bottom-bar-item),
+a:not(.md-button):not(.md-bottom-bar-item):hover {
+    text-decoration: none !important;
+}
+/* Common */
 /* Responsive Breakpoints */
 /* Transitions - Based on Angular Material */
 /* Elevation - Based on Angular Material */
