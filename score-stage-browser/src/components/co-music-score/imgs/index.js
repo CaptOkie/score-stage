@@ -1,5 +1,5 @@
-import commonTime from './common-time.svg';
-import cutTime from './cut-time.svg';
+import commonTime from './time-signatures/common-time.svg';
+import cutTime from './time-signatures/cut-time.svg';
 
 import aFlatMajor from './key-signatures/a-flat-major.svg';
 import aMajor from './key-signatures/a-major.svg';

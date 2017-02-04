@@ -2538,6 +2538,20 @@ body, #music-score-page {
 body {
     overflow-y: scroll;
 }
+
+.md-radio.co-time-sig-radio {
+    align-items: center;
+    margin: 0;
+}
+.md-radio.co-time-sig-radio .md-radio-label {
+    height: auto;
+}
+.md-radio.co-time-sig-radio:first-of-type {
+    margin-right: 16px;
+}
+.md-radio.co-time-sig-radio:last-of-type {
+    margin-left: 16px;
+}
 /* Common */
 /* Responsive Breakpoints */
 /* Transitions - Based on Angular Material */
