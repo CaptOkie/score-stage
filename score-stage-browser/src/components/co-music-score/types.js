@@ -160,12 +160,6 @@ class Measure {
             prev = stave;
         });
     }
-
-    draw() {
-        [ 'staves', 'voices', 'beams', 'connectors' ].forEach(field => {
-            this[field].forEach(item => item.draw())
-        });
-    }
 }
 
 class Group {
@@ -282,10 +276,6 @@ class Row {
         });
         this.width = maxWidth;
     }
-
-    draw() {
-        this.measures.forEach(measure => measure.draw());
-    }
 }
 
 class Rows {
@@ -304,10 +294,6 @@ class Rows {
         return prev;
     }
 
-    draw() {
-        this.rows.forEach(row => row.draw());
-    }
-
     getFirst() {
         return this.rows[0];
     }
@@ -324,10 +310,14 @@ class Position {
     }
 }
 
-class Canvas {
-    constructor(el) {
+class Engine {
+    constructor(renderer, el) {
+        this.renderer = renderer;
         this.el = el;
-        this.context = el.getContext('2d');
+    }
+
+    setup(rows, maxWidth, groups) {
+        rows.rows.forEach(row => row.setup(this.renderer.getContext(), maxWidth, groups));
     }
 
     getPosition(event) {
@@ -335,7 +325,153 @@ class Canvas {
         return new Position(event.clientX - rect.left, event.clientY - rect.top);
     }
 
-    drawLine(startX, startY, endX, endY, options = {}) {
+    drawRows(rows) {
+        rows.rows.forEach(row => this.drawRow(row));
+    }
+
+    drawRow(row) {
+        row.measures.forEach(measure => this.drawMeasure(measure));
+    }
+
+    drawMeasure(measure) {
+        [ 'staves', 'voices', 'beams', 'connectors' ].forEach(field => {
+            measure[field].forEach(item => item.draw());
+        });
+    }
+
+    resize(width, height) {
+        this.renderer.resize(width, height);
+    }
+}
+
+class SvgEngine extends Engine {
+    constructor(renderer, el) {
+        super(renderer, el);
+    }
+
+    /*** Public methods ***/
+
+    drawCursor(cursor) {
+        this._clearCursor();
+
+        const stave = cursor.stave;
+        const startX = stave.getNoteStartX();
+        let left = 0;
+        let right = 0;
+        const tick = cursor.tick;
+        if (tick && !tick.shouldIgnoreTicks()) {
+            left = tick.getNoteHeadBeginX();
+            right = tick.getNoteHeadEndX();
+        }
+        let x = startX + 24;
+        if (left && right) {
+            x = (left + right) / 2;
+        }
+        this._drawLine(x, stave.y, x, stave.getBottomY(), { width : 3, stroke : '#E91E63', alpha : 0.5 });
+
+        this.cursor = cursor;
+        return this;
+    }
+
+    clear() {
+        while (this.el.lastChild) {
+            this.el.removeChild(this.el.lastChild);
+        }
+    }
+
+    /*** Private methods ***/
+
+    _clearCursor() {
+        const cursor = document.getElementById('co-score-cursor');
+        if (cursor) {
+            cursor.parentElement.removeChild(cursor);
+        }
+    }
+
+    _drawLine(startX, startY, endX, endY, options = {}) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', startX);
+        line.setAttribute('y1', startY);
+        line.setAttribute('x2', endX);
+        line.setAttribute('y2', endY);
+        if (options.width) {
+            line.setAttribute('stroke-width', options.width);
+        }
+        if (options.stroke) {
+            line.setAttribute('stroke', options.stroke);
+        }
+        if (options.alpha !== undefined && options.alpha !== null) {
+            line.setAttribute('stroke-opacity', options.alpha);
+        }
+        line.setAttribute('id', 'co-score-cursor');
+        this.el.appendChild(line);
+    }
+}
+
+class CanvasEngine extends Engine {
+    constructor(renderer, el) {
+        super(renderer, el);
+        this.context = el.getContext('2d');
+    }
+
+    /*** Public methods ***/
+
+    drawCursor(cursor) {
+        this._clearCursor();
+
+        const stave = cursor.stave;
+        const startX = stave.getNoteStartX();
+        let left = 0;
+        let right = 0;
+        const tick = cursor.tick;
+        if (tick && !tick.shouldIgnoreTicks()) {
+            left = tick.getNoteHeadBeginX();
+            right = tick.getNoteHeadEndX();
+        }
+        let x = startX + 24;
+        if (left && right) {
+            x = (left + right) / 2;
+        }
+        this._drawLine(x, stave.y, x, stave.getBottomY(), { width : 3, stroke : '#E91E63', alpha : 0.5 });
+
+        this.cursor = cursor;
+        this.cursor.drawn = true;
+        return this;
+    }
+
+    clear() {
+        this._clearRect(0, 0, this.el.width, this.el.height);
+    }
+
+    //*** Overrides
+
+    resize(width, height) {
+        super.resize(width, height);
+        if (this.cursor) {
+            this.cursor.drawn = false;
+        }
+    }
+
+    /*** Private methods ***/
+
+    _clearCursor() {
+        if (!this.cursor || !this.cursor.drawn) {
+            return;
+        }
+
+        let x = this.cursor.measure.x;
+        let width = this.cursor.measure.width;
+        if (x === X_SHIFT) {
+            x = 0;
+            width += X_SHIFT;
+        }
+        this._clearRect(x, this.cursor.measure.y, width, this.cursor.measure.getLast('staves').getBottomY() - this.cursor.measure.y);
+        this.drawMeasure(this.cursor.measure);
+        this.cursor.drawn = false;
+        return this;
+    }
+
+    _drawLine(startX, startY, endX, endY, options = {}) {
         this.context.save();
         this.context.beginPath();
         this.context.moveTo(startX, startY);
@@ -355,15 +491,13 @@ class Canvas {
         return this;
     }
 
-    clearRect(x, y, width, height) {
+    _clearRect(x, y, width, height) {
         this.context.clearRect(x, y, width, height);
         return this;
     }
 }
 
 class SingleCursor {
-    static get TYPE() { return 'MeasureCursor'; }
-
     static fromPosition(index, measure, pos) {
         const barIndex = measure.getBarIndex(pos.y);
         let tickIndex = 0;
@@ -384,7 +518,7 @@ class SingleCursor {
     }
 
     get type() {
-        return MeasureCursor.TYPE;
+        return SingleCursor;
     }
 
     get bar() {
@@ -402,37 +536,6 @@ class SingleCursor {
     get tick() {
         return this.voice.getTickables()[this.tickIndex];
     }
-
-    draw(canvas) {
-        const stave = this.stave;
-        const startX = stave.getNoteStartX();
-        let left = 0;
-        let right = 0;
-        const tick = this.tick;
-        if (tick && !tick.shouldIgnoreTicks()) {
-            left = tick.getNoteHeadBeginX();
-            right = tick.getNoteHeadEndX();
-        }
-        let x = startX + 24;
-        if (left && right) {
-            x = (left + right) / 2;
-        }
-        canvas.drawLine(x, stave.y, x, stave.getBottomY(), { width : 3, stroke : '#E91E63', alpha : 0.5 });
-        return this;
-    }
-
-    clear(canvas) {
-        let x = this.measure.x;
-        let width = this.measure.width;
-        if (x === X_SHIFT) {
-            x = 0;
-            width += X_SHIFT;
-        }
-        canvas.clearRect(x, this.measure.y, width, this.measure.getLast('staves').getBottomY() - this.measure.y);
-        this.measure.draw();
-        this.cleared = true;
-        return this;
-    }
 }
 
 export {
@@ -445,6 +548,6 @@ export {
     Row,
     Rows,
     Position,
-    Canvas,
+    SvgEngine,
     SingleCursor
 }

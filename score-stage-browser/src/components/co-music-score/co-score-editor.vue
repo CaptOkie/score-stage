@@ -1,7 +1,7 @@
 <template>
     <md-layout md-column md-flex v-co-watch.width="onWidthChanged">
-        <canvas class="co-score-canvas" @click.prevent="click" @mousemove.prevent="mousemove" @contextmenu.prevent="contextmenu">
-        </canvas>
+        <div class="co-score-context" @click.prevent="click" @mousemove.prevent="mousemove" @contextmenu.prevent="contextmenu">
+        </div>
 
         <md-menu ref="menu" style="display: none;" :md-size="6" :md-offset-x="menuX" :md-offset-y="menuY">
             <div md-menu-trigger></div>
@@ -48,7 +48,7 @@ import 'Proxies/mdMenu';
 import coWatch from 'Directives/co-watch';
 import mdMenuListClass from 'Directives/md-menu-list-class';
 import { X_SHIFT, MIN_WIDTH } from './constants';
-import { Row, Rows, Position, Canvas, SingleCursor } from './types';
+import { Row, Rows, Position, SvgEngine, SingleCursor } from './types';
 import Vex from 'vexflow';
 const { StaveNote, Beam, Voice, Accidental, Stave, Renderer } = Vex.Flow;
 
@@ -143,8 +143,9 @@ export default {
                 row.addMeasure(measure);
                 prevMeasure = measure;
             });
-            rows.forEach(row => row.setup(this.renderer.getContext(), this.maxWidth, this.coGroups));
-            return new Rows(rows);
+            const ret = new Rows(rows);
+            this.engine.setup(ret, this.maxWidth, this.coGroups);
+            return ret;
         }
     },
     methods : {
@@ -152,7 +153,7 @@ export default {
             this.width = data.newWidth;
         },
         click(event) {
-            const pos = this.canvas.getPosition(event);
+            const pos = this.engine.getPosition(event);
             const row = this.rows.getRow(pos.y);
             const measure = row.getMeasure(pos.x);
             if (measure) {
@@ -167,7 +168,7 @@ export default {
             }
         },
         mousemove(event) {
-            const pos = this.canvas.getPosition(event);
+            const pos = this.engine.getPosition(event);
         },
         contextmenu(event) {
             this.click(event);
@@ -192,21 +193,15 @@ export default {
         }
     },
     watch : {
-        cursor(newVal, oldVal) {
-            if (this.canvas) {
-                if (oldVal && !oldVal.cleared) {
-                    oldVal.clear(this.canvas);
-                }
-                if (newVal) {
-                    newVal.draw(this.canvas);
-                }
-            }
-            this.$emit('cursor-changed', newVal);
+        cursor(cursor) {
+            this.engine.drawCursor(cursor);
+            this.$emit('cursor-changed', cursor);
         },
         rows(rows) {
             const row = rows.getLast();
-            this.renderer.resize(this.width, row.y + row.height);
-            rows.draw();
+            this.engine.clear();
+            this.engine.resize(this.width, row.y + row.height);
+            this.engine.drawRows(rows);
             let index = 0;
             let barIndex = 0;
             let tickIndex = 0;
@@ -214,14 +209,13 @@ export default {
                 index = Math.min(this.cursor.index, this.coMeasures.length - 1);
                 barIndex = this.cursor.barIndex;
                 tickIndex = this.cursor.tickIndex;
-                this.cursor.cleared = true;
             }
             this.cursor = new SingleCursor(index, this.coMeasures[index], barIndex, tickIndex);
         }
     },
     mounted() {
-        this.canvas = new Canvas(this.$el.firstChild);
-        this.renderer = new Renderer(this.canvas.el, Renderer.Backends.CANVAS);
+        const renderer = new Renderer(this.$el.firstChild, Renderer.Backends.SVG);
+        this.engine = new SvgEngine(renderer, this.$el.firstChild.firstChild);
     },
     directives : {
         coWatch,
@@ -231,7 +225,7 @@ export default {
 </script>
 
 <style>
-.co-score-canvas {
+.co-score-context {
     user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;

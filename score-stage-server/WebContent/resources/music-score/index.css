@@ -2778,7 +2778,7 @@ html.co-disable-scroll > body {
     margin-left: 16px;
 }
 
-.co-score-canvas {
+.co-score-context {
     user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
