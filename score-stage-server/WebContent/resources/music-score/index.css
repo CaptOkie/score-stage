@@ -1,3 +1,33 @@
+[v-cloak] {
+    display: none;
+}
+
+html,
+body {
+    min-height: 100%;
+    height: auto;
+}
+
+.md-padding {
+    padding: 16px;
+}
+
+.md-margin {
+    margin: 16px;
+}
+
+.md-radio-container, .md-radio-label {
+    cursor: pointer;
+}
+
+a:not(.md-button).co-text-link,
+a:not(.md-button).co-text-link:hover {
+    color: inherit !important;
+}
+a:not(.md-button):not(.md-bottom-bar-item),
+a:not(.md-button):not(.md-bottom-bar-item):hover {
+    text-decoration: none !important;
+}
 /* Common */
 /* Responsive Breakpoints */
 /* Transitions - Based on Angular Material */
@@ -2157,37 +2187,7 @@ img.md-icon {
   -webkit-user-drag: none;
 }
 
-/*# sourceMappingURL=index.css.map*/[v-cloak] {
-    display: none;
-}
-
-html,
-body {
-    min-height: 100%;
-    height: auto !important;
-}
-
-.md-padding {
-    padding: 16px;
-}
-
-.md-margin {
-    margin: 16px;
-}
-
-.md-radio-container, .md-radio-label {
-    cursor: pointer;
-}
-
-a:not(.md-button).co-text-link,
-a:not(.md-button).co-text-link:hover {
-    color: inherit !important;
-}
-a:not(.md-button):not(.md-bottom-bar-item),
-a:not(.md-button):not(.md-bottom-bar-item):hover {
-    text-decoration: none !important;
-}
-/* Common */
+/*# sourceMappingURL=index.css.map*//* Common */
 /* Responsive Breakpoints */
 /* Transitions - Based on Angular Material */
 /* Elevation - Based on Angular Material */
@@ -2544,6 +2544,7 @@ a:not(.md-button):not(.md-bottom-bar-item):hover {
 /*# sourceMappingURL=index.css.map*/
 body, #music-score-page {
     width: 100%;
+    min-height: 100%;
 }
 body {
     overflow-y: scroll;

@@ -164,7 +164,11 @@ export default {
                     }
                     index += curr.measures.length;
                 }
-                this.cursor = SingleCursor.fromPosition(index, measure, pos);
+
+                const newCursor = SingleCursor.fromPosition(index, measure, pos);
+                if (newCursor) {
+                    this.cursor = newCursor;
+                }
             }
         },
         mousemove(event) {
@@ -202,15 +206,7 @@ export default {
             this.engine.clear();
             this.engine.resize(this.width, row.y + row.height);
             this.engine.drawRows(rows);
-            let index = 0;
-            let barIndex = 0;
-            let tickIndex = 0;
-            if (this.cursor) {
-                index = Math.min(this.cursor.index, this.coMeasures.length - 1);
-                barIndex = this.cursor.barIndex;
-                tickIndex = this.cursor.tickIndex;
-            }
-            this.cursor = new SingleCursor(index, this.coMeasures[index], barIndex, tickIndex);
+            this.cursor = SingleCursor.fromOld(this.coMeasures, this.cursor);
         }
     },
     mounted() {

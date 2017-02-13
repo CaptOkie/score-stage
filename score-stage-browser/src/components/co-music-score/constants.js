@@ -5,6 +5,7 @@ import {
     alto, baritoneC, baritoneF, bass, frenchViolin, mezzoSoprano, soprano, subbass, tenor, treble, percussion
 } from './imgs';
 
+const NUM_EXTRA_LINES = 3;
 const X_SHIFT = 75;
 const MIN_WIDTH = 100;
 const CLEFS = [
@@ -39,6 +40,7 @@ const KEY_SIGNATURES = [
 ];
 
 export {
+    NUM_EXTRA_LINES,
 	X_SHIFT,
     MIN_WIDTH,
     CLEFS,

@@ -39,6 +39,7 @@ export default {
 <style>
 body, #music-score-page {
     width: 100%;
+    min-height: 100%;
 }
 
 body {

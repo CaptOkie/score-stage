@@ -1,4 +1,5 @@
-import { X_SHIFT } from './constants';
+import { ACCENT_COLOR } from 'Common/constants';
+import { NUM_EXTRA_LINES, X_SHIFT } from './constants';
 import Vex from 'vexflow';
 const { Barline, StaveConnector, Formatter, StaveModifier } = Vex.Flow;
 
@@ -353,8 +354,10 @@ class SvgEngine extends Engine {
 
     drawCursor(cursor) {
         this._clearCursor();
-
         const stave = cursor.stave;
+        const space = stave.getSpacingBetweenLines();
+
+        // Handle cursor X
         const startX = stave.getNoteStartX();
         let left = 0;
         let right = 0;
@@ -364,10 +367,32 @@ class SvgEngine extends Engine {
             right = tick.getNoteHeadEndX();
         }
         let x = startX + 24;
+        let width = space;
         if (left && right) {
-            x = (left + right) / 2;
+            x = left;
+            width = right - left;
         }
-        this._drawLine(x, stave.y, x, stave.getBottomY(), { width : 3, stroke : '#E91E63', alpha : 0.5 });
+
+        // Handle cursor Y
+        const y = stave.getYForLine(cursor.line.num) - (cursor.line.space ? 0 : space / 2);
+
+        const group = this._makeGroup({
+            'stroke-width' : 2,
+            'stroke' : ACCENT_COLOR,
+            'fill' : ACCENT_COLOR,
+            'fill-opacity' : 0.5,
+            'id' : 'co-score-cursor'
+        });
+        const lastLine = stave.getOptions().num_lines - 1;
+        const numExtra = cursor.line.num < 0 ? Math.abs(cursor.line.num) : Math.max(0, cursor.line.num - lastLine);
+        for (let i = 0; i < numExtra; ++i) {
+            const num = cursor.line.num < 0 ? cursor.line.num : (lastLine + 1);
+            const y = stave.getYForLine(num + i);
+            const line = this._makeLine(x - 5, y, x + width + 5, y);
+            group.appendChild(line);
+        }
+        group.appendChild(this._makeRect(x, y, width, space));
+        this.el.appendChild(group);
 
         this.cursor = cursor;
         return this;
@@ -388,112 +413,32 @@ class SvgEngine extends Engine {
         }
     }
 
-    _drawLine(startX, startY, endX, endY, options = {}) {
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', startX);
-        line.setAttribute('y1', startY);
-        line.setAttribute('x2', endX);
-        line.setAttribute('y2', endY);
-        if (options.width) {
-            line.setAttribute('stroke-width', options.width);
-        }
-        if (options.stroke) {
-            line.setAttribute('stroke', options.stroke);
-        }
-        if (options.alpha !== undefined && options.alpha !== null) {
-            line.setAttribute('stroke-opacity', options.alpha);
-        }
-        line.setAttribute('id', 'co-score-cursor');
-        this.el.appendChild(line);
-    }
-}
-
-class CanvasEngine extends Engine {
-    constructor(renderer, el) {
-        super(renderer, el);
-        this.context = el.getContext('2d');
+    _makeLine(x1, y1, x2, y2, options = {}) {
+        options.x1 = x1;
+        options.y1 = y1;
+        options.x2 = x2;
+        options.y2 = y2;
+        return this._makeElement('line', options);
     }
 
-    /*** Public methods ***/
-
-    drawCursor(cursor) {
-        this._clearCursor();
-
-        const stave = cursor.stave;
-        const startX = stave.getNoteStartX();
-        let left = 0;
-        let right = 0;
-        const tick = cursor.tick;
-        if (tick && !tick.shouldIgnoreTicks()) {
-            left = tick.getNoteHeadBeginX();
-            right = tick.getNoteHeadEndX();
-        }
-        let x = startX + 24;
-        if (left && right) {
-            x = (left + right) / 2;
-        }
-        this._drawLine(x, stave.y, x, stave.getBottomY(), { width : 3, stroke : '#E91E63', alpha : 0.5 });
-
-        this.cursor = cursor;
-        this.cursor.drawn = true;
-        return this;
+    _makeRect(x, y, width, height, options = {}) {
+        options.x = x;
+        options.y = y;
+        options.width = width;
+        options.height = height;
+        return this._makeElement('rect', options);
     }
 
-    clear() {
-        this._clearRect(0, 0, this.el.width, this.el.height);
+    _makeGroup(options = {}) {
+        return this._makeElement('g', options);
     }
 
-    //*** Overrides
-
-    resize(width, height) {
-        super.resize(width, height);
-        if (this.cursor) {
-            this.cursor.drawn = false;
+    _makeElement(name, options = {}) {
+        const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+        for (const key in options) {
+            element.setAttribute(key, options[key]);
         }
-    }
-
-    /*** Private methods ***/
-
-    _clearCursor() {
-        if (!this.cursor || !this.cursor.drawn) {
-            return;
-        }
-
-        let x = this.cursor.measure.x;
-        let width = this.cursor.measure.width;
-        if (x === X_SHIFT) {
-            x = 0;
-            width += X_SHIFT;
-        }
-        this._clearRect(x, this.cursor.measure.y, width, this.cursor.measure.getLast('staves').getBottomY() - this.cursor.measure.y);
-        this.drawMeasure(this.cursor.measure);
-        this.cursor.drawn = false;
-        return this;
-    }
-
-    _drawLine(startX, startY, endX, endY, options = {}) {
-        this.context.save();
-        this.context.beginPath();
-        this.context.moveTo(startX, startY);
-        if (options.width) {
-            this.context.lineWidth = options.width;
-        }
-        this.context.lineTo(endX, endY);
-        if (options.stroke) {
-            this.context.strokeStyle = options.stroke;
-        }
-        if (options.alpha !== undefined && options.alpha !== null) {
-            this.context.globalAlpha = options.alpha;
-        }
-        this.context.stroke();
-        this.context.closePath();
-        this.context.restore();
-        return this;
-    }
-
-    _clearRect(x, y, width, height) {
-        this.context.clearRect(x, y, width, height);
-        return this;
+        return element;
     }
 }
 
@@ -507,14 +452,46 @@ class SingleCursor {
             }
             tickIndex = i;
         }
-        return new SingleCursor(index, measure, barIndex, tickIndex);
+
+        const stave = measure.staves[barIndex];
+        const space = stave.getSpacingBetweenLines() / 2;
+        const start = stave.getYForLine(-NUM_EXTRA_LINES) - (space / 2);
+        const end = stave.getYForLine(stave.getOptions().num_lines + NUM_EXTRA_LINES - 1) + (space / 2);
+        if (pos.y < start || pos.y > end) {
+            return undefined;
+        }
+
+        let line = { num : -NUM_EXTRA_LINES, space : false };
+        for (let y = (start + space); y < pos.y; y += space) {
+            if (line.space) {
+                line.num += 1;
+            }
+            line.space = !line.space;
+        }
+
+        return new SingleCursor(index, measure, barIndex, tickIndex, line);
     }
 
-    constructor(index, measure, barIndex, tickIndex) {
+    static fromOld(measures, old) {
+            let index = 0;
+            let barIndex = undefined;
+            let tickIndex = undefined;
+            let line = undefined;
+            if (old) {
+                index = Math.min(old.index, measures.length - 1);
+                barIndex = old.barIndex;
+                tickIndex = old.tickIndex;
+                line = old.line;
+            }
+            return new SingleCursor(index, measures[index], barIndex, tickIndex, line);
+    }
+
+    constructor(index, measure, barIndex = 0, tickIndex = 0, line = { num : 0, space : false }) {
         this.index = index;
         this.measure = measure;
         this.barIndex = barIndex;
         this.tickIndex = tickIndex;
+        this.line = line;
     }
 
     get type() {
