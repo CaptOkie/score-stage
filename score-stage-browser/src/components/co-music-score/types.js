@@ -364,31 +364,36 @@ class SvgEngine extends Engine {
 
         let x = startX + 24;
         let width = space;
-        if (cursor.tickInfo.before) {
-            let prev = undefined;
-            for (let i = 1; i <= cursor.tickInfo.index; ++i) {
-                const curr = cursor.ticks[cursor.tickInfo.index - i];
-                if (!curr.shouldIgnoreTicks()) {
-                    prev = curr;
-                    break;
+        if (tick) {
+            if (cursor.tickInfo.before) {
+                let prev = undefined;
+                for (let i = 1; i <= cursor.tickInfo.index; ++i) {
+                    const curr = cursor.ticks[cursor.tickInfo.index - i];
+                    if (!curr.shouldIgnoreTicks()) {
+                        prev = curr;
+                        break;
+                    }
+                }
+                if (prev) {
+                    x = prev.getNoteHeadEndX() + ((tick.getNoteHeadBeginX() - prev.getNoteHeadEndX()) / 2) - (width / 2);
                 }
             }
-            if (prev) {
-                x = prev.getNoteHeadEndX() + ((tick.getNoteHeadBeginX() - prev.getNoteHeadEndX()) / 2) - (width / 2);
+            else {
+                const left = tick.getNoteHeadBeginX();
+                const right = tick.getNoteHeadEndX();
+
+                x = left;
+                let diff = width - (right - left);
+                if (diff <= 0) {
+                    width = right - left;
+                }
+                else {
+                    x -= diff / 2;
+                }
             }
         }
-        else if (tick) {
-            const left = tick.getNoteHeadBeginX();
-            const right = tick.getNoteHeadEndX();
-
-            x = left;
-            let diff = width - (right - left);
-            if (diff <= 0) {
-                width = right - left;
-            }
-            else {
-                x -= diff / 2;
-            }
+        else if (cursor.tickInfo.index) {
+            x = stave.getNoteEndX() - 24 - width;
         }
 
 
@@ -491,8 +496,16 @@ class SingleCursor {
 
         if (currTick) {
             let left = startX;
-            const right = currTick.getNoteHeadBeginX();
-            if (prevTick) {
+            let right = currTick.getNoteHeadBeginX();
+            if (pos.x > currTick.getNoteHeadEndX()) {
+                left = currTick.getNoteHeadEndX();
+                right = endX;
+                const cutoff = left + ((right - left) * 0.25);
+                if (pos.x > cutoff) {
+                    tickInfo.index += 1;
+                }
+            }
+            else if (prevTick) {
                 // TODO consider note head vs entire tick
                 left = prevTick.getNoteHeadEndX();
                 const diff = right - left;
