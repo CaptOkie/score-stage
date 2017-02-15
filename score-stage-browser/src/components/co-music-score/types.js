@@ -504,6 +504,9 @@ class SingleCursor {
                 if (pos.x > cutoff) {
                     tickInfo.index += 1;
                 }
+                else {
+                    tickInfo.before = false;
+                }
             }
             else if (prevTick) {
                 // TODO consider note head vs entire tick
