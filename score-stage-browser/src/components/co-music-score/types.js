@@ -234,6 +234,7 @@ class Row {
                 stave.setX(measure.x).setWidth(measure.width).setNoteStartX(measure.x + measure.padding.left);
                 barlineX = Math.max(barlineX, getBeginBarline(stave).getX());
             });
+            barlineX = Math.round(barlineX);
             measure.staves.forEach(stave => {
                 getBeginBarline(stave).setX(barlineX);
                 stave.setContext(context);
@@ -359,19 +360,37 @@ class SvgEngine extends Engine {
 
         // Handle cursor X
         const startX = stave.getNoteStartX();
-        let left = 0;
-        let right = 0;
-        const tick = cursor.tick;
-        if (tick && !tick.shouldIgnoreTicks()) {
-            left = tick.getNoteHeadBeginX();
-            right = tick.getNoteHeadEndX();
-        }
+        const tick = cursor.ticks[cursor.tickInfo.index];
+
         let x = startX + 24;
         let width = space;
-        if (left && right) {
-            x = left;
-            width = right - left;
+        if (cursor.tickInfo.before) {
+            let prev = undefined;
+            for (let i = 1; i <= cursor.tickInfo.index; ++i) {
+                const curr = cursor.ticks[cursor.tickInfo.index - i];
+                if (!curr.shouldIgnoreTicks()) {
+                    prev = curr;
+                    break;
+                }
+            }
+            if (prev) {
+                x = prev.getNoteHeadEndX() + ((tick.getNoteHeadBeginX() - prev.getNoteHeadEndX()) / 2) - (width / 2);
+            }
         }
+        else if (tick) {
+            const left = tick.getNoteHeadBeginX();
+            const right = tick.getNoteHeadEndX();
+
+            x = left;
+            let diff = width - (right - left);
+            if (diff <= 0) {
+                width = right - left;
+            }
+            else {
+                x -= diff / 2;
+            }
+        }
+
 
         // Handle cursor Y
         const y = stave.getYForLine(cursor.line.num) - (cursor.line.space ? 0 : space / 2);
@@ -445,52 +464,92 @@ class SvgEngine extends Engine {
 class SingleCursor {
     static fromPosition(index, measure, pos) {
         const barIndex = measure.getBarIndex(pos.y);
-        let tickIndex = 0;
-        for (const [ i, tick ] of measure.voices[barIndex].getTickables().entries()) {
-            if (!tick.shouldIgnoreTicks() && tick.getNoteHeadBeginX() > pos.x) {
-                break;
-            }
-            tickIndex = i;
+        const stave = measure.staves[barIndex];
+        const voice = measure.voices[barIndex];
+
+        // Get the X position info
+        const startX = stave.getNoteStartX();
+        const endX = stave.getNoteEndX();
+        if (pos.x < startX || pos.x > endX) {
+            return undefined;
         }
 
-        const stave = measure.staves[barIndex];
+        const tickInfo = { index : 0, before : true };
+        let prevTick = undefined;
+        let currTick = undefined;
+        for (const [ i, tick ] of voice.getTickables().entries()) {
+            if (!tick.shouldIgnoreTicks()) {
+                prevTick = currTick;
+                currTick = tick;
+                tickInfo.index = i;
+
+                if (tick.getNoteHeadBeginX() > pos.x) {
+                    break;
+                }
+            }
+        }
+
+        if (currTick) {
+            let left = startX;
+            const right = currTick.getNoteHeadBeginX();
+            if (prevTick) {
+                // TODO consider note head vs entire tick
+                left = prevTick.getNoteHeadEndX();
+                const diff = right - left;
+                const first = left + (diff * 0.25);
+                const second = left + (diff * 0.75);
+                if (first > pos.x) {
+                    tickInfo.index -= 1;
+                    tickInfo.before = false;
+                }
+                else {
+                    tickInfo.before = second > pos.x;
+                }
+            }
+            else {
+                const cutoff = left + ((right - left) * 0.75);
+                tickInfo.before = cutoff > pos.x;
+            }
+        }
+
+        // Get the Y position info
         const space = stave.getSpacingBetweenLines() / 2;
-        const start = stave.getYForLine(-NUM_EXTRA_LINES) - (space / 2);
-        const end = stave.getYForLine(stave.getOptions().num_lines + NUM_EXTRA_LINES - 1) + (space / 2);
-        if (pos.y < start || pos.y > end) {
+        const startY = stave.getYForLine(-NUM_EXTRA_LINES) - (space / 2);
+        const endY = stave.getYForLine(stave.getOptions().num_lines + NUM_EXTRA_LINES - 1) + (space / 2);
+        if (pos.y < startY || pos.y > endY) {
             return undefined;
         }
 
         let line = { num : -NUM_EXTRA_LINES, space : false };
-        for (let y = (start + space); y < pos.y; y += space) {
+        for (let y = (startY + space); y < pos.y; y += space) {
             if (line.space) {
                 line.num += 1;
             }
             line.space = !line.space;
         }
 
-        return new SingleCursor(index, measure, barIndex, tickIndex, line);
+        return new SingleCursor(index, measure, barIndex, tickInfo, line);
     }
 
     static fromOld(measures, old) {
             let index = 0;
             let barIndex = undefined;
-            let tickIndex = undefined;
+            let tickInfo = undefined;
             let line = undefined;
             if (old) {
                 index = Math.min(old.index, measures.length - 1);
                 barIndex = old.barIndex;
-                tickIndex = old.tickIndex;
+                tickInfo = old.tickInfo;
                 line = old.line;
             }
-            return new SingleCursor(index, measures[index], barIndex, tickIndex, line);
+            return new SingleCursor(index, measures[index], barIndex, tickInfo, line);
     }
 
-    constructor(index, measure, barIndex = 0, tickIndex = 0, line = { num : 0, space : false }) {
+    constructor(index, measure, barIndex = 0, tickInfo = { index : 0, before : true }, line = { num : 0, space : false }) {
         this.index = index;
         this.measure = measure;
         this.barIndex = barIndex;
-        this.tickIndex = tickIndex;
+        this.tickInfo = tickInfo;
         this.line = line;
     }
 
@@ -510,8 +569,8 @@ class SingleCursor {
         return this.measure.voices[this.barIndex];
     }
 
-    get tick() {
-        return this.voice.getTickables()[this.tickIndex];
+    get ticks() {
+        return this.voice.getTickables();
     }
 }
 
