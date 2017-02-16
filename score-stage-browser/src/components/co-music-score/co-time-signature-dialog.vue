@@ -42,7 +42,7 @@ import 'Proxies/mdRadio';
 import 'Proxies/mdInputContainer';
 import coScroll from 'Services/co-scroll';
 import { TimeSignature } from './types';
-import { commonTime, cutTime } from './imgs';
+import { commonTime, cutTime } from './imgs/time-signatures';
 
 function toSelect(current) {
     switch (current.vexFormat) {

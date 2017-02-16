@@ -1,13 +1,19 @@
 import {
-    cMajor, fMajor, bFlatMajor, eFlatMajor, aFlatMajor, dFlatMajor, gFlatMajor, cFlatMajor,
-    gMajor, dMajor, aMajor, eMajor, bMajor, fSharpMajor, cSharpMajor,
-
     alto, baritoneC, baritoneF, bass, frenchViolin, mezzoSoprano, soprano, subbass, tenor, treble, percussion
-} from './imgs';
+} from './imgs/clefs';
+
+import {
+    cMajor, fMajor, bFlatMajor, eFlatMajor, aFlatMajor, dFlatMajor, gFlatMajor, cFlatMajor,
+    gMajor, dMajor, aMajor, eMajor, bMajor, fSharpMajor, cSharpMajor
+} from './imgs/key-signatures';
+
+import notes from './imgs/notes';
+import rests from './imgs/rests';
 
 const NUM_EXTRA_LINES = 3;
 const X_SHIFT = 75;
 const MIN_WIDTH = 100;
+
 const CLEFS = [
     { key : 'percussion',    label : percussion   },
     { key : 'french',        label : frenchViolin },
@@ -21,6 +27,7 @@ const CLEFS = [
     { key : 'baritone-f',    label : baritoneF    },
     { key : 'subbass',       label : subbass      },
 ];
+
 const KEY_SIGNATURES = [
     { key : 'C',  label : cMajor      },
     { key : 'F',  label : fMajor      },
@@ -39,10 +46,15 @@ const KEY_SIGNATURES = [
     { key : 'C#', label : cSharpMajor }
 ];
 
+const NOTES = Object.keys(notes).map(key => { return { value : key, label : notes[key] }; });
+const RESTS = Object.keys(rests).map(key => { return { value : key, label : rests[key] }; });
+
 export {
     NUM_EXTRA_LINES,
 	X_SHIFT,
     MIN_WIDTH,
     CLEFS,
-    KEY_SIGNATURES
+    KEY_SIGNATURES,
+    NOTES,
+    RESTS
 }

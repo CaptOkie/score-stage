@@ -5,7 +5,7 @@
 html,
 body {
     min-height: 100%;
-    height: auto;
+    height: auto !important;
 }
 
 .md-padding {
@@ -27,4 +27,8 @@ a:not(.md-button).co-text-link:hover {
 a:not(.md-button):not(.md-bottom-bar-item),
 a:not(.md-button):not(.md-bottom-bar-item):hover {
     text-decoration: none !important;
+}
+
+.md-button-toggle > .md-button:last-child:first-child {
+    border-radius: 2px;
 }

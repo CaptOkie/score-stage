@@ -362,6 +362,7 @@ class SvgEngine extends Engine {
         const startX = stave.getNoteStartX();
         const tick = cursor.ticks[cursor.tickInfo.index];
 
+        // TODO Place start and end cursor in the middle of the space
         let x = startX + 24;
         let width = space;
         if (tick) {
