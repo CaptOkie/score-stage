@@ -94,6 +94,16 @@ body {
 .co-option-group {
     flex: initial;
 }
+
+.co-option-group-divider {
+    margin: 0 8px;
+    padding: 0;
+    display: block;
+    border: 0;
+    background-color: rgba(0,0,0,.12);
+    width: 2px;
+}
+
 button.co-option-button {
     padding: 8px;
     min-width: 36px;
@@ -104,13 +114,5 @@ button.co-option-button {
 button.co-option-button > img {
     max-height: 40px;
     max-width: 20px;
-}
-.co-option-group-divider {
-    margin: 0 8px;
-    padding: 0;
-    display: block;
-    border: 0;
-    background-color: rgba(0,0,0,.12);
-    width: 2px;
 }
 </style>
