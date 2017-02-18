@@ -112,56 +112,106 @@ export default {
         },
         cursorChanged(cursor) {
             this.cursor = cursor;
+        },
+        keyup(event) {
+            // TODO Ignore some events (e.g. key events on inputs)
+            if (!this.measures || !this.cursor || !this.coNote) {
+                return;
+            }
+
+            if (event.ctrlKey && event.shiftKey) {
+                // Empty
+            }
+            else if (event.shiftKey) {
+                switch (event.keyCode) {
+                    case 65: 
+                        this.addNote();
+                        break;
+                }
+            }
+            else if (event.ctrlKey) {
+                // Empty
+            }
+            else {
+                // Empty
+            }
+        },
+        addNote() {
+            const duration = Number(this.coNote.duration);
+            const ticks = this.cursor.bar.ticks;
+            const index = this.cursor.tickInfo.index;
+            let tick = undefined;
+            if (this.cursor.tickInfo.before) {
+                tick = new Tick(duration, []);
+                ticks.splice(index, 0, tick);
+            }
+            else {
+                tick = ticks[index];
+                tick.duration = duration;
+            }
+            if (this.coNote.rest) {
+                tick.notes = [];
+            }
+            else {
+                // TODO
+                tick.notes = [ new Note('a', 3, 'n') ];
+            }
         }
     },
     created() {
 
         // More accurate behaviour
         setTimeout(() => {
-            // this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
-            // this.groups = [ new Group('Default', 'Def') ];
+            this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
+            this.groups = [ new Group('Default', 'Def') ];
 
-            this.measures = [
-                new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
-                new Measure(new TimeSignature(3,4), [], { end : 'REPEAT' }),
-                new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
-                new Measure(new TimeSignature(5,8), []),
-                new Measure(new TimeSignature(5,8), []),
-                new Measure(new TimeSignature(6,8), []),
-                new Measure(new TimeSignature(6,8), [], { end : 'REPEAT' }),
-                new Measure(new TimeSignature(6,8), [], { begin : 'REPEAT', end : 'REPEAT' }),
-                new Measure(new TimeSignature(3,4), []),
-                new Measure(new TimeSignature(2,2), []),
-                new Measure(new TimeSignature(4,4), []),
-                new Measure(new TimeSignature(4,4), [], { end : 'END' })
-            ].map(function(measure) {
+            // this.measures = [
+            //     new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
+            //     new Measure(new TimeSignature(3,4), [], { end : 'REPEAT' }),
+            //     new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
+            //     new Measure(new TimeSignature(5,8), []),
+            //     new Measure(new TimeSignature(5,8), []),
+            //     new Measure(new TimeSignature(6,8), []),
+            //     new Measure(new TimeSignature(6,8), [], { end : 'REPEAT' }),
+            //     new Measure(new TimeSignature(6,8), [], { begin : 'REPEAT', end : 'REPEAT' }),
+            //     new Measure(new TimeSignature(3,4), []),
+            //     new Measure(new TimeSignature(2,2), []),
+            //     new Measure(new TimeSignature(4,4), []),
+            //     new Measure(new TimeSignature(4,4), [], { end : 'END' })
+            // ].map(function(measure) {
                 
-                let ticks = [
-                    new Tick(8, [ new Note('a', 3, 'n'), new Note('b', 3, 'n') ]),
-                    new Tick(8, [ new Note('b', 3, '#') ]),
-                    new Tick(2, []),
-                    new Tick(4, []),
-                    new Tick(2, [ new Note('a', 3, 'n'), new Note('c', 4, 'n'), new Note('e', 4, 'b') ])
-                ];
+            //     let ticks = [
+            //         new Tick(8, [ new Note('a', 3, 'n'), new Note('b', 3, 'n') ]),
+            //         new Tick(8, [ new Note('b', 3, '#') ]),
+            //         new Tick(2, []),
+            //         new Tick(4, []),
+            //         new Tick(2, [ new Note('a', 3, 'n'), new Note('c', 4, 'n'), new Note('e', 4, 'b') ])
+            //     ];
                 
-                let bars = [
-                    new Bar('treble', 'C', ticks),
-                    new Bar('bass', 'Eb', ticks),
-                    new Bar('treble', 'Cb', ticks),
-                    new Bar('treble', 'E', ticks),
-                    new Bar('bass', 'Db', ticks),
-                    new Bar('bass', 'C#', ticks)
-                ]
-                measure.bars = bars;
-                return measure;
-            });
+            //     let bars = [
+            //         new Bar('treble', 'C', ticks),
+            //         new Bar('bass', 'Eb', ticks),
+            //         new Bar('treble', 'Cb', ticks),
+            //         new Bar('treble', 'E', ticks),
+            //         new Bar('bass', 'Db', ticks),
+            //         new Bar('bass', 'C#', ticks)
+            //     ]
+            //     measure.bars = bars;
+            //     return measure;
+            // });
 
-            this.groups = [
-                new Group('Clarinet', 'Clt', 2),
-                new Group('Trumpet', 'Tpt', 1),
-                new Group('Flute', 'Flt', 3)
-            ];
+            // this.groups = [
+            //     new Group('Clarinet', 'Clt', 2),
+            //     new Group('Trumpet', 'Tpt', 1),
+            //     new Group('Flute', 'Flt', 3)
+            // ];
         }, 0);
+    },
+    mounted() {
+        document.body.addEventListener('keyup', this.keyup);
+    },
+    beforeDestroy() {
+        document.body.removeEventListener('keyup', this.keyup);
     },
     components : {
         coTimeSignatureDialog,

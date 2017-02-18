@@ -95,9 +95,11 @@ body {
     flex: initial;
 }
 button.co-option-button {
-    min-width: initial;
     padding: 8px;
+    min-width: 36px;
     width: 36px;
+    min-height: 56px;
+    height: 56px;
 }
 button.co-option-button > img {
     max-height: 40px;
