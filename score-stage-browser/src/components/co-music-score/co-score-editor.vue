@@ -1,52 +1,12 @@
 <template>
     <md-layout md-column md-flex v-co-watch.width="onWidthChanged">
-        <div class="co-score-context" @click.prevent="click" @mousemove.prevent="mousemove" @contextmenu.prevent="contextmenu">
-        </div>
-
-        <md-menu ref="menu" style="display: none;" :md-size="6" :md-offset-x="menuX" :md-offset-y="menuY">
-            <div md-menu-trigger></div>
-            <md-menu-content v-md-menu-list-class.md-dense>
-                <md-menu-item @click="addMeasures">
-                    <md-icon>playlist_add</md-icon>
-                    <span>Add measure</span>
-                    <span class="md-list-action co-score-key-text">Ctrl+A</span>
-                </md-menu-item>
-
-                <md-menu-item @click="deleteMeasure">
-                    <md-icon>delete_sweep</md-icon>
-                    <span>Delete measure</span>
-                    <span class="md-list-action co-score-key-text">Ctrl+D</span>
-                </md-menu-item>
-
-                <md-menu-item @click="setTimeSig" class="md-inset">
-                    <span>Edit time signature</span>
-                    <span class="md-list-action co-score-key-text">Ctrl+T</span>
-                </md-menu-item>
-
-                <md-divider></md-divider>
-
-                <md-menu-item @click="setKeySig">
-                    <md-icon>vpn_key</md-icon>
-                    <span>Change key signature</span>
-                    <span class="md-list-action co-score-key-text">Ctrl+K</span>
-                </md-menu-item>
-
-                <md-menu-item @click="setClef" class="md-inset">
-                    <span>Change clef</span>
-                    <span class="md-list-action co-score-key-text">Ctrl+L</span>
-                </md-menu-item>
-            </md-menu-content>
-        </md-menu>
+        <div class="co-score-context" @click.prevent="click"></div>
     </md-layout>
 </template>
 
 <script>
 import 'Proxies/mdLayout';
-import 'Proxies/mdIcon';
-import 'Proxies/mdDivider';
-import 'Proxies/mdMenu';
 import coWatch from 'Directives/co-watch';
-import mdMenuListClass from 'Directives/md-menu-list-class';
 import { X_SHIFT, MIN_WIDTH } from './constants';
 import { Row, Rows, Position, SvgEngine, SingleCursor } from './types';
 import Vex from 'vexflow';
@@ -60,9 +20,7 @@ export default {
     name : 'co-score-editor',
     props : [ 'coMeasures', 'coGroups', 'coBarScale' ],
     data() {
-        return {
-            width : 0, menuX : 0, menuY : 0, cursor : undefined
-        };
+        return { width : 0, cursor : undefined };
     },
     computed : {
         maxWidth() {
@@ -171,30 +129,6 @@ export default {
                 }
             }
         },
-        mousemove(event) {
-            const pos = this.engine.getPosition(event);
-        },
-        contextmenu(event) {
-            this.click(event);
-            this.menuX = event.clientX;
-            this.menuY = event.clientY;
-            this.$nextTick(() => this.$refs.menu.open());
-        },
-        addMeasures(event) {
-            this.$emit('add-measures');
-        },
-        deleteMeasure(event) {
-            this.$emit('delete-measure');
-        },
-        setTimeSig(event) {
-            this.$emit('set-time-signature');
-        },
-        setClef(event) {
-            this.$emit('set-clef');
-        },
-        setKeySig(event) {
-            this.$emit('set-key-signature');
-        }
     },
     watch : {
         cursor(cursor) {
@@ -214,8 +148,7 @@ export default {
         this.engine = new SvgEngine(renderer, this.$el.firstChild.firstChild);
     },
     directives : {
-        coWatch,
-        mdMenuListClass
+        coWatch
     }
 }
 </script>
@@ -226,10 +159,5 @@ export default {
     -webkit-user-select: none;
     -ms-user-select: none;
     -moz-user-select: none;
-}
-
-.md-list-item .md-list-item-holder .md-list-action.co-score-key-text {
-    margin-right: 0;
-    color: rgba(0, 0, 0, .57);
 }
 </style>

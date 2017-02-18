@@ -1,11 +1,45 @@
 <template>
-    <md-card class="md-flex" style="overflow: visible;">
+    <md-card class="md-flex" style="overflow: visible;" @contextmenu.native.prevent="contextmenu">
         <md-card-content>
             <co-score-editor v-if="loaded" :co-measures="measures" :co-groups="groups" :co-bar-scale="2"
-                    @add-measures="addMeasures" @delete-measure="deleteMeasure" @set-time-signature="setTimeSig"
-                    @set-clef="setClef" @set-key-signature="setKeySig" @cursor-changed="cursorChanged">
+                    @cursor-changed="cursorChanged">
             </co-score-editor>
         </md-card-content>
+
+        <md-menu ref="menu" style="display: none;" :md-size="6" :md-offset-x="menuX" :md-offset-y="menuY">
+            <div md-menu-trigger></div>
+            <md-menu-content>
+                <md-menu-item @click="addMeasures">
+                    <md-icon>playlist_add</md-icon>
+                    <span>Add measure</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+A</span>
+                </md-menu-item>
+
+                <md-menu-item @click="deleteMeasure">
+                    <md-icon>delete_sweep</md-icon>
+                    <span>Delete measure</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+D</span>
+                </md-menu-item>
+
+                <md-menu-item @click="setTimeSig" class="md-inset">
+                    <span>Edit time signature</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+T</span>
+                </md-menu-item>
+
+                <md-divider></md-divider>
+
+                <md-menu-item @click="setKeySig">
+                    <md-icon>vpn_key</md-icon>
+                    <span>Change key signature</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+K</span>
+                </md-menu-item>
+
+                <md-menu-item @click="setClef" class="md-inset">
+                    <span>Change clef</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+L</span>
+                </md-menu-item>
+            </md-menu-content>
+        </md-menu>
 
         <co-time-signature-dialog ref="timeSigDialog"></co-time-signature-dialog>
         <co-key-signature-dialog ref="keySigDialog"></co-key-signature-dialog>
@@ -15,6 +49,9 @@
 
 <script>
 import 'Proxies/mdCard';
+import 'Proxies/mdIcon';
+import 'Proxies/mdDivider';
+import 'Proxies/mdMenu';
 import coTimeSignatureDialog from './co-time-signature-dialog.vue';
 import coKeySignatureDialog from './co-key-signature-dialog.vue';
 import coClefDialog from './co-clef-dialog.vue';
@@ -23,8 +60,9 @@ import { Measure, TimeSignature, Tick, Note, Bar, Group } from './types';
 
 export default {
     name : 'co-music-score',
+    props : [ 'coNote' ],
     data() {
-        return { groups : undefined, measures : undefined };
+        return { groups : undefined, measures : undefined, menuX : 0, menuY : 0 };
     },
     computed : {
         loaded() {
@@ -32,6 +70,11 @@ export default {
         }
     },
     methods : {
+        contextmenu(event) {
+            this.menuX = event.clientX;
+            this.menuY = event.clientY;
+            this.$nextTick(() => this.$refs.menu.open());
+        },
         addMeasures() {
             if (this.cursor) {
                 const bars = this.cursor.measure.bars.map(bar => new Bar(bar.clef, bar.keySig));
@@ -128,3 +171,10 @@ export default {
     }
 }
 </script>
+
+<style>
+.md-list-item .md-list-item-holder .md-list-action.co-score-key-text {
+    margin-right: 0;
+    color: rgba(0, 0, 0, .57);
+}
+</style>

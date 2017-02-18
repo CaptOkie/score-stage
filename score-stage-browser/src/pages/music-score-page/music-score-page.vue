@@ -12,8 +12,8 @@
                 <md-tab id="notes" md-label="Note">
                     <md-layout md-row>
                         <div class="md-row co-option-group md-button-toggle md-theme-default">
-                            <md-button class="co-option-button" v-for="note in NOTES" @click="setNote(note.value)"
-                                    :class="noteClasses(note.value)">
+                            <md-button class="co-option-button" v-for="note in NOTES" @click="setDuration(note.value)"
+                                    :class="durationClasses(note.value)">
                                 <img :src="note.label">
                             </md-button>
                         </div>
@@ -21,8 +21,8 @@
                         <div class="co-option-group-divider"></div>
 
                         <div class="md-row co-option-group md-button-toggle md-theme-default">
-                            <md-button class="co-option-button" @click="setRest(!rest)" :class="restClasses">
-                                <img :src="RESTS[note]">
+                            <md-button class="co-option-button" @click="setRest(!note.rest)" :class="restClasses">
+                                <img :src="RESTS[note.duration]">
                             </md-button>
                         </div>
                     </md-layout>
@@ -33,7 +33,7 @@
         <md-layout md-row>
             <div class="md-flex-15 md-flex-small-0"></div>
             <div class="md-flex-70 md-flex-small-100 md-padding">
-                <co-music-score style="min-height: 750px;"></co-music-score>
+                <co-music-score :co-note="note" style="min-height: 750px;"></co-music-score>
             </div>
             <div class="md-flex-15 md-flex-small-0"></div>
         </md-layout>
@@ -55,22 +55,23 @@ import { NOTES } from 'Components/co-music-score/constants';
 export default {
     name : 'home',
     data() {
-        return { INDEX, rest : false, note : '4', RESTS, NOTES };
+        const note = { rest : false, duration : '4' };
+        return { INDEX, note, RESTS, NOTES };
     },
     computed : {
         restClasses() {
-            return { 'md-toggle' : this.rest };
+            return { 'md-toggle' : this.note.rest };
         }
     },
     methods : {
-        noteClasses(note) {
-            return { 'md-toggle' : (note === this.note) };
+        durationClasses(duration) {
+            return { 'md-toggle' : (duration === this.note.duration) };
         },
-        setNote(note) {
-            this.note = note;
+        setDuration(duration) {
+            this.note.duration = duration;
         },
         setRest(rest) {
-            this.rest = rest;
+            this.note.rest = rest;
         }
     },
     components : {
@@ -96,6 +97,7 @@ body {
 button.co-option-button {
     min-width: initial;
     padding: 8px;
+    width: 36px;
 }
 button.co-option-button > img {
     max-height: 40px;
