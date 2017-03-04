@@ -1,5 +1,5 @@
 import { ACCENT_COLOR } from 'Common/constants';
-import { NUM_EXTRA_LINES, X_SHIFT } from './constants';
+import { NUM_EXTRA_LINES, X_SHIFT, X_PADDING } from './constants';
 import Vex from 'vexflow';
 const { Barline, StaveConnector, Formatter, StaveModifier } = Vex.Flow;
 
@@ -109,14 +109,14 @@ class Measure {
 
     updatePadding(index) {
         this.width -= this.totalPadding();
-        var stave = this.staves[index];
-        this.padding.left = Math.max(this.padding.left, stave.getNoteStartX() - stave.getX());
-        this.padding.right = Math.max(this.padding.right, stave.getWidth() - (stave.getNoteEndX() - stave.getX()));
+        let stave = this.staves[index];
+        this.padding.left = Math.max(this.padding.left, (stave.getNoteStartX() - stave.getX()) + X_PADDING);
+        this.padding.right = Math.max(this.padding.right, (stave.getWidth() - (stave.getNoteEndX() - stave.getX())) + X_PADDING);
         this.width += this.totalPadding();
     }
 
     joinVoices(minWidth, barScale) {
-        var formatter = this.formatter = new Formatter();
+        let formatter = this.formatter = new Formatter();
         this.voices.forEach(function(voice) {
             formatter.joinVoices([ voice ]);
         });
@@ -231,6 +231,7 @@ class Row {
 
             let barlineX = measure.x;
             measure.staves.forEach(stave => {
+                // NoteEndX can't be manually set
                 stave.setX(measure.x).setWidth(measure.width).setNoteStartX(measure.x + measure.padding.left);
                 barlineX = Math.max(barlineX, getBeginBarline(stave).getX());
             });
@@ -359,25 +360,25 @@ class SvgEngine extends Engine {
         const space = stave.getSpacingBetweenLines();
 
         // Handle cursor X
-        const startX = stave.getNoteStartX();
+        const startX = stave.getNoteStartX() - X_PADDING;
+        // NoteEndX is never manaually set
+        const endX = stave.getNoteEndX();
         const tick = cursor.ticks[cursor.tickInfo.index];
 
-        // TODO Place start and end cursor in the middle of the space
-        let x = startX + 24;
         let width = space;
+        let x = startX + (X_PADDING / 2) - (width / 2);
+        let prev = undefined;
+        for (let i = cursor.tickInfo.index - 1; i >= 0; --i) {
+            const curr = cursor.ticks[i];
+            if (!curr.shouldIgnoreTicks()) {
+                prev = curr;
+                break;
+            }
+        }
         if (tick) {
             if (cursor.tickInfo.before) {
-                let prev = undefined;
-                for (let i = 1; i <= cursor.tickInfo.index; ++i) {
-                    const curr = cursor.ticks[cursor.tickInfo.index - i];
-                    if (!curr.shouldIgnoreTicks()) {
-                        prev = curr;
-                        break;
-                    }
-                }
-                if (prev) {
-                    x = prev.getNoteHeadEndX() + ((tick.getNoteHeadBeginX() - prev.getNoteHeadEndX()) / 2) - (width / 2);
-                }
+                const start = prev ? prev.getNoteHeadEndX() : startX;
+                x = start + ((tick.getNoteHeadBeginX() - start) / 2) - (width / 2);
             }
             else {
                 const left = tick.getNoteHeadBeginX();
@@ -393,8 +394,9 @@ class SvgEngine extends Engine {
                 }
             }
         }
-        else if (cursor.tickInfo.index) {
-            x = stave.getNoteEndX() - 24 - width;
+        else if (prev) {
+            const start = prev.getNoteHeadEndX();
+            x = start + ((endX - start) / 2) - (width / 2);
         }
 
 
@@ -474,7 +476,8 @@ class SingleCursor {
         const voice = measure.voices[barIndex];
 
         // Get the X position info
-        const startX = stave.getNoteStartX();
+        const startX = stave.getNoteStartX() - X_PADDING;
+        // NoteEndX is never manually set
         const endX = stave.getNoteEndX();
         if (pos.x < startX || pos.x > endX) {
             return undefined;

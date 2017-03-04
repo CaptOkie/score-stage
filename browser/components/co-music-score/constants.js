@@ -10,11 +10,12 @@ import {
 import notes from './imgs/notes';
 import rests from './imgs/rests';
 
-const NUM_EXTRA_LINES = 3;
-const X_SHIFT = 75;
-const MIN_WIDTH = 100;
+export const NUM_EXTRA_LINES = 3;
+export const X_SHIFT = 75;
+export const MIN_WIDTH = 100;
+export const X_PADDING = 30;
 
-const CLEFS = [
+export const CLEFS = [
     { key : 'percussion',    label : percussion   },
     { key : 'french',        label : frenchViolin },
     { key : 'soprano',       label : soprano      },
@@ -28,7 +29,7 @@ const CLEFS = [
     { key : 'subbass',       label : subbass      },
 ];
 
-const KEY_SIGNATURES = [
+export const KEY_SIGNATURES = [
     { key : 'C',  label : cMajor      },
     { key : 'F',  label : fMajor      },
     { key : 'Bb', label : bFlatMajor  },
@@ -46,15 +47,5 @@ const KEY_SIGNATURES = [
     { key : 'C#', label : cSharpMajor }
 ];
 
-const NOTES = Object.keys(notes).map(key => { return { value : key, label : notes[key] }; });
-const RESTS = Object.keys(rests).map(key => { return { value : key, label : rests[key] }; });
-
-export {
-    NUM_EXTRA_LINES,
-	X_SHIFT,
-    MIN_WIDTH,
-    CLEFS,
-    KEY_SIGNATURES,
-    NOTES,
-    RESTS
-}
+export const NOTES = Object.keys(notes).map(key => { return { value : key, label : notes[key] }; });
+export const RESTS = Object.keys(rests).map(key => { return { value : key, label : rests[key] }; });
