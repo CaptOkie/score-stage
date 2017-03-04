@@ -21,24 +21,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({ secret: 'changeit', resave: false, saveUninitialized: false }));
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function(user, done) {
-  done(null, user);
-});
-
   
 app.locals.urls = require('./urls/public');
-var login = require('./routes/login');
+var authentication = require('./routes/authentication');
 var index = require('./routes/index');
 
 // Login should be first
-app.use(login, index);
+app.use(authentication, index);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -57,7 +46,5 @@ app.use(function(err, req, res, next) {
     res.status(err.status || 500);
     res.render('error');
 });
-
-
 
 module.exports = app;

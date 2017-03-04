@@ -4,6 +4,17 @@ var urls = require('../urls/public');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
+router.use(passport.initialize());
+router.use(passport.session());
+
+passport.serializeUser(function(user, done) {
+    done(null, user);
+});
+
+passport.deserializeUser(function(user, done) {
+    done(null, user);
+});
+
 passport.use(new LocalStrategy(
     function(username, password, done) {
         if (username === 'test' && password === 'test') {
@@ -46,7 +57,8 @@ router.post(urls.LOGIN,
         });
     });
 
-router.all('*', function(req, res, next) {
+// TODO Determine if router.use() or router.all('*') is more appropriate
+router.use(function(req, res, next) {
     if (!req.user) {
         res.redirect(urls.LOGIN);
         return;
