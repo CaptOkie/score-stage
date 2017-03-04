@@ -1,0 +1,23 @@
+{
+  "name": "score-stage-server",
+  "description": "score-stage-server",
+  "version": "1.0.0",
+  "author": "CaptOkie",
+  "private": true,
+  "scripts": {
+    "start": "DEBUG=server:* node ./bin/www",
+    "start-prod": "node ./bin/www"
+  },
+  "dependencies": {
+    "body-parser": "~1.16.0",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.0",
+    "express": "~4.14.1",
+    "express-session": "^1.15.1",
+    "morgan": "~1.7.0",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
+    "pug": "~2.0.0-beta10",
+    "serve-favicon": "~2.3.2"
+  }
+}
