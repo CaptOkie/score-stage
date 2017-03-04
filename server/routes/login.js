@@ -54,4 +54,9 @@ router.all('*', function(req, res, next) {
     next();
 });
 
+router.post(urls.LOGOUT, function (req, res, next) {
+    req.logout();
+    res.redirect(urls.LOGIN);
+});
+
 module.exports = router;
