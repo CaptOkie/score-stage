@@ -175,7 +175,8 @@ export default {
             const ticks = bar.ticks;
             const index = this.cursor.tickInfo.index;
             const tick = ticks[index];
-            if (!tick.delete(note)) {
+            // Call isRest after incase deleting the last note turns it into a rest
+            if (!tick.delete(note) || tick.isRest()) {
                 ticks.splice(index, 1);
             }
         }
