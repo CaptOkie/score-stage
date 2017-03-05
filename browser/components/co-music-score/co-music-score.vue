@@ -57,6 +57,7 @@ import coKeySignatureDialog from './co-key-signature-dialog.vue';
 import coClefDialog from './co-clef-dialog.vue';
 import coScoreEditor from './co-score-editor.vue';
 import { Measure, TimeSignature, Tick, Note, Bar, Group } from './types';
+import { getNote } from './note-utils';
 
 export default {
     name : 'co-music-score',
@@ -115,17 +116,19 @@ export default {
         },
         keyup(event) {
             // TODO Ignore some events (e.g. key events on inputs)
-            if (!this.measures || !this.cursor || !this.coNote) {
-                return;
-            }
-
             if (event.ctrlKey && event.shiftKey) {
                 // Empty
             }
             else if (event.shiftKey) {
                 switch (event.keyCode) {
                     case 65: 
-                        this.addNote();
+                        this.addTick();
+                        break;
+                    case 68:
+                        this.deleteTick();
+                        break;
+                    default:
+                        // Don't care
                         break;
                 }
             }
@@ -136,9 +139,14 @@ export default {
                 // Empty
             }
         },
-        addNote() {
+        addTick() {
+            if (!this.coNote || !this.cursor) {
+                return;
+            }
+
             const duration = Number(this.coNote.duration);
-            const ticks = this.cursor.bar.ticks;
+            const bar = this.cursor.bar;
+            const ticks = bar.ticks;
             const index = this.cursor.tickInfo.index;
             let tick = undefined;
             if (this.cursor.tickInfo.before) {
@@ -150,11 +158,25 @@ export default {
                 tick.duration = duration;
             }
             if (this.coNote.rest) {
-                tick.notes = [];
+                tick.clear();
             }
             else {
-                // TODO
-                tick.notes = [ new Note('a', 3, 'n') ];
+                const note = getNote(bar.clef, this.cursor.line);
+                tick.push(new Note(note.letter, note.octave, 'n'));
+            }
+        },
+        deleteTick() {
+            if (!this.cursor || this.cursor.tickInfo.before) {
+                return;
+            }
+            
+            const bar = this.cursor.bar;
+            const note = getNote(bar.clef, this.cursor.line);
+            const ticks = bar.ticks;
+            const index = this.cursor.tickInfo.index;
+            const tick = ticks[index];
+            if (!tick.delete(note)) {
+                ticks.splice(index, 1);
             }
         }
     },
@@ -162,7 +184,7 @@ export default {
 
         // More accurate behaviour
         setTimeout(() => {
-            this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
+            this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('subbass', 'C') ], { end : 'END' }) ];
             this.groups = [ new Group('Default', 'Def') ];
 
             // this.measures = [

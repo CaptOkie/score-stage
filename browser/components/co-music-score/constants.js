@@ -26,7 +26,7 @@ export const CLEFS = [
     { key : 'mezzo-soprano', label : mezzoSoprano },
     { key : 'tenor',         label : tenor        },
     { key : 'baritone-f',    label : baritoneF    },
-    { key : 'subbass',       label : subbass      },
+    { key : 'subbass',       label : subbass      }
 ];
 
 export const KEY_SIGNATURES = [

@@ -9,6 +9,33 @@ class Note {
         this.octave = octave;
         this.accidental = accidental;
     }
+
+    compareTo(other) {
+        const diff = this.octave - other.octave;
+        if (diff) {
+            return diff;
+        }
+        if (this.letter === other.letter) {
+            return 0;
+        }
+        else if (this.letter === 'b') {
+            return 1;
+        }
+        else if (other.letter === 'b') {
+            return -1;
+        }
+        else if (this.letter === 'a') {
+            return 1;
+        }
+        else if (other.letter === 'a') {
+            return -1;
+        }
+        return this.letter > other.letter ? 1 : -1;
+    }
+
+    equals(other) {
+        return this.compareTo(other) === 0;
+    }
 }
 
 class Tick {
@@ -19,6 +46,34 @@ class Tick {
 
     isRest() {
         return !this.notes.length;
+    }
+
+    push(note) {
+        const index = this.notes.findIndex(n => n.compareTo(note) >= 0);
+        if (index < 0) {
+            this.notes.push(note);
+        }
+        else {
+            if (note.equals(this.notes[index])) {
+                this.notes[index] = note;
+            }
+            else {
+                this.notes.splice(index, 0, note);
+            }
+        }
+    }
+
+    delete(note) {
+        const index = this.notes.findIndex(n => n.equals(note));
+        if (index < 0) {
+            return false;
+        }
+        this.notes.splice(index, 1);
+        return true;
+    }
+
+    clear() {
+        this.notes = [];
     }
 }
 
@@ -366,7 +421,7 @@ class SvgEngine extends Engine {
         const tick = cursor.ticks[cursor.tickInfo.index];
 
         let width = space;
-        let x = startX + (X_PADDING / 2) - (width / 2);
+        let x = startX + Math.round((X_PADDING / 2) - (width / 2));
         let prev = undefined;
         for (let i = cursor.tickInfo.index - 1; i >= 0; --i) {
             const curr = cursor.ticks[i];
@@ -378,7 +433,7 @@ class SvgEngine extends Engine {
         if (tick) {
             if (cursor.tickInfo.before) {
                 const start = prev ? prev.getNoteHeadEndX() : startX;
-                x = start + ((tick.getNoteHeadBeginX() - start) / 2) - (width / 2);
+                x = start + Math.round(((tick.getNoteHeadBeginX() - start) / 2) - (width / 2));
             }
             else {
                 const left = tick.getNoteHeadBeginX();
@@ -390,18 +445,18 @@ class SvgEngine extends Engine {
                     width = right - left;
                 }
                 else {
-                    x -= diff / 2;
+                    x -= Math.round(diff / 2);
                 }
             }
         }
         else if (prev) {
             const start = prev.getNoteHeadEndX();
-            x = start + ((endX - start) / 2) - (width / 2);
+            x = start + Math.round(((endX - start) / 2) - (width / 2));
         }
 
 
         // Handle cursor Y
-        const y = stave.getYForLine(cursor.line.num) - (cursor.line.space ? 0 : space / 2);
+        const y = stave.getYForLine(cursor.line.num) - (cursor.line.space ? 0 : Math.round(space / 2));
 
         const group = this._makeGroup({
             'stroke-width' : 2,
@@ -499,6 +554,7 @@ class SingleCursor {
         }
 
         if (currTick) {
+            // TODO consider note head vs entire tick
             let left = startX;
             let right = currTick.getNoteHeadBeginX();
             if (pos.x > currTick.getNoteHeadEndX()) {
@@ -513,7 +569,6 @@ class SingleCursor {
                 }
             }
             else if (prevTick) {
-                // TODO consider note head vs entire tick
                 left = prevTick.getNoteHeadEndX();
                 const diff = right - left;
                 const first = left + (diff * 0.25);
@@ -560,6 +615,11 @@ class SingleCursor {
                 index = Math.min(old.index, measures.length - 1);
                 barIndex = old.barIndex;
                 tickInfo = old.tickInfo;
+                const bar = measures[index].bars[barIndex];
+                if (tickInfo.index >= bar.ticks.length) {
+                    tickInfo.index = bar.ticks.length;
+                    tickInfo.before = true;
+                }
                 line = old.line;
             }
             return new SingleCursor(index, measures[index], barIndex, tickInfo, line);
