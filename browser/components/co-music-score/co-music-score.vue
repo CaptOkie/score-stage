@@ -169,7 +169,7 @@ export default {
             if (!this.cursor || this.cursor.tickInfo.before) {
                 return;
             }
-            
+
             const bar = this.cursor.bar;
             const note = getNote(bar.clef, this.cursor.line);
             const ticks = bar.ticks;
@@ -184,7 +184,7 @@ export default {
 
         // More accurate behaviour
         setTimeout(() => {
-            this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('subbass', 'C') ], { end : 'END' }) ];
+            this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
             this.groups = [ new Group('Default', 'Def') ];
 
             // this.measures = [
