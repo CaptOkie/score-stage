@@ -10,8 +10,8 @@
                 </md-radio>
 
                 <md-layout md-row>
-                    <md-layout md-column v-for="(col, i) in columns" class="co-clef-column">
-                        <md-radio v-for="(clef, j) in col" v-model="selection" :key="j" :id="'clef-' + i + '-' + j"
+                    <md-layout md-column v-for="(col, i) in columns" :key="i" class="co-clef-column">
+                        <md-radio v-for="(clef, j) in col" :key="j" v-model="selection" :id="'clef-' + i + '-' + j"
                                 name="clef" :md-value="clef.key" class="co-clef-radio">
                             <img v-once :src="clef.label" width="96"></img>
                         </md-radio>
@@ -21,8 +21,8 @@
         </md-dialog-content>
 
         <md-dialog-actions>
-            <md-button class="md-primary" type="button" @click="cancel">Cancel</md-button>
-            <md-button class="md-primary" type="button" @click="okay">Ok</md-button>
+            <md-button class="md-primary" type="button" @click.native="cancel">Cancel</md-button>
+            <md-button class="md-primary" type="button" @click.native="okay">Ok</md-button>
         </md-dialog-actions>
     </md-dialog>
 </template>

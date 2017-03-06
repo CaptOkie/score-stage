@@ -29,8 +29,8 @@
         </md-dialog-content>
 
         <md-dialog-actions>
-            <md-button class="md-primary" type="button" @click="cancel">Cancel</md-button>
-            <md-button class="md-primary" type="button" @click="okay">Ok</md-button>
+            <md-button class="md-primary" type="button" @click.native="cancel">Cancel</md-button>
+            <md-button class="md-primary" type="button" @click.native="okay">Ok</md-button>
         </md-dialog-actions>
     </md-dialog>
 </template>

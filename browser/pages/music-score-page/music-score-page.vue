@@ -12,7 +12,7 @@
                 <md-tab id="notes" md-label="Note">
                     <md-layout md-row>
                         <div class="md-row co-option-group md-button-toggle md-theme-default">
-                            <md-button class="co-option-button" v-for="note in NOTES" @click="setDuration(note.value)"
+                            <md-button class="co-option-button" v-for="note in NOTES" :key="note.value" @click.native="setDuration(note.value)"
                                     :class="durationClasses(note.value)">
                                 <img :src="note.label">
                             </md-button>
@@ -21,7 +21,7 @@
                         <div class="co-option-group-divider"></div>
 
                         <div class="md-row co-option-group md-button-toggle md-theme-default">
-                            <md-button class="co-option-button" @click="setRest(!note.rest)" :class="restClasses">
+                            <md-button class="co-option-button" @click.native="setRest(!note.rest)" :class="restClasses">
                                 <img :src="RESTS[note.duration]">
                             </md-button>
                         </div>

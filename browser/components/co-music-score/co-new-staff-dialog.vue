@@ -39,11 +39,12 @@ import 'Proxies/mdLayout';
 import 'Proxies/mdDialog';
 import 'Proxies/mdRadio';
 import 'Proxies/mdButton';
+import 'Proxies/mdInputContainer';
 import coScroll from 'Services/co-scroll';
-import { KEY_SIGNATURES } from './constants';
 
 export default {
     name : 'co-key-signature-dialog',
+    props : [ 'coGroups' ],
     data() {
         const empty = KEY_SIGNATURES[0];
         const index = (KEY_SIGNATURES.length + 1) / 2;

@@ -18,7 +18,7 @@
                 </md-layout>
 
                 <md-list class="md-double-line">
-                    <md-list-item v-for="score in scores" class="md-whiteframe-2dp md-margin">
+                    <md-list-item v-for="score in scores" :key="score" class="md-whiteframe-2dp md-margin">
                         <div class="md-list-text-container">
                             <span>Title</span>
                             <span>Some extra info</span>
