@@ -4,26 +4,26 @@
 
         <md-dialog-content>
             <md-layout md-column>
-                <md-radio name="co-key-sig" id="co-key-sig-empty" :md-value="empty.key" v-model="keySig"
-                        class="co-key-sig-radio" style="justify-content: center;">
-                    <img v-once :src="empty.label" width="96"></img>
-                </md-radio>
+                <md-radio name="co-group-type" id="co-group-existing" md-value="existing" v-model="groupType">Existing instrument</md-radio>
 
-                <md-layout md-row>
-                    <md-layout md-column style="margin-right: 16px;">
-                        <md-radio v-for="(sig, index) in flats" :key="index" name="co-key-sig" :id="'co-key-sig-flat-' + index"
-                                :md-value="sig.key" v-model="keySig" class="co-key-sig-radio">
-                            <img v-once :src="sig.label" width="96"></img>
-                        </md-radio>
-                    </md-layout>
+                <md-input-container>
+                    <label>Instrument</label>
+                    <md-select v-model="eGroup" :disabled="groupType !== 'existing'">
+                        <md-option v-for="(group, index) in coGroups" :key="index" :value="index">{{group.name}} ({{group.abbr}})</md-option>
+                    </md-select>
+                </md-input-container>
 
-                    <md-layout md-column style="margin-left: 16px;">
-                        <md-radio v-for="(sig, index) in sharps" :key="index" name="co-key-sig" :id="'co-key-sig-sharp-' + index"
-                                :md-value="sig.key" v-model="keySig" class="co-key-sig-radio">
-                            <img v-once :src="sig.label" width="96"></img>
-                        </md-radio>
-                    </md-layout>
-                </md-layout>
+                <md-radio name="co-group-type" id="co-group-new" md-value="new" v-model="groupType">New instrument</md-radio>
+
+                <md-input-container>
+                    <label>Name</label>
+                    <md-input v-model="nGroup.name" :disabled="groupType !== 'new'" type="text"></md-input>
+                </md-input-container>
+
+                <md-input-container>
+                    <label>Abbreviation</label>
+                    <md-input v-model="nGroup.abbr" :disabled="groupType !== 'new'" type="text"></md-input>
+                </md-input-container>
             </md-layout>
         </md-dialog-content>
 
@@ -39,30 +39,35 @@ import 'Proxies/mdLayout';
 import 'Proxies/mdDialog';
 import 'Proxies/mdRadio';
 import 'Proxies/mdButton';
+import 'Proxies/mdSelect';
 import 'Proxies/mdInputContainer';
 import coScroll from 'Services/co-scroll';
+import { Group } from './types';
 
 export default {
     name : 'co-key-signature-dialog',
     props : [ 'coGroups' ],
     data() {
-        const empty = KEY_SIGNATURES[0];
-        const index = (KEY_SIGNATURES.length + 1) / 2;
-        const flats = KEY_SIGNATURES.slice(1, index);
-        const sharps = KEY_SIGNATURES.slice(index, KEY_SIGNATURES.length);
-        return { empty, flats, sharps, keySig : empty.key };
+        return { groupType : 'existing', eGroup : 0, nGroup : { name : '', abbr : '' } };
     },
     methods : {
         show(current, success) {
             this.success = success;
-            this.keySig = current;
+            this.eGroup = current;
+            this.nGroup = { name : '', abbr : '' };
+            this.groupType = 'existing';
             this.$refs.dialog.open();
         },
         cancel() {
             this.$refs.dialog.close();
         },
         okay() {
-            this.success({ keySig : this.keySig });
+            const selection = { eGroup : this.eGroup };
+            if (this.groupType === 'new') {
+                delete selection.eGroup;
+                selection.nGroup = new Group(this.nGroup.name, this.nGroup.abbr);
+            }
+            this.success(selection);
             this.cancel();
         },
         onOpen() {
@@ -74,13 +79,3 @@ export default {
     }
 }
 </script>
-
-<style>
-.md-radio.co-key-sig-radio {
-    align-items: center;
-    margin: 0;
-}
-.md-radio.co-key-sig-radio .md-radio-label {
-    height: auto;
-}
-</style>

@@ -58,6 +58,7 @@
         <co-time-signature-dialog ref="timeSigDialog"></co-time-signature-dialog>
         <co-key-signature-dialog ref="keySigDialog"></co-key-signature-dialog>
         <co-clef-dialog ref="clefDialog"></co-clef-dialog>
+        <co-new-staff-dialog ref="newStaffDialog"></co-new-staff-dialog>
     </md-card>
 </template>
 
@@ -69,6 +70,7 @@ import 'Proxies/mdMenu';
 import coTimeSignatureDialog from './co-time-signature-dialog.vue';
 import coKeySignatureDialog from './co-key-signature-dialog.vue';
 import coClefDialog from './co-clef-dialog.vue';
+import coNewStaffDialog from './co-new-staff-dialog.vue';
 import coScoreEditor from './co-score-editor.vue';
 import { Measure, TimeSignature, Tick, Note, Bar, Group } from './types';
 import { getNote } from './note-utils';
@@ -133,7 +135,7 @@ export default {
         },
         addStaff() {
             if (this.cursor) {
-
+                // this.$refs.coNewStaffDialog.show(this.)
             }
         },
         deleteStaff() {
@@ -145,7 +147,7 @@ export default {
             for (const measure of this.measures) {
                 measure.bars.splice(index, 1);
             }
-            
+
             let groupIndex = 0;
             let count = 0;
             for (const group of this.groups) {
@@ -290,6 +292,7 @@ export default {
         coTimeSignatureDialog,
         coKeySignatureDialog,
         coClefDialog,
+        coNewStaffDialog,
         coScoreEditor
     }
 }
