@@ -3,7 +3,7 @@ import { NUM_EXTRA_LINES, X_SHIFT, X_PADDING } from './constants';
 import Vex from 'vexflow';
 const { Barline, StaveConnector, Formatter, StaveModifier } = Vex.Flow;
 
-class Note {
+export class Note {
     constructor(letter, octave, accidental) {
         this.letter = letter;
         this.octave = octave;
@@ -38,7 +38,7 @@ class Note {
     }
 }
 
-class Tick {
+export class Tick {
     constructor(duration, notes = []) {
         this.duration = duration;
         this.notes = notes;
@@ -77,7 +77,7 @@ class Tick {
     }
 }
 
-class TimeSignature {
+export class TimeSignature {
     static get COMMON() { return new TimeSignature(4, 4, 'C'); }
     static get CUT() { return new TimeSignature(2, 2, 'C|'); }
 
@@ -88,7 +88,7 @@ class TimeSignature {
     }
 }
 
-class Bar {
+export class Bar {
     constructor(clef, keySig, ticks = []) {
         this.clef = clef;
         this.keySig = keySig;
@@ -96,7 +96,7 @@ class Bar {
     }
 }
 
-class Measure {
+export class Measure {
     constructor(timeSig, bars, modifiers = {}) {
         this.timeSig = timeSig;
         this.bars = bars;
@@ -218,16 +218,15 @@ class Measure {
     }
 }
 
-class Group {
-    constructor(name, abbr, count) {
+export class Group {
+    constructor(name, abbr, count = 1) {
         this.name = name;
         this.abbr = abbr;
         this.count = count;
-        this.visible = true;
     }
 }
 
-class Row {
+export class Row {
     constructor(y) {
         this.measures = [];
         this.x = 0;
@@ -336,7 +335,7 @@ class Row {
     }
 }
 
-class Rows {
+export class Rows {
     constructor(rows) {
         this.rows = rows;
     }
@@ -361,7 +360,7 @@ class Rows {
     }
 }
 
-class Position {
+export class Position {
     constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -402,7 +401,7 @@ class Engine {
     }
 }
 
-class SvgEngine extends Engine {
+export class SvgEngine extends Engine {
     constructor(renderer, el) {
         super(renderer, el);
     }
@@ -422,38 +421,34 @@ class SvgEngine extends Engine {
 
         let width = space;
         let x = startX + Math.round((X_PADDING / 2) - (width / 2));
-        let prev = undefined;
-        for (let i = cursor.tickInfo.index - 1; i >= 0; --i) {
-            const curr = cursor.ticks[i];
-            if (!curr.shouldIgnoreTicks()) {
-                prev = curr;
-                break;
-            }
-        }
-        if (tick) {
-            if (cursor.tickInfo.before) {
-                const start = prev ? prev.getNoteHeadEndX() : startX;
-                x = start + Math.round(((tick.getNoteHeadBeginX() - start) / 2) - (width / 2));
+
+        if (tick && !cursor.tickInfo.before) {
+            const left = tick.getNoteHeadBeginX();
+            const right = tick.getNoteHeadEndX();
+
+            x = left;
+            let diff = width - (right - left);
+            if (diff <= 0) {
+                width = right - left;
             }
             else {
-                const left = tick.getNoteHeadBeginX();
-                const right = tick.getNoteHeadEndX();
-
-                x = left;
-                let diff = width - (right - left);
-                if (diff <= 0) {
-                    width = right - left;
-                }
-                else {
-                    x -= Math.round(diff / 2);
-                }
+                x -= Math.round(diff / 2);
             }
         }
-        else if (prev) {
-            const start = prev.getNoteHeadEndX();
-            x = start + Math.round(((endX - start) / 2) - (width / 2));
+        else {
+            let prev = undefined;
+            for (let i = cursor.tickInfo.index - 1; i >= 0; --i) {
+                const curr = cursor.ticks[i];
+                if (!curr.shouldIgnoreTicks()) {
+                    prev = curr;
+                    break;
+                }
+            }
+            
+            const start = prev ? prev.getNoteHeadEndX() : startX;
+            const end = tick ? tick.getNoteHeadBeginX() : endX;
+            x = start + Math.round(((end - start) / 2) - (width / 2));
         }
-
 
         // Handle cursor Y
         const y = stave.getYForLine(cursor.line.num) - (cursor.line.space ? 0 : Math.round(space / 2));
@@ -524,7 +519,7 @@ class SvgEngine extends Engine {
     }
 }
 
-class SingleCursor {
+export class SingleCursor {
     static fromPosition(index, measure, pos) {
         const barIndex = measure.getBarIndex(pos.y);
         const stave = measure.staves[barIndex];
@@ -613,9 +608,10 @@ class SingleCursor {
             let line = undefined;
             if (old) {
                 index = Math.min(old.index, measures.length - 1);
-                barIndex = old.barIndex;
+                const bars = measures[index].bars;
+                barIndex = Math.min(old.barIndex, bars.length - 1);
                 tickInfo = old.tickInfo;
-                const bar = measures[index].bars[barIndex];
+                const bar = bars[barIndex];
                 if (tickInfo.index >= bar.ticks.length) {
                     tickInfo.index = bar.ticks.length;
                     tickInfo.before = true;
@@ -652,18 +648,4 @@ class SingleCursor {
     get ticks() {
         return this.voice.getTickables();
     }
-}
-
-export {
-    Note,
-    Tick,
-    TimeSignature,
-    Bar,
-    Measure,
-    Group,
-    Row,
-    Rows,
-    Position,
-    SvgEngine,
-    SingleCursor
 }

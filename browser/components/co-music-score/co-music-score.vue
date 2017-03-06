@@ -8,7 +8,7 @@
 
         <md-menu ref="menu" style="display: none;" :md-size="6" :md-offset-x="menuX" :md-offset-y="menuY">
             <div md-menu-trigger></div>
-            <md-menu-content>
+            <md-menu-content class="md-dense">
                 <md-menu-item @click="addMeasures">
                     <md-icon>playlist_add</md-icon>
                     <span>Add measure</span>
@@ -37,6 +37,20 @@
                 <md-menu-item @click="setClef" class="md-inset">
                     <span>Change clef</span>
                     <span class="md-list-action co-score-key-text">Ctrl+L</span>
+                </md-menu-item>
+
+                <md-divider></md-divider>
+
+                <md-menu-item @click="addStaff">
+                    <md-icon>add</md-icon>
+                    <span>Add staff</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+Shift+A</span>
+                </md-menu-item>
+
+                <md-menu-item @click="deleteStaff">
+                    <md-icon>delete</md-icon>
+                    <span>Delete staff</span>
+                    <span class="md-list-action co-score-key-text">Ctrl+Shift+D</span>
                 </md-menu-item>
             </md-menu-content>
         </md-menu>
@@ -97,46 +111,54 @@ export default {
             }
         },
         setTimeSig() {
-            this.$refs.timeSigDialog.show(this.cursor.measure.timeSig, data => {
-                this.cursor.measure.timeSig = data.timeSig;
-            });
+            if (this.cursor) {
+                this.$refs.timeSigDialog.show(this.cursor.measure.timeSig, data => {
+                    this.cursor.measure.timeSig = data.timeSig;
+                });
+            }
         },
         setKeySig() {
-            this.$refs.keySigDialog.show(this.cursor.bar.keySig, data => {
-                this.cursor.bar.keySig = data.keySig;
-            });
+            if (this.cursor) {
+                this.$refs.keySigDialog.show(this.cursor.bar.keySig, data => {
+                    this.cursor.bar.keySig = data.keySig;
+                });
+            }
         },
         setClef() {
-            this.$refs.clefDialog.show(this.cursor.bar.clef, data => {
-                this.cursor.bar.clef = data.clef;
-            });
-        },
-        cursorChanged(cursor) {
-            this.cursor = cursor;
-        },
-        keyup(event) {
-            // TODO Ignore some events (e.g. key events on inputs)
-            if (event.ctrlKey && event.shiftKey) {
-                // Empty
+            if (this.cursor) {
+                this.$refs.clefDialog.show(this.cursor.bar.clef, data => {
+                    this.cursor.bar.clef = data.clef;
+                });
             }
-            else if (event.shiftKey) {
-                switch (event.keyCode) {
-                    case 65: 
-                        this.addTick();
-                        break;
-                    case 68:
-                        this.deleteTick();
-                        break;
-                    default:
-                        // Don't care
-                        break;
+        },
+        addStaff() {
+            if (this.cursor) {
+
+            }
+        },
+        deleteStaff() {
+            if (!this.cursor || !this.measures || !this.groups || (this.groups.length < 2 && this.groups[0].count < 2)) {
+                return;
+            }
+
+            const index = this.cursor.barIndex;
+            for (const measure of this.measures) {
+                measure.bars.splice(index, 1);
+            }
+            
+            let groupIndex = 0;
+            let count = 0;
+            for (const group of this.groups) {
+                count += group.count;
+                if (count > index) {
+                    break;
                 }
+                groupIndex++;
             }
-            else if (event.ctrlKey) {
-                // Empty
-            }
-            else {
-                // Empty
+            const group = this.groups[groupIndex];
+            group.count--;
+            if (!group.count) {
+                this.groups.splice(groupIndex, 1);
             }
         },
         addTick() {
@@ -179,55 +201,83 @@ export default {
             if (!tick.delete(note) || tick.isRest()) {
                 ticks.splice(index, 1);
             }
+        },
+        cursorChanged(cursor) {
+            this.cursor = cursor;
+        },
+        keyup(event) {
+            // TODO Ignore some events (e.g. key events on inputs)
+            if (event.ctrlKey && event.shiftKey) {
+                // Empty
+            }
+            else if (event.shiftKey) {
+                switch (event.keyCode) {
+                    case 65: 
+                        this.addTick();
+                        break;
+                    case 68:
+                        this.deleteTick();
+                        break;
+                    default:
+                        // Don't care
+                        break;
+                }
+            }
+            else if (event.ctrlKey) {
+                // Empty
+            }
+            else {
+                // Empty
+            }
         }
     },
     created() {
 
         // More accurate behaviour
         setTimeout(() => {
-            this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
-            this.groups = [ new Group('Default', 'Def') ];
+            // this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
+            // this.groups = [ new Group('Default', 'Def') ];
 
-            // this.measures = [
-            //     new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
-            //     new Measure(new TimeSignature(3,4), [], { end : 'REPEAT' }),
-            //     new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
-            //     new Measure(new TimeSignature(5,8), []),
-            //     new Measure(new TimeSignature(5,8), []),
-            //     new Measure(new TimeSignature(6,8), []),
-            //     new Measure(new TimeSignature(6,8), [], { end : 'REPEAT' }),
-            //     new Measure(new TimeSignature(6,8), [], { begin : 'REPEAT', end : 'REPEAT' }),
-            //     new Measure(new TimeSignature(3,4), []),
-            //     new Measure(new TimeSignature(2,2), []),
-            //     new Measure(new TimeSignature(4,4), []),
-            //     new Measure(new TimeSignature(4,4), [], { end : 'END' })
-            // ].map(function(measure) {
+            this.measures = [
+                new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
+                new Measure(new TimeSignature(3,4), [], { end : 'REPEAT' }),
+                new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
+                new Measure(new TimeSignature(5,8), []),
+                new Measure(new TimeSignature(5,8), []),
+                new Measure(new TimeSignature(6,8), []),
+                new Measure(new TimeSignature(6,8), [], { end : 'REPEAT' }),
+                new Measure(new TimeSignature(6,8), [], { begin : 'REPEAT', end : 'REPEAT' }),
+                new Measure(new TimeSignature(3,4), []),
+                new Measure(new TimeSignature(2,2), []),
+                new Measure(new TimeSignature(4,4), []),
+                new Measure(new TimeSignature(4,4), [], { end : 'END' })
+            ].map(function(measure) {
                 
-            //     let ticks = [
-            //         new Tick(8, [ new Note('a', 3, 'n'), new Note('b', 3, 'n') ]),
-            //         new Tick(8, [ new Note('b', 3, '#') ]),
-            //         new Tick(2, []),
-            //         new Tick(4, []),
-            //         new Tick(2, [ new Note('a', 3, 'n'), new Note('c', 4, 'n'), new Note('e', 4, 'b') ])
-            //     ];
+                let ticks = [
+                    new Tick(8, [ new Note('a', 3, 'n'), new Note('b', 3, 'n') ]),
+                    new Tick(8, [ new Note('b', 3, '#') ]),
+                    new Tick(2, []),
+                    new Tick(4, []),
+                    new Tick(2, [ new Note('a', 3, 'n'), new Note('c', 4, 'n'), new Note('e', 4, 'b') ])
+                ];
                 
-            //     let bars = [
-            //         new Bar('treble', 'C', ticks),
-            //         new Bar('bass', 'Eb', ticks),
-            //         new Bar('treble', 'Cb', ticks),
-            //         new Bar('treble', 'E', ticks),
-            //         new Bar('bass', 'Db', ticks),
-            //         new Bar('bass', 'C#', ticks)
-            //     ]
-            //     measure.bars = bars;
-            //     return measure;
-            // });
+                let bars = [
+                    new Bar('treble', 'C', ticks),
+                    new Bar('bass', 'Eb', ticks),
+                    new Bar('treble', 'Cb', ticks),
+                    new Bar('treble', 'E', ticks),
+                    new Bar('bass', 'Db', ticks),
+                    new Bar('bass', 'C#', ticks)
+                ]
+                measure.bars = bars;
+                return measure;
+            });
 
-            // this.groups = [
-            //     new Group('Clarinet', 'Clt', 2),
-            //     new Group('Trumpet', 'Tpt', 1),
-            //     new Group('Flute', 'Flt', 3)
-            // ];
+            this.groups = [
+                new Group('Clarinet', 'Clt', 2),
+                new Group('Trumpet', 'Tpt', 1),
+                new Group('Flute', 'Flt', 3)
+            ];
         }, 0);
     },
     mounted() {
@@ -249,5 +299,9 @@ export default {
 .md-list-item .md-list-item-holder .md-list-action.co-score-key-text {
     margin-right: 0;
     color: rgba(0, 0, 0, .57);
+}
+.md-menu-content.md-dense .md-list-item .md-list-item-container {
+    min-height: 40px;
+    font-size: 13px;
 }
 </style>

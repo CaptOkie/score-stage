@@ -2819,6 +2819,10 @@ button.co-option-button > img {
     margin-right: 0;
     color: rgba(0, 0, 0, .57);
 }
+.md-menu-content.md-dense .md-list-item .md-list-item-container {
+    min-height: 40px;
+    font-size: 13px;
+}
 /* Common */
 /* Responsive Breakpoints */
 /* Transitions - Based on Angular Material */
