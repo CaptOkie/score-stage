@@ -29,7 +29,7 @@
 
         <md-dialog-actions>
             <md-button class="md-primary" type="button" @click.native="cancel">Cancel</md-button>
-            <md-button class="md-primary" type="button" @click.native="okay">Ok</md-button>
+            <md-button class="md-primary" type="button" :disabled="!valid" @click.native="okay">Ok</md-button>
         </md-dialog-actions>
     </md-dialog>
 </template>
@@ -49,6 +49,14 @@ export default {
     props : [ 'coGroups' ],
     data() {
         return { groupType : 'existing', eGroup : 0, nGroup : { name : '', abbr : '' } };
+    },
+    computed : {
+        valid() {
+            if (this.groupType === 'new') {
+                return (this.nGroup.name.length && this.nGroup.abbr.length && true) || false;
+            }
+            return ((this.eGroup === 0 || this.eGroup) && true) || false;
+        }
     },
     methods : {
         show(current, success) {

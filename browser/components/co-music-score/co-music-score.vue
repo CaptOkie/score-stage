@@ -58,7 +58,7 @@
         <co-time-signature-dialog ref="timeSigDialog"></co-time-signature-dialog>
         <co-key-signature-dialog ref="keySigDialog"></co-key-signature-dialog>
         <co-clef-dialog ref="clefDialog"></co-clef-dialog>
-        <co-new-staff-dialog ref="newStaffDialog"></co-new-staff-dialog>
+        <co-new-staff-dialog ref="newStaffDialog" :co-groups="groups"></co-new-staff-dialog>
     </md-card>
 </template>
 
@@ -135,7 +135,20 @@ export default {
         },
         addStaff() {
             if (this.cursor) {
-                // this.$refs.coNewStaffDialog.show(this.)
+                this.$refs.newStaffDialog.show(this.getGroupIndex(), data => {
+                    let group = data.eGroup;
+                    if (group === 0 || group) {
+                        this.groups[group].count++;
+                    }
+                    else {
+                        this.groups.push(data.nGroup);
+                        group = this.groups.length - 1;
+                    }
+                    const index = group + this.groups[group].count - 1;
+                    for (const measure of this.measures) {
+                        measure.bars.splice(index, 0, new Bar('treble', 'C'));
+                    }
+                });
             }
         },
         deleteStaff() {
@@ -148,15 +161,7 @@ export default {
                 measure.bars.splice(index, 1);
             }
 
-            let groupIndex = 0;
-            let count = 0;
-            for (const group of this.groups) {
-                count += group.count;
-                if (count > index) {
-                    break;
-                }
-                groupIndex++;
-            }
+            let groupIndex = this.getGroupIndex();
             const group = this.groups[groupIndex];
             group.count--;
             if (!group.count) {
@@ -203,6 +208,22 @@ export default {
             if (!tick.delete(note) || tick.isRest()) {
                 ticks.splice(index, 1);
             }
+        },
+        getGroupIndex() {
+            if (!this.cursor) {
+                return undefined;
+            }
+            const index = this.cursor.barIndex;
+            let groupIndex = 0;
+            let count = 0;
+            for (const group of this.groups) {
+                count += group.count;
+                if (count > index) {
+                    break;
+                }
+                groupIndex++;
+            }
+            return groupIndex;
         },
         cursorChanged(cursor) {
             this.cursor = cursor;
