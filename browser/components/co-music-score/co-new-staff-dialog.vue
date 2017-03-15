@@ -9,7 +9,7 @@
                 <md-input-container>
                     <label>Instrument</label>
                     <md-select v-model="eGroup" :disabled="groupType !== 'existing'">
-                        <md-option v-for="(group, index) in coGroups" :key="index" :value="index">{{group.name}} ({{group.abbr}})</md-option>
+                        <md-option v-for="(group, index) in coGroups" :key="index" :value="index + 1">{{group.name}} ({{group.abbr}})</md-option>
                     </md-select>
                 </md-input-container>
 
@@ -48,20 +48,20 @@ export default {
     name : 'co-key-signature-dialog',
     props : [ 'coGroups' ],
     data() {
-        return { groupType : 'existing', eGroup : 0, nGroup : { name : '', abbr : '' } };
+        return { groupType : 'existing', eGroup : 1, nGroup : { name : '', abbr : '' } };
     },
     computed : {
         valid() {
             if (this.groupType === 'new') {
                 return (this.nGroup.name.length && this.nGroup.abbr.length && true) || false;
             }
-            return ((this.eGroup === 0 || this.eGroup) && true) || false;
+            return (this.eGroup && true) || false;
         }
     },
     methods : {
         show(current, success) {
             this.success = success;
-            this.eGroup = current;
+            this.eGroup = current + 1;
             this.nGroup = { name : '', abbr : '' };
             this.groupType = 'existing';
             this.$refs.dialog.open();
@@ -70,7 +70,7 @@ export default {
             this.$refs.dialog.close();
         },
         okay() {
-            const selection = { eGroup : this.eGroup };
+            const selection = { eGroup : this.eGroup - 1 };
             if (this.groupType === 'new') {
                 delete selection.eGroup;
                 selection.nGroup = new Group(this.nGroup.name, this.nGroup.abbr);

@@ -1,8 +1,11 @@
 <template>
     <md-card class="md-flex" style="overflow: visible;" @contextmenu.native.prevent="contextmenu">
+        <md-card-header class="co-music-score-header">
+            <h2 class="md-display-3">{{title}}</h2>
+        </md-card-header>
+
         <md-card-content>
-            <co-score-editor v-if="loaded" :co-measures="measures" :co-groups="groups" :co-bar-scale="2"
-                    @cursor-changed="cursorChanged">
+            <co-score-editor v-if="loaded" :co-measures="measures" :co-groups="groups" :co-bar-scale="2" @cursor-changed="cursorChanged">
             </co-score-editor>
         </md-card-content>
 
@@ -79,7 +82,7 @@ export default {
     name : 'co-music-score',
     props : [ 'coNote' ],
     data() {
-        return { groups : undefined, measures : undefined, menuX : 0, menuY : 0 };
+        return { title : undefined, groups : undefined, measures : undefined, menuX : 0, menuY : 0 };
     },
     computed : {
         loaded() {
@@ -134,22 +137,33 @@ export default {
             }
         },
         addStaff() {
-            if (this.cursor) {
-                this.$refs.newStaffDialog.show(this.getGroupIndex(), data => {
-                    let group = data.eGroup;
-                    if (group === 0 || group) {
-                        this.groups[group].count++;
+            if (!this.cursor || !this.groups || !this.measures) {
+                return;
+            }
+
+            this.$refs.newStaffDialog.show(this.getGroupIndex(), data => {
+                let group = data.eGroup;
+                if (group === 0 || group) {
+                    this.groups[group].count++;
+                }
+                else {
+                    this.groups.push(data.nGroup);
+                    group = this.groups.length - 1;
+                }
+                let index = 0;
+                for (let i = 0; i <= group; ++i) {
+                    index += group.count;
+                }
+                for (const measure of this.measures) {
+                    const bar = new Bar('treble', 'C');
+                    if (index < measure.bars.length) {
+                        measure.bars.splice(index, 0, bar);
                     }
                     else {
-                        this.groups.push(data.nGroup);
-                        group = this.groups.length - 1;
+                        measure.bars.push(bar);
                     }
-                    const index = group + this.groups[group].count - 1;
-                    for (const measure of this.measures) {
-                        measure.bars.splice(index, 0, new Bar('treble', 'C'));
-                    }
-                });
-            }
+                }
+            });
         },
         deleteStaff() {
             if (!this.cursor || !this.measures || !this.groups || (this.groups.length < 2 && this.groups[0].count < 2)) {
@@ -210,7 +224,7 @@ export default {
             }
         },
         getGroupIndex() {
-            if (!this.cursor) {
+            if (!this.cursor || !this.groups) {
                 return undefined;
             }
             const index = this.cursor.barIndex;
@@ -258,6 +272,7 @@ export default {
 
         // More accurate behaviour
         setTimeout(() => {
+            this.title = 'A Music Score';
             this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
             this.groups = [ new Group('Default', 'Def') ];
 
@@ -320,6 +335,18 @@ export default {
 </script>
 
 <style>
+.co-music-score-header {
+    text-align: center;
+}
+.co-music-score-header h1,
+.co-music-score-header h2,
+.co-music-score-header h3,
+.co-music-score-header h4,
+.co-music-score-header h5,
+.co-music-score-header h6 {
+    font-weight: 300;
+}
+
 .md-list-item .md-list-item-holder .md-list-action.co-score-key-text {
     margin-right: 0;
     color: rgba(0, 0, 0, .57);

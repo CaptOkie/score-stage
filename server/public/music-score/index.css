@@ -110,6 +110,17 @@ button.co-option-button > img {
 * Made with love by Marcos Moura
 * Released under the MIT License.
 */.md-button-toggle{width:auto;display:-ms-flexbox;display:flex}.md-button-toggle>.md-button{margin:0;overflow:hidden;border-width:1px 0 1px 1px;border-radius:0;text-align:center;text-overflow:ellipsis;white-space:nowrap}.md-button-toggle>.md-button:first-child{border-radius:2px 0 0 2px}.md-button-toggle>.md-button:last-child{border-right-width:1px;border-radius:0 2px 2px 0}.md-button-toggle>.md-button:not([disabled]){color:rgba(0,0,0,.54)}.md-button-toggle>.md-button:not([disabled]):hover:not(.md-toggle):not(.md-raised){background-color:hsla(0,0%,60%,.2);text-decoration:none}.md-button-toggle>.md-button .md-ink-ripple{border-radius:2px}
+.co-music-score-header {
+    text-align: center;
+}
+.co-music-score-header h1,
+.co-music-score-header h2,
+.co-music-score-header h3,
+.co-music-score-header h4,
+.co-music-score-header h5,
+.co-music-score-header h6 {
+    font-weight: 300;
+}
 .md-list-item .md-list-item-holder .md-list-action.co-score-key-text {
     margin-right: 0;
     color: rgba(0, 0, 0, .57);
