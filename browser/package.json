@@ -9,6 +9,7 @@
     "build-prod": "NODE_ENV=production webpack -p"
   },
   "dependencies": {
+    "axios": "^0.15.3",
     "vexflow": "^1.2.83",
     "vue": "^2.2.4",
     "vue-material": "^0.7.1"

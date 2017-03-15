@@ -70,13 +70,16 @@ import 'Proxies/mdCard';
 import 'Proxies/mdIcon';
 import 'Proxies/mdDivider';
 import 'Proxies/mdMenu';
+import axios from 'axios';
 import coTimeSignatureDialog from './co-time-signature-dialog.vue';
 import coKeySignatureDialog from './co-key-signature-dialog.vue';
 import coClefDialog from './co-clef-dialog.vue';
 import coNewStaffDialog from './co-new-staff-dialog.vue';
 import coScoreEditor from './co-score-editor.vue';
-import { Measure, TimeSignature, Tick, Note, Bar, Group } from './types';
+import { Measure, Group } from './types';
 import { getNote } from './note-utils';
+
+const LOCATION = window.location.pathname;
 
 export default {
     name : 'co-music-score',
@@ -270,11 +273,20 @@ export default {
     },
     created() {
 
+        axios.get(LOCATION).then(res => {
+            this.title = res.data.title;
+            this.measures = res.data.measures.map(measure => Measure.create(measure));
+            this.groups = res.data.groups.map(group => Group.create(group));
+        }, error => {
+            const msg = (error.response && error.response.data.error) || error.message;
+            console.log(msg);
+        });
+
         // More accurate behaviour
-        setTimeout(() => {
-            this.title = 'A Music Score';
-            this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
-            this.groups = [ new Group('Default', 'Def') ];
+        // setTimeout(() => {
+        //     this.title = 'A Music Score';
+        //     this.measures = [ new Measure(new TimeSignature(4,4), [ new Bar('treble', 'C') ], { end : 'END' }) ];
+        //     this.groups = [ new Group('Default', 'Def') ];
 
             // this.measures = [
             //     new Measure(new TimeSignature(3,4), [], { begin : 'REPEAT' }),
@@ -316,7 +328,7 @@ export default {
             //     new Group('Trumpet', 'Tpt', 1),
             //     new Group('Flute', 'Flt', 3)
             // ];
-        }, 0);
+        // }, 0);
     },
     mounted() {
         document.body.addEventListener('keyup', this.keyup);

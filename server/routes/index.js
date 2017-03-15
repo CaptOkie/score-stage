@@ -1,9 +1,6 @@
-var express = require('express');
-var router = express.Router();
-var urls = require('../urls/public');
+var authentication = require('./authentication');
+var home = require('./home');
+var musicScores = require('./music-scores');
 
-router.get([ urls.INDEX, urls.HOME ], function(req, res, next) {
-    res.render('home');
-});
-
-module.exports = router;
+// Login should be first
+module.exports = [ authentication, home, musicScores ];

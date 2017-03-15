@@ -24,11 +24,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({ secret: 'changeit', resave: false, saveUninitialized: false }));
   
 app.locals.urls = require('./urls/public');
-var authentication = require('./routes/authentication');
-var index = require('./routes/index');
-
-// Login should be first
-app.use(authentication, index);
+var routes = require('./routes');
+app.use(routes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -42,7 +39,7 @@ app.use(function(err, req, res, next) {
 
     // render the error page
     res.status(err.status || 500);
-    if (req.accepts('json')) {
+    if (req.accepts([ 'html', 'json' ]) === 'json') {
         res.json({ error : err.message });
     }
     else {
