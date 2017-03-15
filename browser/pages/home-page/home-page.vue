@@ -11,7 +11,7 @@
                     <h1 class="md-display-1 md-flex-100" style="min-width: 50%;">Music Scores</h1>
 
                     <md-layout md-column md-align="center">
-                        <md-button v-once :href="MUSIC_SCORE" class="md-fab" style="margin-right: 0;">
+                        <md-button v-once :href="MUSIC_SCORES" class="md-fab" style="margin-right: 0;">
                             <md-icon>add</md-icon>
                         </md-button>
                     </md-layout>
@@ -40,12 +40,12 @@ import 'Proxies/mdIcon';
 import 'Proxies/mdList';
 import 'Proxies/mdWhiteframe';
 import coLogout from 'Components/co-logout';
-import { MUSIC_SCORE } from 'Common/urls';
+import { MUSIC_SCORES } from 'Common/urls';
 
 export default {
     name : 'home',
     data() {
-        return { MUSIC_SCORE, scores : [ 1, 2, 3, 4, 5 ] };
+        return { MUSIC_SCORES, scores : [ 1, 2, 3, 4, 5 ] };
     },
     components : {
         coLogout

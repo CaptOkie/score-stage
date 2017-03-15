@@ -1,7 +1,7 @@
-import { LOGIN, LOGOUT, INDEX, MUSIC_SCORE } from 'Server/urls/public';
+import { LOGIN, LOGOUT, INDEX, MUSIC_SCORES } from 'Server/urls/public';
 export {
     LOGIN,
     LOGOUT,
     INDEX,
-    MUSIC_SCORE
+    MUSIC_SCORES
 }

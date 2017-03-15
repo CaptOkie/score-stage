@@ -27,9 +27,10 @@ passport.use(new LocalStrategy(
 router.all(urls.LOGIN, function(req, res, next) {
     if (req.user) {
         res.redirect(urls.INDEX);
-        return;
     }
-    next();
+    else {
+        next();
+    }
 });
 
 router.get(urls.LOGIN, function(req, res, next) {
@@ -44,16 +45,18 @@ router.post(urls.LOGIN,
         req.session.regenerate(function(err) {
             if (err) {
                 next(err);
-                return;
             }
-            req.session.passport = data;
-            req.session.save(function(err) {
-                if (err) {
-                    next(err);
-                    return;
-                }
-                res.redirect(urls.INDEX);
-            });
+            else {
+                req.session.passport = data;
+                req.session.save(function(err) {
+                    if (err) {
+                        next(err);
+                    }
+                    else {
+                        res.redirect(urls.INDEX);
+                    }
+                });
+            }
         });
     });
 
@@ -61,9 +64,10 @@ router.post(urls.LOGIN,
 router.use(function(req, res, next) {
     if (!req.user) {
         res.redirect(urls.LOGIN);
-        return;
     }
-    next();
+    else {
+        next();
+    }
 });
 
 router.post(urls.LOGOUT, function (req, res, next) {

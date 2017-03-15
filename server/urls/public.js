@@ -3,5 +3,5 @@ module.exports = {
     LOGOUT : '/logout',
     INDEX : '/',
     HOME : '/home',
-    MUSIC_SCORE : '/music-score'
+    MUSIC_SCORES : '/music-scores'
 };

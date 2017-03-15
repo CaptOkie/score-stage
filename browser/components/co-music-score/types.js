@@ -4,6 +4,10 @@ import Vex from 'vexflow';
 const { Barline, StaveConnector, Formatter, StaveModifier } = Vex.Flow;
 
 export class Note {
+    static create(data) {
+        return new Note(data.letter, data.octave, data.accidental);
+    }
+
     constructor(letter, octave, accidental) {
         this.letter = letter;
         this.octave = octave;
@@ -39,6 +43,12 @@ export class Note {
 }
 
 export class Tick {
+    static create(data) {
+        const duration = data.duration;
+        const notes = data.notes.map(Note.create);
+        return new Tick(duration, notes);
+    }
+
     constructor(duration, notes = []) {
         this.duration = duration;
         this.notes = notes;
@@ -81,6 +91,10 @@ export class TimeSignature {
     static get COMMON() { return new TimeSignature(4, 4, 'C'); }
     static get CUT() { return new TimeSignature(2, 2, 'C|'); }
 
+    static create(data) {
+        return new TimeSignature(data.upper, data.lower);
+    }
+
     constructor(upper, lower, vexFormat = upper + '/' + lower) {
         this.upper = upper;
         this.lower = lower;
@@ -89,6 +103,13 @@ export class TimeSignature {
 }
 
 export class Bar {
+    static create(data) {
+        const clef = data.clef;
+        const keySig = data.keySig;
+        const ticks = data.ticks.map(Tick.create);
+        return new Bar(clef, keySig, ticks);
+    }
+
     constructor(clef, keySig, ticks = []) {
         this.clef = clef;
         this.keySig = keySig;
@@ -97,6 +118,13 @@ export class Bar {
 }
 
 export class Measure {
+    static create(data) {
+        const timeSig = TimeSignature.create(data.timeSig);
+        const bars = data.bars.map(Bar.create);
+        const modifiers = data.modifiers;
+        return new Measure(timeSig, bars, modifiers);
+    }
+
     constructor(timeSig, bars, modifiers = {}) {
         this.timeSig = timeSig;
         this.bars = bars;
@@ -219,6 +247,10 @@ export class Measure {
 }
 
 export class Group {
+    static create(data) {
+        return new Group(data.name, data.abbr, data.count);
+    }
+
     constructor(name, abbr, count = 1) {
         this.name = name;
         this.abbr = abbr;
