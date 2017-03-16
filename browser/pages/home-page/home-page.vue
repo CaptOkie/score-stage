@@ -11,7 +11,7 @@
                     <h1 class="md-display-1 md-flex-100" style="min-width: 50%;">Music Scores</h1>
 
                     <md-layout md-column md-align="center">
-                        <md-button href="/TODO" class="md-fab" style="margin-right: 0;">
+                        <md-button @click.native="openCreateDialog" class="md-fab" style="margin-right: 0;">
                             <md-icon>add</md-icon>
                         </md-button>
                     </md-layout>
@@ -32,6 +32,8 @@
                 </md-list>
             </div>
         </md-layout>
+
+        <co-create-score ref="createDialog"></co-create-score>
     </div>
 </template>
 
@@ -43,6 +45,7 @@ import 'Proxies/mdIcon';
 import 'Proxies/mdList';
 import 'Proxies/mdWhiteframe';
 import coLogout from 'Components/co-logout';
+import coCreateScore from 'Components/co-create-score';
 import { MUSIC_SCORES } from 'Common/urls';
 import axios from 'axios';
 
@@ -50,6 +53,11 @@ export default {
     name : 'home',
     data() {
         return { MUSIC_SCORES, scores : undefined };
+    },
+    methods : {
+        openCreateDialog() {
+            this.$refs.createDialog.show();
+        }
     },
     created() {
         axios.get(MUSIC_SCORES).then(res => {
@@ -60,7 +68,8 @@ export default {
         });
     },
     components : {
-        coLogout
+        coLogout,
+        coCreateScore
     }
 }
 </script>

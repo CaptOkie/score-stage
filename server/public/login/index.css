@@ -31,6 +31,10 @@ a:not(.md-button):not(.md-bottom-bar-item):hover {
 
 .md-button-toggle > .md-button:last-child:first-child {
     border-radius: 2px;
+}
+
+.md-dialog-container {
+    z-index: 2 !important;
 }/*!
 * Vue Material v0.7.1
 * Made with love by Marcos Moura
