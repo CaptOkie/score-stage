@@ -199,9 +199,9 @@ export class Measure {
     }
 
     joinVoices(minWidth, barScale) {
-        let formatter = this.formatter = new Formatter();
-        this.voices.forEach(function(voice) {
-            formatter.joinVoices([ voice ]);
+        this.formatter = new Formatter();
+        this.voices.forEach(voice => {
+            this.formatter.joinVoices([ voice ]);
         });
         this.width += (Math.max(this.formatter.preCalculateMinTotalWidth(this.voices) || minWidth, minWidth) * barScale);
     }
@@ -211,7 +211,15 @@ export class Measure {
     }
 
     format() {
-        this.formatter.format(this.voices, this.widthNoPadding());
+        // VexFlow formats based on the first voice
+        // Need to format based on the longest voice
+        const voices = this.voices.slice().map(voice => {
+                const width = new Formatter().joinVoices([ voice ]).preCalculateMinTotalWidth([ voice ]) || 0;
+                return { voice, width };
+            })
+            .sort((a, b) => b.width - a.width)
+            .map(item => item.voice);
+        this.formatter.format(voices, this.widthNoPadding());
     }
 
     getBarIndex(y) {

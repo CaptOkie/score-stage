@@ -76,7 +76,7 @@ import coKeySignatureDialog from './co-key-signature-dialog.vue';
 import coClefDialog from './co-clef-dialog.vue';
 import coNewStaffDialog from './co-new-staff-dialog.vue';
 import coScoreEditor from './co-score-editor.vue';
-import { Measure, Group } from './types';
+import { Measure, Group, Bar, Tick, Note } from './types';
 import { getNote } from './note-utils';
 
 const LOCATION = window.location.pathname;
