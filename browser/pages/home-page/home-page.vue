@@ -18,15 +18,15 @@
                 </md-layout>
 
                 <md-list class="md-double-line">
-                    <md-list-item v-for="score in scores" :key="score.id" :href="MUSIC_SCORES + '/' + score.id"
+                    <md-list-item v-for="(score, index) in scores" :key="score.id" :href="MUSIC_SCORES + '/' + score.id"
                             class="md-whiteframe-2dp md-margin">
                         <div class="md-list-text-container">
                             <span>{{score.title}}</span>
                             <span>{{score.groups.map(group => group.name).join(', ')}}</span>
                         </div>
 
-                        <md-button class="md-icon-button md-list-action">
-                            <md-icon>more_vert</md-icon>
+                        <md-button @click.native.stop.prevent="deleteScore(score, index)" class="md-icon-button md-list-action">
+                            <md-icon>delete</md-icon>
                         </md-button>
                     </md-list-item>
                 </md-list>
@@ -34,6 +34,7 @@
         </md-layout>
 
         <co-create-score-dialog ref="createDialog"></co-create-score-dialog>
+        <co-delete-score-dialog ref="deleteDialog"></co-delete-score-dialog>
     </div>
 </template>
 
@@ -46,6 +47,7 @@ import 'Proxies/mdList';
 import 'Proxies/mdWhiteframe';
 import coLogout from 'Components/co-logout';
 import coCreateScoreDialog from 'Components/co-create-score-dialog';
+import coDeleteScoreDialog from 'Components/co-delete-score-dialog';
 import { MUSIC_SCORES } from 'Common/urls';
 import axios from 'axios';
 
@@ -57,6 +59,16 @@ export default {
     methods : {
         openCreateDialog() {
             this.$refs.createDialog.show();
+        },
+        deleteScore(score, index) {
+            this.$refs.deleteDialog.show(score, () => {
+                axios.delete(MUSIC_SCORES + '/' + score.id).then(res => {
+                    this.scores.splice(index, 1);
+                }, error => {
+                    const msg = (error.response && error.response.data.error) || error.message;
+                    console.log(msg);
+                });
+            });
         }
     },
     created() {
@@ -69,7 +81,8 @@ export default {
     },
     components : {
         coLogout,
-        coCreateScoreDialog
+        coCreateScoreDialog,
+        coDeleteScoreDialog
     }
 }
 </script>

@@ -50,7 +50,6 @@ router.get(urls.MUSIC_SCORES + '/:id', function(req, res, next) {
         return next();
     }
 
-    const id = req.params.id;
     scores.get(req.params.id).then(score => {
         if (score) {
             return res.json(score);
@@ -61,6 +60,17 @@ router.get(urls.MUSIC_SCORES + '/:id', function(req, res, next) {
     });
 }, function(req, res, next) {
     res.render('music-score');
+});
+
+router.delete(urls.MUSIC_SCORES + '/:id', function(req, res, next) {
+    scores.delete(req.params.id).then(count => {
+        if (count) {
+            return res.json({ success : true });
+        }
+        next(errors.notFound());
+    }, error => {
+        next(error || errors.internalServerError());
+    });
 });
 
 module.exports = router;

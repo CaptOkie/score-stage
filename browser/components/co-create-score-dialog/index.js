@@ -1,2 +1,2 @@
-import coCreateScore from './co-create-score-dialog.vue';
-export default coCreateScore;
+import coCreateScoreDialog from './co-create-score-dialog.vue';
+export default coCreateScoreDialog;

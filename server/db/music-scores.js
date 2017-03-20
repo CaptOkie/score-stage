@@ -11,7 +11,6 @@ function convertFrom(doc) {
 module.exports.create = function(score) {
 
     return mongo('musicScores').then(db => {
-        // TODO Maybe should deep copy?
         const doc = {
             owner : mongo.getId(score.owner),
             title : score.title,
@@ -20,8 +19,7 @@ module.exports.create = function(score) {
         };
 
         return db.musicScores.insertOne(doc).then(result => {
-            doc._id = result.insertedId;
-            return convertFrom(doc);
+            return convertFrom(result.ops[0]);
         });
     });
 };
@@ -32,6 +30,13 @@ module.exports.get = function(id) {
         return db.musicScores.findOne({ _id : mongo.getId(id) }).then(convertFrom);
     });
 };
+
+module.exports.delete = function(id) {
+    
+    return mongo('musicScores').then(db => {
+        return db.musicScores.deleteOne({ _id : mongo.getId(id) }).then(result => result.deletedCount);
+    })
+}
 
 module.exports.ownedBy = function(id) {
 
