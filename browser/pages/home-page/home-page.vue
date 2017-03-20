@@ -33,7 +33,7 @@
             </div>
         </md-layout>
 
-        <co-create-score ref="createDialog"></co-create-score>
+        <co-create-score-dialog ref="createDialog"></co-create-score-dialog>
     </div>
 </template>
 
@@ -45,7 +45,7 @@ import 'Proxies/mdIcon';
 import 'Proxies/mdList';
 import 'Proxies/mdWhiteframe';
 import coLogout from 'Components/co-logout';
-import coCreateScore from 'Components/co-create-score';
+import coCreateScoreDialog from 'Components/co-create-score-dialog';
 import { MUSIC_SCORES } from 'Common/urls';
 import axios from 'axios';
 
@@ -69,7 +69,7 @@ export default {
     },
     components : {
         coLogout,
-        coCreateScore
+        coCreateScoreDialog
     }
 }
 </script>

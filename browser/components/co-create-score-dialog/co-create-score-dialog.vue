@@ -38,7 +38,7 @@ import coScroll from 'Services/co-scroll';
 import { MUSIC_SCORES } from 'Common/urls';
     
 export default {
-    name : 'co-create-score',
+    name : 'co-create-score-dialog',
     data() {
         return { MUSIC_SCORES, title : '', gName : '', gAbbr : '' };
     },

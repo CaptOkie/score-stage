@@ -1,8 +1,10 @@
-var express = require('express');
-var router = express.Router();
-var urls = require('../urls/public');
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
+const express = require('express');
+const router = express.Router();
+const urls = require('../urls/public');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const users = require('../db/users');
+const errors = require('../utils/errors');
 
 router.use(passport.initialize());
 router.use(passport.session());
@@ -17,20 +19,23 @@ passport.deserializeUser(function(user, done) {
 
 passport.use(new LocalStrategy(
     function(username, password, done) {
-        if (username === 'test' && password === 'test') {
-            return done(null, { username : 'test' });
-        }
-        return done(null, false, { message : 'Incorrect username or password' });
+        const user = users.getCredentials(username).then(user => {
+            if (user && password === user.password) {
+                delete user.password;
+                return done(null, user);
+            }
+            done(null, false, { message : 'Incorrect username or password' });
+        }, error => {
+            done(error || errors.internalServerError());
+        });
     }
 ));
 
 router.all(urls.LOGIN, function(req, res, next) {
     if (req.user) {
-        res.redirect(urls.INDEX);
+        return res.redirect(urls.INDEX);
     }
-    else {
-        next();
-    }
+    next();
 });
 
 router.get(urls.LOGIN, function(req, res, next) {
@@ -41,33 +46,28 @@ router.post(urls.LOGIN,
     passport.authenticate('local', { failureRedirect : urls.LOGIN }),
     function(req, res, next) {
         // Prevent session fixation
-        var data = req.session.passport;
+        const data = req.session.passport;
         req.session.regenerate(function(err) {
             if (err) {
-                next(err);
+                return next(err);
             }
-            else {
-                req.session.passport = data;
-                req.session.save(function(err) {
-                    if (err) {
-                        next(err);
-                    }
-                    else {
-                        res.redirect(urls.INDEX);
-                    }
-                });
-            }
+
+            req.session.passport = data;
+            req.session.save(function(err) {
+                if (err) {
+                    return next(err);
+                }
+                res.redirect(urls.INDEX);
+            });
         });
     });
 
-// TODO Determine if router.use() or router.all('*') is more appropriate
-router.use(function(req, res, next) {
-    if (!req.user) {
-        res.redirect(urls.LOGIN);
+// router.all('*') seems to be more correct than router.use()
+router.all('*', function(req, res, next) {
+    if (req.user) {
+        return next();
     }
-    else {
-        next();
-    }
+    res.redirect(urls.LOGIN);
 });
 
 router.post(urls.LOGOUT, function (req, res, next) {

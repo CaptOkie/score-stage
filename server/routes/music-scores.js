@@ -1,59 +1,64 @@
-var express = require('express');
-var router = express.Router();
-var urls = require('../urls/public');
-var typeUtils = require('../utils/type-utils');
-var errorUtils = require('../utils/error-utils');
-
-var temp = [];
+const express = require('express');
+const router = express.Router();
+const urls = require('../urls/public');
+const scores = require('../db/music-scores');
+const types = require('../utils/types');
+const errors = require('../utils/errors');
+const requests = require('../utils/requests');
 
 router.get(urls.MUSIC_SCORES, function(req, res, next) {
-    res.json(temp);
+
+    scores.ownedBy(req.user.id).then(results => {
+        res.json(results);
+    }, error => {
+        next(error || errors.internalServerError());
+    });
 });
 
 router.post(urls.MUSIC_SCORES, function(req, res, next) {
 
-    var title = req.body.title;
-    var gName = req.body.gName;
-    var gAbbr = req.body.gAbbr;
+    const title = req.body.title;
+    const gName = req.body.gName;
+    const gAbbr = req.body.gAbbr;
     function valid(item) {
-        return typeUtils.isString(item) && item.length;
+        return types.isString(item) && item.length;
     }
 
     if (!valid(title) || !valid(gName) || !valid(gAbbr)) {
-        next(errorUtils.badRequest());
+        return next(errors.badRequest());
     }
-    else {
-        var id = '' + (temp.length + 1);
-        temp.push({
-            id : id,
-            title : title,
-            measures : [ {
-                timeSig : { upper : 4, lower : 4 },
-                bars : [ { clef : 'treble', keySig : 'C', ticks : [] } ],
-                modifiers : { end : 'END' }
-            } ],
-            groups : [ { name : gName, abbr : gAbbr, count : 1 } ]
-        });
-        res.redirect(urls.MUSIC_SCORES + '/' + id);
-    }
+
+    scores.create({
+        owner : req.user.id,
+        title : title,
+        measures : [ {
+            timeSig : { upper : 4, lower : 4 },
+            bars : [ { clef : 'treble', keySig : 'C', ticks : [] } ],
+            modifiers : { end : 'END' }
+        } ],
+        groups : [ { name : gName, abbr : gAbbr, count : 1 } ]
+    })
+    .then(score => {
+        res.redirect(urls.MUSIC_SCORES + '/' + score.id);
+    }, error => {
+        next(error || errors.internalServerError());
+    });
 });
 
 router.get(urls.MUSIC_SCORES + '/:id', function(req, res, next) {
-    if (req.accepts([ 'html', 'json' ]) === 'json') {
-        var id = req.params.id;
-        var items = temp.filter(function(item) { return item.id === id });
-        if (items.length) {
-            res.json(items[0])
-        }
-        else {
-            var err = new Error('Not Found');
-            err.status = 404;
-            next(err);
-        }
+    if (requests.isHtml(req)) {
+        return next();
     }
-    else {
-        next();
-    }
+
+    const id = req.params.id;
+    scores.get(req.params.id).then(score => {
+        if (score) {
+            return res.json(score);
+        }
+        next(errors.notFound());
+    }, error => {
+        next(error || errors.internalServerError());
+    });
 }, function(req, res, next) {
     res.render('music-score');
 });
