@@ -1,18 +1,21 @@
-const mongo = require('./mongo');
+const Mongo = require('./mongo');
 
 function convertFrom(doc) {
-    doc = mongo.setId(doc);
+    doc = Mongo.setId(doc);
     if (doc && doc.owner) {
         doc.owner = doc.owner.toHexString();
     }
     return doc;
 }
 
-module.exports.create = function(score) {
+module.exports = function(mongo) {
+    this.mongo = mongo || new Mongo();
+};
 
-    return mongo('musicScores').then(db => {
+module.exports.prototype.create = function(score) {
+    return this.mongo.req('musicScores').then(db => {
         const doc = {
-            owner : mongo.getId(score.owner),
+            owner : Mongo.getId(score.owner),
             title : score.title,
             measures : score.measures,
             groups : score.groups
@@ -24,24 +27,25 @@ module.exports.create = function(score) {
     });
 };
 
-module.exports.get = function(id) {
-
-    return mongo('musicScores').then(db => {
-        return db.musicScores.findOne({ _id : mongo.getId(id) }).then(convertFrom);
+module.exports.prototype.get = function(id) {
+    return this.mongo.req('musicScores').then(db => {
+        return db.musicScores.findOne({ _id : Mongo.getId(id) }).then(convertFrom);
     });
 };
 
-module.exports.delete = function(id) {
-    
-    return mongo('musicScores').then(db => {
-        return db.musicScores.deleteOne({ _id : mongo.getId(id) }).then(result => result.deletedCount);
-    })
-}
+module.exports.prototype.getAllOwnedBy = function(id) {
+    return this.mongo.req('musicScores').then(db => {
+        return db.musicScores.find({ owner : Mongo.getId(id) }).sort({ title : 1 }).collation(Mongo.collation())
+            .project({ measures : 0 }).map(convertFrom).toArray();
+    });
+};
 
-module.exports.ownedBy = function(id) {
-
-    return mongo('musicScores').then(db => {
-        return db.musicScores.find({ owner : mongo.getId(id) }).sort({ title : 1 }).collation(mongo.collation())
-            .toArray().then(docs => docs.map(convertFrom));
+module.exports.prototype.delete = function(id, owner) {
+    return this.mongo.req('musicScores').then(db => {
+        const filter = {
+            _id : Mongo.getId(id),
+            owner : Mongo.getId(owner)
+        };
+        return db.musicScores.deleteOne(filter).then(result => result.deletedCount);
     });
 };

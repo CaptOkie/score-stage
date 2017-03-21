@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const urls = require('../urls/public');
-const scores = require('../db/music-scores');
 const types = require('../utils/types');
 const errors = require('../utils/errors');
 const requests = require('../utils/requests');
+const MusicScores = require('../db/music-scores');
+const musicScores = new MusicScores();
 
 router.get(urls.MUSIC_SCORES, function(req, res, next) {
 
-    scores.ownedBy(req.user.id).then(results => {
-        res.json(results);
+    musicScores.getAllOwnedBy(req.user.id).then(scores => {
+        res.json(scores);
     }, error => {
         next(error || errors.internalServerError());
     });
@@ -28,7 +29,7 @@ router.post(urls.MUSIC_SCORES, function(req, res, next) {
         return next(errors.badRequest());
     }
 
-    scores.create({
+    musicScores.create({
         owner : req.user.id,
         title : title,
         measures : [ {
@@ -50,7 +51,7 @@ router.get(urls.MUSIC_SCORES + '/:id', function(req, res, next) {
         return next();
     }
 
-    scores.get(req.params.id).then(score => {
+    musicScores.get(req.params.id).then(score => {
         if (score) {
             return res.json(score);
         }
@@ -63,7 +64,7 @@ router.get(urls.MUSIC_SCORES + '/:id', function(req, res, next) {
 });
 
 router.delete(urls.MUSIC_SCORES + '/:id', function(req, res, next) {
-    scores.delete(req.params.id).then(count => {
+    musicScores.delete(req.params.id, req.user.id).then(count => {
         if (count) {
             return res.json({ success : true });
         }

@@ -9,15 +9,8 @@ function init() {
     return MongoClient.connect(URL).then(db => database = db);
 }
 
-module.exports = function() {
-    const promise = database ? Promise.resolve(database) : init();
-    const cols = Array.from(arguments);
-    return promise.then(db => {
-        return cols.reduce((collections, col) => {
-            collections[col] = db.collection(col);
-            return collections;
-        }, {});
-    });
+module.exports = function(db) {
+    this.db = db || database;
 };
 
 module.exports.setId = function(doc) {
@@ -37,4 +30,15 @@ module.exports.getId = function(string) {
 
 module.exports.collation = function() {
     return { locale : 'en', strength : 2 };
+};
+
+module.exports.prototype.req = function() {
+    const promise = this.db ? Promise.resolve(this.db) : MongoClient.connect(URL).then(db => this.db = database = db);
+    const cols = Array.from(arguments);
+    return promise.then(db => {
+        return cols.reduce((collections, col) => {
+            collections[col] = db.collection(col);
+            return collections;
+        }, {});
+    });
 };

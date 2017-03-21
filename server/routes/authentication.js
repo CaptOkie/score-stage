@@ -3,8 +3,9 @@ const router = express.Router();
 const urls = require('../urls/public');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const users = require('../db/users');
 const errors = require('../utils/errors');
+const Users = require('../db/users');
+const users = new Users();
 
 router.use(passport.initialize());
 router.use(passport.session());
