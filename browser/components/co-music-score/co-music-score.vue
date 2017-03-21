@@ -12,7 +12,7 @@
         <md-menu ref="menu" style="display: none;" :md-size="6" :md-offset-x="menuX" :md-offset-y="menuY">
             <div md-menu-trigger></div>
             <md-menu-content class="md-dense">
-                <md-menu-item @click.native="addMeasures">
+                <md-menu-item @click.native="addMeasure">
                     <md-icon>playlist_add</md-icon>
                     <span>Add measure</span>
                     <span class="md-list-action co-score-key-text">Ctrl+A</span>
@@ -98,7 +98,7 @@ export default {
             this.menuY = event.clientY;
             this.$nextTick(() => this.$refs.menu.open());
         },
-        addMeasures() {
+        addMeasure() {
             if (this.cursor) {
                 const bars = this.cursor.measure.bars.map(bar => new Bar(bar.clef, bar.keySig));
                 const modifiers = {};
