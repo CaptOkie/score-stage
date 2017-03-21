@@ -34,8 +34,7 @@ router.post(urls.MUSIC_SCORES, function(req, res, next) {
         title : title,
         measures : [ {
             timeSig : { upper : 4, lower : 4 },
-            bars : [ { clef : 'treble', keySig : 'C', ticks : [] } ],
-            modifiers : { end : 'END' }
+            bars : [ { clef : 'treble', keySig : 'C', ticks : [] } ]
         } ],
         groups : [ { name : gName, abbr : gAbbr, count : 1 } ]
     })

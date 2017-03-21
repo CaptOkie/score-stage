@@ -10,7 +10,7 @@ import coWatch from 'Directives/co-watch';
 import { X_SHIFT, MIN_WIDTH } from './constants';
 import { Row, Rows, Position, SvgEngine, SingleCursor } from './types';
 import Vex from 'vexflow';
-const { StaveNote, Beam, Voice, Accidental, Stave, Renderer } = Vex.Flow;
+const { StaveNote, Beam, Voice, Accidental, Stave, Renderer, Barline } = Vex.Flow;
 
 function getPrev(measure, index) {
     return measure && measure.bars[index];
@@ -51,7 +51,8 @@ export default {
                     });
                     // Connect notes
                     Beam.generateBeams(notes).forEach(beam => measure.beams.push(beam));
-                    const voice = new Voice({ beat_value : measure.timeSig.upper, num_beats : measure.timeSig.lower }).setStrict(false).addTickables(notes);
+                    const voice = new Voice({ beat_value : measure.timeSig.upper, num_beats : measure.timeSig.lower })
+                        .setStrict(false).addTickables(notes);
                     // Display correct accidentals
                     Accidental.applyAccidentals([ voice ], bar.keySig);
                     measure.voices.push(voice);
@@ -59,15 +60,9 @@ export default {
                     // ** CREATE STAVE ** //
                     
                     const stave = new Stave(0, 0, this.maxWidth);
-                    // Set bar begin
-                    let modifier = measure.vexBegin();
-                    if (modifier) {
-                        stave.setBegBarType(modifier);
-                    }
                     // Set bar end
-                    modifier = measure.vexEnd();
-                    if (modifier) {
-                        stave.setEndBarType(modifier);
+                    if (this.coMeasures.length === (mIndex + 1)) {
+                        stave.setEndBarType(Barline.type.END);
                     }
                     // Add time signature if necessary
                     if (!prevMeasure || prevMeasure.timeSig.vexFormat !== measure.timeSig.vexFormat) {

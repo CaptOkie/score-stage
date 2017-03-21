@@ -121,14 +121,12 @@ export class Measure {
     static create(data) {
         const timeSig = TimeSignature.create(data.timeSig);
         const bars = data.bars.map(Bar.create);
-        const modifiers = data.modifiers;
-        return new Measure(timeSig, bars, modifiers);
+        return new Measure(timeSig, bars);
     }
 
-    constructor(timeSig, bars, modifiers = {}) {
+    constructor(timeSig, bars) {
         this.timeSig = timeSig;
         this.bars = bars;
-        this.modifiers = modifiers;
     }
 
     reset() {
@@ -150,36 +148,6 @@ export class Measure {
 
     totalPadding() {
         return this.padding.left + this.padding.right;
-    }
-
-    vexBegin() {
-        switch (this.modifiers.begin) {
-            case 'REPEAT': return Barline.type.REPEAT_BEGIN;
-            default:       return undefined;
-        }
-    }
-
-    vexEnd() {
-        switch (this.modifiers.end) {
-            case 'REPEAT': return Barline.type.REPEAT_END;
-            case 'END':    return Barline.type.END;
-            default:       return undefined;
-        }
-    }
-    
-    vexBeginLarge() {
-        switch (this.modifiers.begin) {
-            case 'REPEAT': return StaveConnector.type.BOLD_DOUBLE_LEFT;
-            default:       return undefined;
-        }
-    }
-
-    vexEndLarge() {
-        switch (this.modifiers.end) {
-            case 'REPEAT': // Fall through
-            case 'END':    return StaveConnector.type.BOLD_DOUBLE_RIGHT;
-            default:       return StaveConnector.type.SINGLE_RIGHT;
-        }
     }
 
     addStave(stave) {
@@ -312,13 +280,13 @@ export class Row {
         return this.measures[this.measures.length - 1];
     }
 
-    setup(context, maxWidth, groups) {
+    setup(context, maxWidth, groups, lastRow) {
         function getBeginBarline(stave) {
             return stave.getModifiers(StaveModifier.Position.BEGIN, 'barlines')[0];
         }
 
         let prev = undefined;
-        this.measures.forEach(measure => {
+        this.measures.forEach((measure, mIndex) => {
             measure.adjustWidth(maxWidth, this);
             measure.x = (prev && (prev.x + prev.width)) || X_SHIFT;
             measure.format();
@@ -349,22 +317,16 @@ export class Row {
                 
                 const first = measure.staves[start];
                 const last = measure.staves[end - 1];
-                let connector = measure.vexEndLarge();
+                let connector = lastRow && this.measures.length === (mIndex + 1) ? StaveConnector.type.BOLD_DOUBLE_RIGHT
+                    : StaveConnector.type.SINGLE_RIGHT;
                 measure.connectors.push(new StaveConnector(first, last).setType(connector).setContext(context));
                 
-                connector = measure.vexBeginLarge();
-                let shift = barlineX - measure.x;
-                if (!connector || shift !== 0) {
-                    let type = prev ? StaveConnector.type.SINGLE_LEFT : StaveConnector.type.DOUBLE;
-                    let conn = new StaveConnector(first, last).setType(type);
-                    if (!prev) {
-                        conn.setText(group.abbr);
-                    }
-                    measure.connectors.push(conn.setContext(context));
+                const type = prev ? StaveConnector.type.SINGLE_LEFT : StaveConnector.type.DOUBLE;
+                connector = new StaveConnector(first, last).setType(type);
+                if (!prev) {
+                    connector.setText(group.abbr);
                 }
-                if (connector) {
-                    measure.connectors.push(new StaveConnector(first, last).setType(connector).setContext(context).setXShift(shift));
-                }
+                measure.connectors.push(connector.setContext(context));
                 
                 start = end;
             });
@@ -414,7 +376,10 @@ class Engine {
     }
 
     setup(rows, maxWidth, groups) {
-        rows.rows.forEach(row => row.setup(this.renderer.getContext(), maxWidth, groups));
+        rows.rows.forEach((row, index) => {
+            const lastRow = rows.rows.length === (index + 1);
+            row.setup(this.renderer.getContext(), maxWidth, groups, lastRow);
+        });
     }
 
     getPosition(event) {
