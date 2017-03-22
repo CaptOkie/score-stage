@@ -1,6 +1,6 @@
 <template>    
     <md-dialog ref="dialog" @open="onOpen" @close="onClose">
-        <form :action="MUSIC_SCORES" method="post" class="md-column md-flex" style="display: flex;">
+        <form :action="scoresUrl" method="post" class="md-column md-flex" style="display: flex;">
             <md-dialog-title>New music score</md-dialog-title>
 
             <md-dialog-content>
@@ -35,12 +35,12 @@ import 'Proxies/mdDialog';
 import 'Proxies/mdInputContainer';
 import 'Proxies/mdButton';
 import coScroll from 'Services/co-scroll';
-import { MUSIC_SCORES } from 'Common/urls';
+import { musicScores } from 'Common/urls';
     
 export default {
     name : 'co-create-score-dialog',
     data() {
-        return { MUSIC_SCORES, title : '', gName : '', gAbbr : '' };
+        return { scoresUrl : musicScores(), title : '', gName : '', gAbbr : '' };
     },
     computed : {
         valid() {

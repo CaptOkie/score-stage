@@ -1,12 +1,7 @@
 <template>
     <div id="music-score-page">
         <md-whiteframe md-elevation="2">
-            <md-toolbar>
-                <h1 class="md-title md-flex">
-                    <a class="co-text-link" v-once :href="INDEX">Score Stage</a>
-                </h1>
-                <co-logout v-once></co-logout>
-            </md-toolbar>
+            <co-toolbar></co-toolbar>
 
             <md-tabs>
                 <md-tab id="notes" md-label="Note">
@@ -42,12 +37,10 @@
 
 <script>
 import 'Proxies/mdWhiteframe';
-import 'Proxies/mdToolbar';
 import 'Proxies/mdLayout';
 import 'Proxies/mdTabs';
 import 'Proxies/mdButtonToggle';
-import { INDEX } from 'Common/urls';
-import coLogout from 'Components/co-logout';
+import coToolbar from 'Components/co-toolbar';
 import coMusicScore from 'Components/co-music-score';
 import RESTS from 'Components/co-music-score/imgs/rests';
 import { NOTES } from 'Components/co-music-score/constants';
@@ -56,7 +49,7 @@ export default {
     name : 'home',
     data() {
         const note = { rest : false, duration : '4' };
-        return { INDEX, note, RESTS, NOTES };
+        return { note, RESTS, NOTES };
     },
     computed : {
         restClasses() {
@@ -75,7 +68,7 @@ export default {
         }
     },
     components : {
-        coLogout,
+        coToolbar,
         coMusicScore
     }
 }

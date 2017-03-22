@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const urls = require('../urls/public');
 
-router.get([ urls.INDEX, urls.HOME ], function(req, res, next) {
+router.get([ urls.index(), urls.home() ], function(req, res, next) {
     res.render('home');
 });
 

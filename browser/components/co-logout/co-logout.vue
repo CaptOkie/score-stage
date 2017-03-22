@@ -1,5 +1,5 @@
 <template>
-    <form :action="LOGOUT" method="POST">
+    <form :action="logoutUrl" method="POST">
         <slot>
             <md-button type="submit">Logout</md-button>
         </slot>
@@ -9,12 +9,12 @@
 <script>
 import 'Proxies/mdButton';
 import 'Proxies/mdIcon';
-import { LOGOUT } from 'Common/urls';
+import { logout } from 'Common/urls';
 
 export default {
     name : 'co-logout',
     data() {
-        return { LOGOUT };
+        return { logoutUrl : logout() };
     }
 }
 </script>

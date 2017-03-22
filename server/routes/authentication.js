@@ -32,19 +32,19 @@ passport.use(new LocalStrategy(
     }
 ));
 
-router.all(urls.LOGIN, function(req, res, next) {
+router.all(urls.login(), function(req, res, next) {
     if (req.user) {
-        return res.redirect(urls.INDEX);
+        return res.redirect(urls.index());
     }
     next();
 });
 
-router.get(urls.LOGIN, function(req, res, next) {
+router.get(urls.login(), function(req, res, next) {
     res.render('login');
 });
 
-router.post(urls.LOGIN,
-    passport.authenticate('local', { failureRedirect : urls.LOGIN }),
+router.post(urls.login(),
+    passport.authenticate('local', { failureRedirect : urls.login() }),
     function(req, res, next) {
         // Prevent session fixation
         const data = req.session.passport;
@@ -58,7 +58,7 @@ router.post(urls.LOGIN,
                 if (err) {
                     return next(err);
                 }
-                res.redirect(urls.INDEX);
+                res.redirect(urls.index());
             });
         });
     });
@@ -68,12 +68,12 @@ router.all('*', function(req, res, next) {
     if (req.user) {
         return next();
     }
-    res.redirect(urls.LOGIN);
+    res.redirect(urls.login());
 });
 
-router.post(urls.LOGOUT, function (req, res, next) {
+router.post(urls.logout(), function (req, res, next) {
     req.logout();
-    res.redirect(urls.LOGIN);
+    res.redirect(urls.login());
 });
 
 module.exports = router;

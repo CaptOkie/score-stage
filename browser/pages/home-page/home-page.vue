@@ -1,9 +1,6 @@
 <template>
     <div id="home-page">
-        <md-toolbar>
-            <h1 class="md-title md-flex">Score Stage</h1>
-            <co-logout v-once></co-logout>
-        </md-toolbar>
+        <co-toolbar></co-toolbar>
 
         <md-layout md-row md-align="center">
             <div class="md-flex-small md-flex-medium-70 md-flex-50">
@@ -18,7 +15,7 @@
                 </md-layout>
 
                 <md-list class="md-double-line">
-                    <md-list-item v-for="(score, index) in scores" :key="score.id" :href="MUSIC_SCORES + '/' + score.id"
+                    <md-list-item v-for="(score, index) in scores" :key="score.id" :href="scoreUrl(score)"
                             class="md-whiteframe-2dp md-margin">
                         <div class="md-list-text-container">
                             <span>{{score.title}}</span>
@@ -39,22 +36,21 @@
 </template>
 
 <script>
-import 'Proxies/mdToolbar';
 import 'Proxies/mdLayout';
 import 'Proxies/mdButton';
 import 'Proxies/mdIcon';
 import 'Proxies/mdList';
 import 'Proxies/mdWhiteframe';
-import coLogout from 'Components/co-logout';
+import coToolbar from 'Components/co-toolbar';
 import coCreateScoreDialog from 'Components/co-create-score-dialog';
 import coDeleteScoreDialog from 'Components/co-delete-score-dialog';
-import { MUSIC_SCORES } from 'Common/urls';
+import { musicScores } from 'Common/urls';
 import axios from 'axios';
 
 export default {
     name : 'home',
     data() {
-        return { MUSIC_SCORES, scores : undefined };
+        return { scores : undefined };
     },
     methods : {
         openCreateDialog() {
@@ -62,17 +58,20 @@ export default {
         },
         deleteScore(score, index) {
             this.$refs.deleteDialog.show(score, () => {
-                axios.delete(MUSIC_SCORES + '/' + score.id).then(res => {
+                axios.delete(this.scoreUrl(score)).then(res => {
                     this.scores.splice(index, 1);
                 }, error => {
                     const msg = (error.response && error.response.data.error) || error.message;
                     console.log(msg);
                 });
             });
+        },
+        scoreUrl(score) {
+            return musicScores(score.id);
         }
     },
     created() {
-        axios.get(MUSIC_SCORES).then(res => {
+        axios.get(musicScores()).then(res => {
             this.scores = res.data;
         }, error => {
             const msg = (error.response && error.response.data.error) || error.message;
@@ -80,7 +79,7 @@ export default {
         });
     },
     components : {
-        coLogout,
+        coToolbar,
         coCreateScoreDialog,
         coDeleteScoreDialog
     }

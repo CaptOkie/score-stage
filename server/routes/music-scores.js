@@ -7,7 +7,7 @@ const requests = require('../utils/requests');
 const MusicScores = require('../db/music-scores');
 const musicScores = new MusicScores();
 
-router.get(urls.MUSIC_SCORES, function(req, res, next) {
+router.get(urls.musicScores(), function(req, res, next) {
 
     musicScores.getAllOwnedBy(req.user.id).then(scores => {
         res.json(scores);
@@ -16,7 +16,7 @@ router.get(urls.MUSIC_SCORES, function(req, res, next) {
     });
 });
 
-router.post(urls.MUSIC_SCORES, function(req, res, next) {
+router.post(urls.musicScores(), function(req, res, next) {
 
     const title = req.body.title;
     const gName = req.body.gName;
@@ -39,13 +39,13 @@ router.post(urls.MUSIC_SCORES, function(req, res, next) {
         groups : [ { name : gName, abbr : gAbbr, count : 1 } ]
     })
     .then(score => {
-        res.redirect(urls.MUSIC_SCORES + '/' + score.id);
+        res.redirect(urls.musicScores(score.id));
     }, error => {
         next(error || errors.internalServerError());
     });
 });
 
-router.get(urls.MUSIC_SCORES + '/:id', function(req, res, next) {
+router.get(urls.musicScores(':id'), function(req, res, next) {
     if (requests.isHtml(req)) {
         return next();
     }
@@ -62,7 +62,7 @@ router.get(urls.MUSIC_SCORES + '/:id', function(req, res, next) {
     res.render('music-score');
 });
 
-router.delete(urls.MUSIC_SCORES + '/:id', function(req, res, next) {
+router.delete(urls.musicScores(':id'), function(req, res, next) {
     musicScores.delete(req.params.id, req.user.id).then(count => {
         if (count) {
             return res.json({ success : true });
