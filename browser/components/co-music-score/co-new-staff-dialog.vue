@@ -4,25 +4,24 @@
 
         <md-dialog-content>
             <md-layout md-column>
-                <md-radio name="co-group-type" id="co-group-existing" md-value="existing" v-model="groupType">Existing instrument</md-radio>
+                <md-radio name="co-group-radio" v-for="(group, i) in coGroups" :key="i" :md-value="i"
+                        :id="'co-group-radio-' + i" v-model="index">
+                    {{group.name}} ({{group.abbr}})
+                </md-radio>
 
-                <md-input-container>
-                    <label>Instrument</label>
-                    <md-select v-model="eGroup" :disabled="groupType !== 'existing'">
-                        <md-option v-for="(group, index) in coGroups" :key="index" :value="index + 1">{{group.name}} ({{group.abbr}})</md-option>
-                    </md-select>
-                </md-input-container>
-
-                <md-radio name="co-group-type" id="co-group-new" md-value="new" v-model="groupType">New instrument</md-radio>
+                <md-radio name="co-group-radio" :id="'co-group-radio-' + length"
+                        :md-value="length" v-model="index">
+                    New instrument
+                </md-radio>
 
                 <md-input-container>
                     <label>Name</label>
-                    <md-input v-model="nGroup.name" :disabled="groupType !== 'new'" type="text"></md-input>
+                    <md-input v-model="name" :disabled="index !== length" type="text"></md-input>
                 </md-input-container>
 
                 <md-input-container>
                     <label>Abbreviation</label>
-                    <md-input v-model="nGroup.abbr" :disabled="groupType !== 'new'" type="text"></md-input>
+                    <md-input v-model="abbr" :disabled="index !== length" type="text"></md-input>
                 </md-input-container>
             </md-layout>
         </md-dialog-content>
@@ -48,34 +47,32 @@ export default {
     name : 'co-key-signature-dialog',
     props : [ 'coGroups' ],
     data() {
-        return { groupType : 'existing', eGroup : 1, nGroup : { name : '', abbr : '' } };
+        return { index : 0, name : '', abbr : '' };
     },
     computed : {
         valid() {
-            if (this.groupType === 'new') {
-                return (this.nGroup.name.length && this.nGroup.abbr.length && true) || false;
+            if (this.index === this.length) {
+                return (this.name.length && this.abbr.length && true) || false;
             }
-            return (this.eGroup && true) || false;
+            return true;
+        },
+        length() {
+            return this.coGroups ? this.coGroups.length : 0;
         }
     },
     methods : {
         show(current, success) {
             this.success = success;
-            this.eGroup = current + 1;
-            this.nGroup = { name : '', abbr : '' };
-            this.groupType = 'existing';
+            this.index = current;
+            this.name = '';
+            this.abbr = '';
             this.$refs.dialog.open();
         },
         cancel() {
             this.$refs.dialog.close();
         },
         okay() {
-            const selection = { eGroup : this.eGroup - 1 };
-            if (this.groupType === 'new') {
-                delete selection.eGroup;
-                selection.nGroup = new Group(this.nGroup.name, this.nGroup.abbr);
-            }
-            this.success(selection);
+            this.success({ index : this.index, name : this.name, abbr : this.abbr });
             this.cancel();
         },
         onOpen() {

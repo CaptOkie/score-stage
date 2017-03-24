@@ -121,12 +121,18 @@ export class Measure {
     static create(data) {
         const timeSig = TimeSignature.create(data.timeSig);
         const bars = data.bars.map(Bar.create);
-        return new Measure(timeSig, bars);
+        const id = data.id;
+        const prev = data.prev;
+        const next = data.next;
+        return new Measure(timeSig, bars, id, prev, next);
     }
 
-    constructor(timeSig, bars) {
+    constructor(timeSig, bars, id, prev, next) {
         this.timeSig = timeSig;
         this.bars = bars;
+        this.id = id;
+        this.prev = prev;
+        this.next = next;
     }
 
     reset() {
@@ -222,6 +228,101 @@ export class Measure {
     }
 }
 
+export class Measures {
+
+    static link(before, after, toAdd) {
+        if (before) {
+            before.next = toAdd;
+        }
+        if (after) {
+            after.prev = toAdd;
+        }
+        toAdd.next = after;
+        toAdd.prev = before;
+    }
+
+    static addAfter(existing, toAdd) {
+        Measures.link(existing, existing.next, toAdd);
+    }
+
+    static addBefore(existing, toAdd) {
+        Measures.link(existing.prev, existing, toAdd);
+    }
+
+    static remove(existing) {
+        const before = existing.prev;
+        const after = existing.next;
+        if (before) {
+            before.next = after;
+        }
+        if (after) {
+            after.prev = before;
+        }
+        existing.removed = true;
+    }
+
+    static create(measures) {
+        measures = measures.map(Measure.create);
+        const map = measures.reduce((prev, measure) => {
+            prev[measure.id] = measure
+            return prev;
+        }, {});
+        let head = undefined;
+        for (const measure of measures) {
+            if (measure.prev) {
+                const prev = map[measure.prev];
+                prev.next = measure;
+                measure.prev = prev;
+            }
+            else {
+                head = measure;
+            }
+        }
+        return new Measures(head);
+    }
+
+    constructor(head) {
+        this.head = head;
+    }
+
+    addAfter(existing, toAdd) {
+        Measures.addAfter(existing, toAdd);
+    }
+
+    addBefore(existing, toAdd) {
+        Measures.addBefore(existing, toAdd);
+        if (existing === this.head) {
+            this.head = toAdd;
+        }
+    }
+
+    remove(existing) {
+        if (existing === this.head) {
+            this.head = this.head.next;
+        }
+        Measures.remove(existing);
+    }
+
+    forEach(callback) {
+        let curr = this.head;
+        while (curr) {
+            callback(curr);
+            curr = curr.next;
+        }
+    }
+
+    [Symbol.iterator]() {
+        let next = this.head;
+        return {
+            next() {
+                const curr = next;
+                next = curr && curr.next;
+                return curr ? { value : curr, done : false } : { done : true };
+            }
+        };
+    }
+}
+
 export class Group {
     static create(data) {
         return new Group(data.name, data.abbr, data.count);
@@ -280,13 +381,13 @@ export class Row {
         return this.measures[this.measures.length - 1];
     }
 
-    setup(context, maxWidth, groups, lastRow) {
+    setup(context, maxWidth, groups) {
         function getBeginBarline(stave) {
             return stave.getModifiers(StaveModifier.Position.BEGIN, 'barlines')[0];
         }
 
         let prev = undefined;
-        this.measures.forEach((measure, mIndex) => {
+        this.measures.forEach(measure => {
             measure.adjustWidth(maxWidth, this);
             measure.x = (prev && (prev.x + prev.width)) || X_SHIFT;
             measure.format();
@@ -317,8 +418,7 @@ export class Row {
                 
                 const first = measure.staves[start];
                 const last = measure.staves[end - 1];
-                let connector = lastRow && this.measures.length === (mIndex + 1) ? StaveConnector.type.BOLD_DOUBLE_RIGHT
-                    : StaveConnector.type.SINGLE_RIGHT;
+                let connector = !measure.next ? StaveConnector.type.BOLD_DOUBLE_RIGHT : StaveConnector.type.SINGLE_RIGHT;
                 measure.connectors.push(new StaveConnector(first, last).setType(connector).setContext(context));
                 
                 const type = prev ? StaveConnector.type.SINGLE_LEFT : StaveConnector.type.DOUBLE;
@@ -376,10 +476,7 @@ class Engine {
     }
 
     setup(rows, maxWidth, groups) {
-        rows.rows.forEach((row, index) => {
-            const lastRow = rows.rows.length === (index + 1);
-            row.setup(this.renderer.getContext(), maxWidth, groups, lastRow);
-        });
+        rows.rows.forEach(row => row.setup(this.renderer.getContext(), maxWidth, groups));
     }
 
     getPosition(event) {
@@ -525,7 +622,7 @@ export class SvgEngine extends Engine {
 }
 
 export class SingleCursor {
-    static fromPosition(index, measure, pos) {
+    static fromPosition(measure, pos) {
         const barIndex = measure.getBarIndex(pos.y);
         const stave = measure.staves[barIndex];
         const voice = measure.voices[barIndex];
@@ -603,31 +700,24 @@ export class SingleCursor {
             line.space = !line.space;
         }
 
-        return new SingleCursor(index, measure, barIndex, tickInfo, line);
+        return new SingleCursor(measure, barIndex, tickInfo, line);
     }
 
     static fromOld(measures, old) {
-            let index = 0;
-            let barIndex = undefined;
-            let tickInfo = undefined;
-            let line = undefined;
-            if (old) {
-                index = Math.min(old.index, measures.length - 1);
-                const bars = measures[index].bars;
-                barIndex = Math.min(old.barIndex, bars.length - 1);
-                tickInfo = old.tickInfo;
-                const bar = bars[barIndex];
-                if (tickInfo.index >= bar.ticks.length) {
-                    tickInfo.index = bar.ticks.length;
-                    tickInfo.before = true;
-                }
-                line = old.line;
-            }
-            return new SingleCursor(index, measures[index], barIndex, tickInfo, line);
+        const measure = old.measure.removed ? (old.measure.next || old.measure.prev) : old.measure;
+        const bars = measure.bars;
+        const barIndex = Math.min(old.barIndex, bars.length - 1);
+        const tickInfo = old.tickInfo;
+        const bar = bars[barIndex];
+        if (tickInfo.index >= bar.ticks.length) {
+            tickInfo.index = bar.ticks.length;
+            tickInfo.before = true;
+        }
+        const line = old.line;
+        return new SingleCursor(measure, barIndex, tickInfo, line);
     }
 
-    constructor(index, measure, barIndex = 0, tickInfo = { index : 0, before : true }, line = { num : 0, space : false }) {
-        this.index = index;
+    constructor(measure, barIndex = 0, tickInfo = { index : 0, before : true }, line = { num : 0, space : false }) {
         this.measure = measure;
         this.barIndex = barIndex;
         this.tickInfo = tickInfo;

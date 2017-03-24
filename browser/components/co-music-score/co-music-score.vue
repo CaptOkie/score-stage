@@ -76,7 +76,7 @@ import coKeySignatureDialog from './co-key-signature-dialog.vue';
 import coClefDialog from './co-clef-dialog.vue';
 import coNewStaffDialog from './co-new-staff-dialog.vue';
 import coScoreEditor from './co-score-editor.vue';
-import { Measure, Group, Bar, Tick, Note } from './types';
+import { Measures, Measure, Group, Bar, Tick, Note } from './types';
 import { getNote } from './note-utils';
 
 const LOCATION = window.location.pathname;
@@ -101,12 +101,12 @@ export default {
         addMeasure() {
             if (this.cursor) {
                 const bars = this.cursor.measure.bars.map(bar => new Bar(bar.clef, bar.keySig));
-                this.measures.splice(this.cursor.index + 1, 0, new Measure(this.cursor.measure.timeSig, bars));
+                this.measures.addAfter(this.cursor.measure, new Measure(this.cursor.measure.timeSig, bars));
             }
         },
         deleteMeasure() {
-            if (this.cursor && this.measures.length > 1) {
-                this.measures.splice(this.cursor.index, 1);
+            if (this.cursor && this.measures.head.next) {
+                this.measures.remove(this.cursor.measure);
             }
         },
         setTimeSig() {
@@ -136,17 +136,15 @@ export default {
             }
 
             this.$refs.newStaffDialog.show(this.getGroupIndex(), data => {
-                let group = data.eGroup;
-                if (group === 0 || group) {
-                    this.groups[group].count++;
+                if (data.index === this.groups.length) {
+                    this.groups.push(new Group(data.name, data.abbr));
                 }
                 else {
-                    this.groups.push(data.nGroup);
-                    group = this.groups.length - 1;
+                    this.groups[data.index].count++;
                 }
                 let index = 0;
-                for (let i = 0; i <= group; ++i) {
-                    index += group.count;
+                for (let i = 0; i <= data.index; ++i) {
+                    index += this.groups[i].count;
                 }
                 for (const measure of this.measures) {
                     const bar = new Bar('treble', 'C');
@@ -266,7 +264,7 @@ export default {
 
         axios.get(LOCATION).then(res => {
             this.title = res.data.title;
-            this.measures = res.data.measures.map(measure => Measure.create(measure));
+            this.measures = Measures.create(res.data.measures);
             this.groups = res.data.groups.map(group => Group.create(group));
         }, error => {
             const msg = (error.response && error.response.data.error) || error.message;

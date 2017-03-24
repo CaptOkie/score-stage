@@ -63,14 +63,18 @@ router.get(urls.musicScores(':id'), function(req, res, next) {
 });
 
 router.delete(urls.musicScores(':id'), function(req, res, next) {
-    musicScores.delete(req.params.id, req.user.id).then(count => {
-        if (count) {
+    musicScores.delete(req.params.id, req.user.id).then(success => {
+        if (success) {
             return res.json({ success : true });
         }
         next(errors.notFound());
     }, error => {
         next(error || errors.internalServerError());
     });
+});
+
+router.post(urls.musicScores.measure(':id'), function(req, res, next) {
+
 });
 
 module.exports = router;

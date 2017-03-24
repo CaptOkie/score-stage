@@ -28,6 +28,10 @@ module.exports.getId = function(string) {
     return undefined;
 };
 
+module.exports.newId = function() {
+    return new ObjectID();
+};
+
 module.exports.collation = function() {
     return { locale : 'en', strength : 2 };
 };

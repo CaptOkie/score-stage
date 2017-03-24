@@ -32,11 +32,10 @@ export default {
             }
 
             const rows = [];
-            let prevMeasure = undefined;
-            this.coMeasures.forEach((measure, mIndex) => {
+            this.coMeasures.forEach(measure => {
                 measure.reset();
                 measure.bars.forEach((bar, bIndex) => {
-                    const prev = getPrev(prevMeasure, bIndex);
+                    const prev = getPrev(measure.prev, bIndex);
                     
                     // ** CREATE VOICE ** //
                     
@@ -61,11 +60,11 @@ export default {
                     
                     const stave = new Stave(0, 0, this.maxWidth);
                     // Set bar end
-                    if (this.coMeasures.length === (mIndex + 1)) {
+                    if (!measure.next) {
                         stave.setEndBarType(Barline.type.END);
                     }
                     // Add time signature if necessary
-                    if (!prevMeasure || prevMeasure.timeSig.vexFormat !== measure.timeSig.vexFormat) {
+                    if (!measure.prev || measure.prev.timeSig.vexFormat !== measure.timeSig.vexFormat) {
                         stave.addTimeSignature(measure.timeSig.vexFormat);
                     }
                     // Add key signature if necessary
@@ -87,14 +86,13 @@ export default {
                     row = new Row(row ? row.y + row.height : 0);
                     rows.push(row);
                     measure.bars.forEach((bar, bIndex) => {
-                        let prev = getPrev(prevMeasure, bIndex);
+                        let prev = getPrev(measure.prev, bIndex);
                         let cancelKey = prev && prev.keySig !== bar.keySig && prev.keySig;
                         measure.staves[bIndex].setClef(bar.clef).setKeySignature(bar.keySig, cancelKey);
                         measure.updatePadding(bIndex);
                     });
                 }
                 row.addMeasure(measure);
-                prevMeasure = measure;
             });
             const ret = new Rows(rows);
             this.engine.setup(ret, this.maxWidth, this.coGroups);
@@ -110,15 +108,7 @@ export default {
             const row = this.rows.getRow(pos.y);
             const measure = row.getMeasure(pos.x);
             if (measure) {
-                let index = row.measures.indexOf(measure);
-                for (let curr of this.rows.rows) {
-                    if (curr === row) {
-                        break;
-                    }
-                    index += curr.measures.length;
-                }
-
-                const newCursor = SingleCursor.fromPosition(index, measure, pos);
+                const newCursor = SingleCursor.fromPosition(measure, pos);
                 if (newCursor) {
                     this.cursor = newCursor;
                 }
@@ -135,7 +125,7 @@ export default {
             this.engine.clear();
             this.engine.resize(this.width, row.y + row.height);
             this.engine.drawRows(rows);
-            this.cursor = SingleCursor.fromOld(this.coMeasures, this.cursor);
+            this.cursor = this.cursor ? SingleCursor.fromOld(this.coMeasures, this.cursor) : new SingleCursor(this.coMeasures.head);
         }
     },
     mounted() {
