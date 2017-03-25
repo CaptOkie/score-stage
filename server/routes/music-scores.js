@@ -38,8 +38,8 @@ router.post(urls.musicScores(), function(req, res, next) {
         } ],
         groups : [ { name : gName, abbr : gAbbr, count : 1 } ]
     })
-    .then(score => {
-        res.redirect(urls.musicScores(score.id));
+    .then(sid => {
+        res.redirect(urls.musicScores(sid));
     }, error => {
         next(error || errors.internalServerError());
     });
@@ -74,7 +74,11 @@ router.delete(urls.musicScores(':id'), function(req, res, next) {
 });
 
 router.post(urls.musicScores.measure(':id'), function(req, res, next) {
+    console.log(req.params.id, req.body);
+});
 
+router.delete(urls.musicScores.measure(':id'), function(req, res, next) {
+    console.log(req.params.id, req.params.rev);
 });
 
 module.exports = router;

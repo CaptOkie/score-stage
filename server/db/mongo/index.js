@@ -13,8 +13,12 @@ module.exports = function(db) {
     this.db = db || database;
 };
 
+module.exports.toHexString = function(id) {
+    return id && id.toHexString();
+};
+
 module.exports.setId = function(doc) {
-    if (doc) {
+    if (doc && doc._id) {
         doc.id = doc._id.toHexString();
         delete doc._id;
     }
@@ -22,10 +26,7 @@ module.exports.setId = function(doc) {
 };
 
 module.exports.getId = function(string) {
-    if (string) {
-        return ObjectID.createFromHexString(string);
-    }
-    return undefined;
+    return string && ObjectID.createFromHexString(string);
 };
 
 module.exports.newId = function() {
