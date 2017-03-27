@@ -10,9 +10,10 @@ function convertScore(score) {
 
 function convertMeasure(measure) {
     if (measure) {
-        measure.id = Mongo.toHexString(measure.id);
-        measure.prev = Mongo.toHexString(measure.prev);
-        measure.next = Mongo.toHexString(measure.next);
+        delete measure.rev;
+        delete measure.owner;
+        delete measure._id;
+        delete measure.score;
     }
     return measure;
 }
@@ -32,12 +33,12 @@ module.exports.prototype.create = function(score) {
             return {
                 owner : owner,
                 score : id,
-                id : Mongo.newId(),
+                id : measure.id,
                 rev : [ rev ],
                 timeSig : measure.timeSig,
                 bars : measure.bars,
-                prev : Mongo.getId(measure.prev),
-                next : Mongo.getId(measure.next)
+                prev : measure.prev,
+                next : measure.next
             };
         });
 
@@ -101,12 +102,15 @@ module.exports.prototype.delete = function(id, owner) {
 
 module.exports.prototype.getMeasure = function(id, rev, owner, mid) {
     return this.mongo.req('measures').then(db => {
-        const filter = { score : Mongo.getId(id), rev : Mongo.getId(rev), owner : Mongo.getId(owner), id : Mongo.getId(mid) };
+        const filter = { score : Mongo.getId(id), rev : Mongo.getId(rev), owner : Mongo.getId(owner), id : mid };
         return db.measures.findOne(filter).then(convertMeasure);
     });
 };
 
 module.exports.prototype.spliceMeasures = function(id, rev, owner, toAdd, toRemove) {
+    toAdd = toAdd || [];
+    toRemove = toRemove || [];
+
     return this.mongo.req('musicScores', 'measures').then(db => {
 
         const newRev = Mongo.newId();
@@ -118,12 +122,12 @@ module.exports.prototype.spliceMeasures = function(id, rev, owner, toAdd, toRemo
             return {
                 owner : owner,
                 score : id,
-                id : Mongo.getId(measure.id),
+                id : measure.id,
                 rev : [ newRev ],
                 timeSig : measure.timeSig,
                 bars : measure.bars,
-                prev : Mongo.getId(measure.prev),
-                next : Mongo.getId(measure.next)
+                prev : measure.prev,
+                next : measure.next
             };
         });
         const ids = toAdd.map(measure => measure.id).concat(toRemove);
@@ -137,7 +141,7 @@ module.exports.prototype.spliceMeasures = function(id, rev, owner, toAdd, toRemo
 
         return db.measures.bulkWrite(operations).then(r1 => {
 
-            filter = { _id : score, owner : owner, rev : rev };
+            filter = { _id : id, owner : owner, rev : rev };
             update = { $set : { rev : newRev } };
             return db.musicScores.updateOne(filter, update).then(r2 => {
 

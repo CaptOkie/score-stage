@@ -15,3 +15,7 @@ module.exports.notFound = function(msg) {
 module.exports.internalServerError = function(msg) {
     return error(msg || 'Internal Server Error', 500);
 };
+
+module.exports.conflict = function(msg) {
+    return error(msg || 'Conflict', 409);
+};

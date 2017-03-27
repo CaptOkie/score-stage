@@ -5,7 +5,8 @@
         </md-card-header>
 
         <md-card-content>
-            <co-score-editor v-if="loaded" :co-measures="measures" :co-groups="groups" :co-bar-scale="2" @cursor-changed="cursorChanged">
+            <co-score-editor v-if="loaded" :co-measures="measures" :co-groups="groups" :co-bar-scale="2"
+                    @cursor-changed="cursorChanged">
             </co-score-editor>
         </md-card-content>
 
@@ -78,6 +79,7 @@ import coNewStaffDialog from './co-new-staff-dialog.vue';
 import coScoreEditor from './co-score-editor.vue';
 import { Measures, Measure, Group, Bar, Tick, Note } from './types';
 import { getNote } from './note-utils';
+import { musicScores } from 'Common/urls';
 
 const LOCATION = window.location.pathname;
 
@@ -85,11 +87,20 @@ export default {
     name : 'co-music-score',
     props : [ 'coNote' ],
     data() {
-        return { title : undefined, groups : undefined, measures : undefined, menuX : 0, menuY : 0 };
+        return { score : undefined, menuX : 0, menuY : 0, saveQueue : [] };
     },
     computed : {
         loaded() {
-            return (this.measures && this.groups && true) || false;
+            return (this.score && true) || false;
+        },
+        title() {
+            return this.score && this.score.title;
+        },
+        measures() {
+            return this.score && this.score.measures;
+        },
+        groups() {
+            return this.score && this.score.groups;
         }
     },
     methods : {
@@ -101,12 +112,35 @@ export default {
         addMeasure() {
             if (this.cursor) {
                 const bars = this.cursor.measure.bars.map(bar => new Bar(bar.clef, bar.keySig));
-                this.measures.addAfter(this.cursor.measure, new Measure(this.cursor.measure.timeSig, bars));
+                const measure = new Measure(this.cursor.measure.timeSig, bars);
+                this.score.measures.addAfter(this.cursor.measure, measure);
+
+                this.saveQueue.push(() => {
+                    const url = musicScores.measure(this.score.id);
+                    const data = {
+                        id : this.cursor.measure.id,
+                        rev : this.score.rev
+                    };
+                    return axios.post(url, data).then(res => {
+                        measure.id = res.data.id;
+                        return res;
+                    });
+                });
             }
         },
         deleteMeasure() {
-            if (this.cursor && this.measures.head.next) {
-                this.measures.remove(this.cursor.measure);
+            if (this.cursor && this.score.measures.head.next) {
+                const measure = this.cursor.measure;
+                this.score.measures.remove(measure);
+
+                this.saveQueue.push(() => {
+                    const url = musicScores.measure(this.score.id);
+                    const params = {
+                        id : measure.id,
+                        rev : this.score.rev
+                    };
+                    return axios.delete(url, { params });
+                });
             }
         },
         setTimeSig() {
@@ -131,22 +165,22 @@ export default {
             }
         },
         addStaff() {
-            if (!this.cursor || !this.groups || !this.measures) {
+            if (!this.score) {
                 return;
             }
 
             this.$refs.newStaffDialog.show(this.getGroupIndex(), data => {
-                if (data.index === this.groups.length) {
-                    this.groups.push(new Group(data.name, data.abbr));
+                if (data.index === this.score.groups.length) {
+                    this.score.groups.push(new Group(data.name, data.abbr));
                 }
                 else {
-                    this.groups[data.index].count++;
+                    this.score.groups[data.index].count++;
                 }
                 let index = 0;
                 for (let i = 0; i <= data.index; ++i) {
-                    index += this.groups[i].count;
+                    index += this.score.groups[i].count;
                 }
-                for (const measure of this.measures) {
+                for (const measure of this.score.measures) {
                     const bar = new Bar('treble', 'C');
                     if (index < measure.bars.length) {
                         measure.bars.splice(index, 0, bar);
@@ -158,20 +192,20 @@ export default {
             });
         },
         deleteStaff() {
-            if (!this.cursor || !this.measures || !this.groups || (this.groups.length < 2 && this.groups[0].count < 2)) {
+            if (!this.cursor || (this.score.groups.length < 2 && this.score.groups[0].count < 2)) {
                 return;
             }
 
             const index = this.cursor.barIndex;
-            for (const measure of this.measures) {
+            for (const measure of this.score.measures) {
                 measure.bars.splice(index, 1);
             }
 
             let groupIndex = this.getGroupIndex();
-            const group = this.groups[groupIndex];
+            const group = this.score.groups[groupIndex];
             group.count--;
             if (!group.count) {
-                this.groups.splice(groupIndex, 1);
+                this.score.groups.splice(groupIndex, 1);
             }
         },
         addTick() {
@@ -216,13 +250,14 @@ export default {
             }
         },
         getGroupIndex() {
-            if (!this.cursor || !this.groups) {
+            if (!this.cursor) {
                 return undefined;
             }
+
             const index = this.cursor.barIndex;
             let groupIndex = 0;
             let count = 0;
-            for (const group of this.groups) {
+            for (const group of this.score.groups) {
                 count += group.count;
                 if (count > index) {
                     break;
@@ -262,10 +297,39 @@ export default {
     },
     created() {
 
+        const watchSaveQueue = () => {
+            let unwatch = undefined;
+            const doSave = () => {
+                if (unwatch) {
+                    unwatch();
+                    unwatch = undefined;
+                }
+                const operation = this.saveQueue.shift();
+                if (operation) {
+                    operation().then(res => {
+                        this.score.rev = res.data.rev;
+                        doSave();
+                    }, error => {
+                        const msg = (error.response && error.response.data.error) || error.message;
+                        console.log(msg);
+                    });
+                }
+                else {
+                    watchSaveQueue();
+                }
+            };
+            unwatch = this.$watch('saveQueue', doSave);
+        };
+
         axios.get(LOCATION).then(res => {
-            this.title = res.data.title;
-            this.measures = Measures.create(res.data.measures);
-            this.groups = res.data.groups.map(group => Group.create(group));
+            this.score = {
+                id : res.data.id,
+                title : res.data.title,
+                measures : Measures.create(res.data.measures),
+                groups : res.data.groups.map(group => Group.create(group)),
+                rev : res.data.rev
+            };
+            watchSaveQueue();
         }, error => {
             const msg = (error.response && error.response.data.error) || error.message;
             console.log(msg);
