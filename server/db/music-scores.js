@@ -100,14 +100,31 @@ module.exports.prototype.delete = function(id, owner) {
     });
 };
 
-module.exports.prototype.getMeasure = function(id, rev, owner, mid) {
+module.exports.prototype.getMeasures = function(id, rev, owner, mids) {
     return this.mongo.req('measures').then(db => {
-        const filter = { score : Mongo.getId(id), rev : Mongo.getId(rev), owner : Mongo.getId(owner), id : mid };
-        return db.measures.findOne(filter).then(convertMeasure);
+        const filter = { score : Mongo.getId(id), rev : Mongo.getId(rev), owner : Mongo.getId(owner) };
+        if (mids) {
+            filter.id = { $in : mids };
+        }
+        return db.measures.find(filter).map(convertMeasure).toArray();
     });
 };
 
-module.exports.prototype.spliceMeasures = function(id, rev, owner, toAdd, toRemove) {
+module.exports.prototype.getMeasure = function(id, rev, owner, mid) {
+    return this.getMeasures(id, rev, owner, [ mid ]).then(measures => measures.length > 0 ? measures[0] : false);
+};
+
+module.exports.prototype.getGroups = function(id, rev, owner) {
+    return this.mongo.req('musicScores').then(db => {
+        const filter = { _id : Mongo.getId(id), rev : Mongo.getId(rev), owner : Mongo.getId(owner) };
+        return db.musicScores.findOne(filter).then(score => {
+            score = convertScore(score);
+            return score ? score.groups : [];
+        });
+    });
+};
+
+module.exports.prototype.updateScore = function(id, rev, owner, toAdd, toRemove, groups) {
     toAdd = toAdd || [];
     toRemove = toRemove || [];
 
@@ -143,6 +160,9 @@ module.exports.prototype.spliceMeasures = function(id, rev, owner, toAdd, toRemo
 
             filter = { _id : id, owner : owner, rev : rev };
             update = { $set : { rev : newRev } };
+            if (groups) {
+                update.$set.groups = groups;
+            }
             return db.musicScores.updateOne(filter, update).then(r2 => {
 
                 operations = [];

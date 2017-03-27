@@ -117,11 +117,11 @@ export default {
 
                 this.saveQueue.push(() => {
                     const url = musicScores.measure(this.score.id);
-                    const data = {
+                    const body = {
                         id : this.cursor.measure.id,
                         rev : this.score.rev
                     };
-                    return axios.post(url, data).then(res => {
+                    return axios.post(url, body).then(res => {
                         measure.id = res.data.id;
                         return res;
                     });
@@ -189,6 +189,15 @@ export default {
                         measure.bars.push(bar);
                     }
                 }
+
+                this.saveQueue.push(() => {
+                    const url = musicScores.staff(this.score.id);
+                    const body = {
+                        data : data,
+                        rev : this.score.rev
+                    };
+                    return axios.post(url, body);
+                });
             });
         },
         deleteStaff() {

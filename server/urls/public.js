@@ -4,6 +4,7 @@ const INDEX = '/';
 const HOME = '/home';
 const MUSIC_SCORES = '/music-scores';
 const MEASURE = '/measure';
+const STAFF = '/staff';
 const TIME_SIG = '/time-sig';
 const KEY_SIG = '/key-sig';
 const CLEF = '/clef';
@@ -15,6 +16,10 @@ function musicScores(id) {
 
 musicScores.measure = function(id) {
     return musicScores(id) + MEASURE;
+};
+
+musicScores.staff = function(id) {
+    return musicScores(id) + STAFF;
 };
 
 musicScores.timeSig = function(id) {

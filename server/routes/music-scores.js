@@ -8,6 +8,10 @@ const requests = require('../utils/requests');
 const MusicScores = require('../db/music-scores');
 const musicScores = new MusicScores();
 
+function validString(item) {
+    return types.isString(item) && item.length;
+}
+
 router.get(urls.musicScores(), function(req, res, next) {
 
     musicScores.getAllOwnedBy(req.user.id).then(scores => {
@@ -22,11 +26,8 @@ router.post(urls.musicScores(), function(req, res, next) {
     const title = req.body.title;
     const gName = req.body.gName;
     const gAbbr = req.body.gAbbr;
-    function valid(item) {
-        return types.isString(item) && item.length;
-    }
 
-    if (!valid(title) || !valid(gName) || !valid(gAbbr)) {
+    if (!validString(title) || !validString(gName) || !validString(gAbbr)) {
         return next(errors.badRequest());
     }
 
@@ -116,12 +117,12 @@ router.post(urls.musicScores.measure(':id'), function(req, res, next) {
                 before.next = measure.id;
                 measure.next = after.id;
                 after.prev = measure.id;
-                return musicScores.spliceMeasures(id, rev, owner, [ before, measure, after ], []).then(done);
+                return musicScores.updateScore(id, rev, owner, [ before, measure, after ]).then(done);
             });
         }
 
         before.next = measure.id;
-        return musicScores.spliceMeasures(id, rev, owner, [ before, measure ], []).then(done);
+        return musicScores.updateScore(id, rev, owner, [ before, measure ]).then(done);
     }).catch(error => {
         next(error || errors.internalServerError());
     });
@@ -181,7 +182,63 @@ router.delete(urls.musicScores.measure(':id'), function(req, res, next) {
                 toAdd.push(after);
             }
 
-            return musicScores.spliceMeasures(id, rev, owner, toAdd, [ measure.id ]).then(newRev => {
+            return musicScores.updateScore(id, rev, owner, toAdd, [ measure.id ]).then(newRev => {
+                if (!newRev) {
+                    return next(errors.conflict());
+                }
+                res.json({ rev : newRev });
+            });
+        });
+    }).catch(error => {
+        next(error || errors.internalServerError());
+    });
+});
+
+router.post(urls.musicScores.staff(':id'), function(req, res, next) {
+    const id = req.params.id;
+    const rev = req.body.rev;
+    const owner = req.user.id;
+    const data = req.body.data;
+
+    musicScores.getGroups(id, rev, owner).then(groups => {
+        if (!groups.length) {
+            return next(errors.conflict());
+        }
+        if (data.index > groups.length) {
+            return next(errors.conflict());
+        }
+
+        if (data.index === groups.length) {
+            if (!validString(data.name) || !validString(data.abbr)) {
+                return next(errors.badRequest());
+            }
+            groups.push({ name : data.name, abbr : data.abbr, count : 1 });
+        }
+        else {
+            groups[data.index].count++;
+        }
+
+        var index = 0;
+        for (var i = 0; i <= data.index; ++i) {
+            index += groups[i].count;
+        }
+
+        return musicScores.getMeasures(id, rev, owner).then(measures => {
+            if (!measures.length) {
+                return next(errors.conflict());
+            }
+
+            for (var measure of measures) {
+                const bar = { clef : 'treble', keySig : 'C', ticks : [] };
+                if (index < measure.bars.length) {
+                    measure.bars.splice(index, 0, bar);
+                }
+                else {
+                    measure.bars.push(bar);
+                }
+            }
+
+            return musicScores.updateScore(id, rev, owner, measures, [], groups).then(newRev => {
                 if (!newRev) {
                     return next(errors.conflict());
                 }
