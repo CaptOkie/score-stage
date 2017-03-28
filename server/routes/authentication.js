@@ -3,6 +3,7 @@ const router = express.Router();
 const urls = require('../urls/public');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require('bcryptjs');
 const errors = require('../utils/errors');
 const types = require('../utils/types');
 const Users = require('../db/users');
@@ -22,11 +23,19 @@ passport.deserializeUser(function(user, done) {
 passport.use(new LocalStrategy(
     function(username, password, done) {
         users.getCredentials(username).then(user => {
-            if (user && password === user.password) {
+            if (user) {
+                var hash = user.password;
                 delete user.password;
-                return done(null, user);
+                bcrypt.compare(password, hash).then(res => {
+                    if (res) {
+                        return done(null, user);
+                    }
+                    done(null, false, { message : 'Incorrect username or password' });
+                });
             }
-            done(null, false, { message : 'Incorrect username or password' });
+            else {
+                done(null, false, { message : 'Incorrect username or password' });
+            }
         }).catch(error => {
             done(error || errors.internalServerError());
         });
@@ -78,23 +87,29 @@ router.post(urls.register(), function(req, res, next) {
         return res.redirect(urls.register());
     }
 
-    const user = { username : req.body.username, password : req.body.password };
-    users.create(user).then(id => {
-        if (!id) {
-            return res.redirect(urls.register());
-        }
-        user.id = id;
+    bcrypt.genSalt().then(salt => {
 
-        req.login(user, error => {
-            if (error) {
-                return next(error);
-            }
-            res.redirect(urls.index());
+        return bcrypt.hash(req.body.password, salt).then(hash => {
+
+            const user = { username : req.body.username, password : hash };
+            return users.create(user).then(id => {
+                if (!id) {
+                    return res.redirect(urls.register());
+                }
+                user.id = id;
+                delete user.password;
+
+                req.login(user, error => {
+                    if (error) {
+                        return next(error);
+                    }
+                    res.redirect(urls.index());
+                });
+            });
         });
     }).catch(error => {
         next(error || errors.internalServerError());
     });
-
 });
 
 // router.all('*') seems to be more correct than router.use()
