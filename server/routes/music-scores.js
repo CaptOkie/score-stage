@@ -27,7 +27,7 @@ router.get(urls.musicScores(), function(req, res, next) {
 
     musicScores.getAllOwnedBy(req.user.id).then(scores => {
         res.json(scores);
-    }, error => {
+    }).catch(error => {
         next(error || errors.internalServerError());
     });
 });
@@ -54,7 +54,7 @@ router.post(urls.musicScores(), function(req, res, next) {
     })
     .then(sid => {
         res.redirect(urls.musicScores(sid));
-    }, error => {
+    }).catch(error => {
         next(error || errors.internalServerError());
     });
 });
@@ -69,7 +69,7 @@ router.get(urls.musicScores(':id'), function(req, res, next) {
             return res.json(score);
         }
         next(errors.notFound());
-    }, error => {
+    }).catch(error => {
         next(error || errors.internalServerError());
     });
 }, function(req, res, next) {
@@ -82,7 +82,7 @@ router.delete(urls.musicScores(':id'), function(req, res, next) {
             return res.json({ success : true });
         }
         next(errors.notFound());
-    }, error => {
+    }).catch(error => {
         next(error || errors.internalServerError());
     });
 });

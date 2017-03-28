@@ -4,6 +4,7 @@ var webpack = require('webpack')
 
 module.exports = {
     entry: {
+        'register' : './pages/register-page/index.js',
         'login': './pages/login-page/index.js',
         'home': './pages/home-page/index.js',
         'music-score': './pages/music-score-page/index.js'

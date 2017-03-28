@@ -19,3 +19,16 @@ module.exports.prototype.getCredentials = function(username) {
         return db.users.findOne({ username : username }, options).then(Mongo.setId);
     });    
 };
+
+module.exports.prototype.create = function(user) {
+    return this.mongo.req('users').then(db => {
+        return db.users.insertOne(user).then(result => {
+            return result.insertedCount ? Mongo.toHexString(result.insertedId) : false;
+        }, error => {
+            if (error.code === 11000) {
+                return false;
+            }
+            return Promise.reject(error);
+        });
+    });
+};
