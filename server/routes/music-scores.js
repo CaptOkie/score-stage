@@ -387,4 +387,119 @@ router.post(urls.musicScores.clef(':id'), function(req, res, next) {
     });
 });
 
+router.post(urls.musicScores.tick(':id'), function(req, res, next) {
+    const id = req.params.id;
+    const rev = req.body.rev;
+    const owner = req.user.id;
+    const data = req.body.data;
+    if (data.barIndex < 0) {
+        return next(errors.badRequest());
+    }
+
+    musicScores.getMeasure(id, rev, owner, data.id).then(measure => {
+        if (!measure) {
+            return next(errors.conflict());
+        }
+        if (data.barIndex >= measure.bars.length) {
+            return next(errors.badRequest());
+        }
+
+        const ticks = measure.bars[data.barIndex].ticks;
+        if (data.index <= 0) {
+            ticks.unshift(data.tick);
+        }
+        else if (data.index >= ticks.length) {
+            ticks.push(data.tick);
+        }
+        else {
+            ticks.splice(data.index, 0, data.tick);
+        }
+
+        return musicScores.updateScore(id, rev, owner, [ measure ]).then(newRev => {
+            if (!newRev) {
+                return next(errors.conflict());
+            }
+            res.json({ rev : newRev });
+        });
+    }).catch(error => {
+        next(error || errors.internalServerError());
+    });
+});
+
+router.put(urls.musicScores.tick(':id'), function(req, res, next) {
+    const id = req.params.id;
+    const rev = req.body.rev;
+    const owner = req.user.id;
+    const data = req.body.data;
+    if (data.barIndex < 0 || data.index < 0) {
+        return next(errors.badRequest());
+    }
+
+    musicScores.getMeasure(id, rev, owner, data.id).then(measure => {
+        if (!measure) {
+            return next(errors.conflict());
+        }
+        if (data.barIndex >= measure.bars.length) {
+            return next(errors.badRequest());
+        }
+
+        const ticks = measure.bars[data.barIndex].ticks;
+        if (data.index >= ticks.length) {
+            return next(errors.badRequest());
+        }
+        else {
+            ticks[data.index] = data.tick;
+        }
+
+        return musicScores.updateScore(id, rev, owner, [ measure ]).then(newRev => {
+            if (!newRev) {
+                return next(errors.conflict());
+            }
+            res.json({ rev : newRev });
+        });
+    }).catch(error => {
+        next(error || errors.internalServerError());
+    });
+});
+
+router.delete(urls.musicScores.tick(':id'), function(req, res, next) {
+    const id = req.params.id;
+    const rev = req.query.rev;
+    const owner = req.user.id;
+    const data = {
+        id : req.query.id,
+        barIndex : req.query.barIndex,
+        index : req.query.index
+    };
+    if (data.barIndex < 0 || data.index < 0) {
+        return next(errors.badRequest());
+    }
+
+    musicScores.getMeasure(id, rev, owner, data.id).then(measure => {
+        if (!measure) {
+            return next(errors.conflict());
+        }
+        if (data.barIndex >= measure.bars.length) {
+            return next(errors.badRequest());
+        }
+
+        const ticks = measure.bars[data.barIndex].ticks;
+        if (data.index >= ticks.length) {
+            return next(errors.badRequest());
+        }
+        else {
+            ticks.splice(data.index, 1);
+        }
+
+        return musicScores.updateScore(id, rev, owner, [ measure ]).then(newRev => {
+            if (!newRev) {
+                return next(errors.conflict());
+            }
+            res.json({ rev : newRev });
+        });
+    }).catch(error => {
+        next(error || errors.internalServerError());
+    });
+});
+
 module.exports = router;

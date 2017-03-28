@@ -114,14 +114,16 @@ export default {
                 return;
             }
 
-            const bars = this.cursor.measure.bars.map(bar => new Bar(bar.clef, bar.keySig));
-            const measure = new Measure(this.cursor.measure.timeSig, bars);
-            this.score.measures.addAfter(this.cursor.measure, measure);
+            const before = this.cursor.measure;
+            const bars = before.bars.map(bar => new Bar(bar.clef, bar.keySig));
+            const measure = new Measure(before.timeSig, bars);
+            this.score.measures.addAfter(before, measure);
+
 
             this.saveQueue.push(() => {
                 const url = musicScores.measure(this.score.id);
                 const body = {
-                    id : this.cursor.measure.id,
+                    id : before.id,
                     rev : this.score.rev
                 };
                 return axios.post(url, body).then(res => {
@@ -153,14 +155,16 @@ export default {
             }
 
             this.$refs.timeSigDialog.show(this.cursor.measure.timeSig, data => {
-                this.cursor.measure.timeSig = data.timeSig;
+                const measure = this.cursor.measure;
+                measure.timeSig = data.timeSig;
+                const timeSig = data.timeSig.getRaw();
 
                 this.saveQueue.push(() => {
                     const url = musicScores.timeSig(this.score.id);
                     const body = {
                         data : {
-                            id : this.cursor.measure.id,
-                            timeSig : data.timeSig.getRaw()
+                            id : measure.id,
+                            timeSig
                         },
                         rev : this.score.rev
                     };
@@ -175,13 +179,15 @@ export default {
 
             this.$refs.keySigDialog.show(this.cursor.bar.keySig, data => {
                 this.cursor.bar.keySig = data.keySig;
+                const measure = this.cursor.measure;
+                const barIndex = this.cursor.barIndex;
 
                 this.saveQueue.push(() => {
                     const url = musicScores.keySig(this.score.id);
                     const body = {
                         data : {
-                            id : this.cursor.measure.id,
-                            index : this.cursor.barIndex,
+                            id : measure.id,
+                            index : barIndex,
                             keySig : data.keySig
                         },
                         rev : this.score.rev
@@ -197,13 +203,15 @@ export default {
 
             this.$refs.clefDialog.show(this.cursor.bar.clef, data => {
                 this.cursor.bar.clef = data.clef;
+                const measure = this.cursor.measure;
+                const barIndex = this.cursor.barIndex;
 
                 this.saveQueue.push(() => {
                     const url = musicScores.clef(this.score.id);
                     const body = {
                         data : {
-                            id : this.cursor.measure.id,
-                            index : this.cursor.barIndex,
+                            id : measure.id,
+                            index : barIndex,
                             clef : data.clef
                         },
                         rev : this.score.rev
@@ -299,6 +307,29 @@ export default {
                 const note = getNote(bar.clef, this.cursor.line);
                 tick.push(new Note(note.letter, note.octave, 'n'));
             }
+
+            const barIndex = this.cursor.barIndex;
+            const measure = this.cursor.measure;
+            const before = this.cursor.tickInfo.before;
+            const rawTick = tick.getRaw();
+
+            this.saveQueue.push(() => {
+                const url = musicScores.tick(this.score.id);
+                const body = {
+                    data : {
+                        id : measure.id,
+                        barIndex,
+                        index,
+                        tick : rawTick
+                    },
+                    rev : this.score.rev
+                };
+
+                if (before) {
+                    return axios.post(url, body);
+                }
+                return axios.put(url, body);
+            });
         },
         deleteTick() {
             if (!this.cursor || this.cursor.tickInfo.before) {
@@ -310,10 +341,40 @@ export default {
             const ticks = bar.ticks;
             const index = this.cursor.tickInfo.index;
             const tick = ticks[index];
+            let removed = false;
             // Call isRest after incase deleting the last note turns it into a rest
             if (!tick.delete(note) || tick.isRest()) {
                 ticks.splice(index, 1);
+                removed = true;
             }
+
+            const measure = this.cursor.measure;
+            const barIndex = this.cursor.barIndex;
+            const rawTick = tick.getRaw();
+
+            this.saveQueue.push(() => {
+                const url = musicScores.tick(this.score.id);
+                if (removed) {
+                    const params = {
+                        id : measure.id,
+                        barIndex,
+                        index,
+                        rev : this.score.rev
+                    };
+                    return axios.delete(url, { params });
+                }
+
+                const body = {
+                    data : {
+                        id : measure.id,
+                        barIndex,
+                        index,
+                        tick : rawTick
+                    },
+                    rev : this.score.rev
+                };
+                return axios.put(url, body);
+            });
         },
         getGroupIndex() {
             if (!this.cursor) {

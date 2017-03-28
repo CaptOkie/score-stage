@@ -8,6 +8,10 @@ export class Note {
         return new Note(data.letter, data.octave, data.accidental);
     }
 
+    static getRaw(note) {
+        return note.getRaw();
+    }
+
     constructor(letter, octave, accidental) {
         this.letter = letter;
         this.octave = octave;
@@ -40,6 +44,14 @@ export class Note {
     equals(other) {
         return this.compareTo(other) === 0;
     }
+
+    getRaw() {
+        return {
+            letter : this.letter,
+            octave : this.octave,
+            accidental : this.accidental
+        };
+    }
 }
 
 export class Tick {
@@ -47,6 +59,10 @@ export class Tick {
         const duration = data.duration;
         const notes = data.notes.map(Note.create);
         return new Tick(duration, notes);
+    }
+
+    static getRaw(tick) {
+        return tick.getRaw();
     }
 
     constructor(duration, notes = []) {
@@ -84,6 +100,13 @@ export class Tick {
 
     clear() {
         this.notes = [];
+    }
+
+    getRaw() {
+        return {
+            duration : this.duration,
+            notes : this.notes.map(Note.getRaw)
+        };
     }
 }
 
