@@ -95,10 +95,21 @@ export class TimeSignature {
         return new TimeSignature(data.upper, data.lower);
     }
 
+    static getRaw(timeSig) {
+        return timeSig.getRaw();
+    }
+
     constructor(upper, lower, vexFormat = upper + '/' + lower) {
         this.upper = upper;
         this.lower = lower;
         this.vexFormat = vexFormat;
+    }
+
+    getRaw() {
+        return {
+            upper : this.upper,
+            lower : this.lower
+        };
     }
 }
 

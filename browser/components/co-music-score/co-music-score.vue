@@ -26,7 +26,7 @@
                 </md-menu-item>
 
                 <md-menu-item @click.native="setTimeSig" class="md-inset">
-                    <span>Edit time signature</span>
+                    <span>Change time signature</span>
                     <span class="md-list-action co-score-key-text">Ctrl+T</span>
                 </md-menu-item>
 
@@ -110,62 +110,110 @@ export default {
             this.$nextTick(() => this.$refs.menu.open());
         },
         addMeasure() {
-            if (this.cursor) {
-                const bars = this.cursor.measure.bars.map(bar => new Bar(bar.clef, bar.keySig));
-                const measure = new Measure(this.cursor.measure.timeSig, bars);
-                this.score.measures.addAfter(this.cursor.measure, measure);
-
-                this.saveQueue.push(() => {
-                    const url = musicScores.measure(this.score.id);
-                    const body = {
-                        id : this.cursor.measure.id,
-                        rev : this.score.rev
-                    };
-                    return axios.post(url, body).then(res => {
-                        measure.id = res.data.id;
-                        return res;
-                    });
-                });
+            if (!this.cursor) {
+                return;
             }
+
+            const bars = this.cursor.measure.bars.map(bar => new Bar(bar.clef, bar.keySig));
+            const measure = new Measure(this.cursor.measure.timeSig, bars);
+            this.score.measures.addAfter(this.cursor.measure, measure);
+
+            this.saveQueue.push(() => {
+                const url = musicScores.measure(this.score.id);
+                const body = {
+                    id : this.cursor.measure.id,
+                    rev : this.score.rev
+                };
+                return axios.post(url, body).then(res => {
+                    measure.id = res.data.id;
+                    return res;
+                });
+            });
         },
         deleteMeasure() {
-            if (this.cursor && this.score.measures.head.next) {
-                const measure = this.cursor.measure;
-                this.score.measures.remove(measure);
-
-                this.saveQueue.push(() => {
-                    const url = musicScores.measure(this.score.id);
-                    const params = {
-                        id : measure.id,
-                        rev : this.score.rev
-                    };
-                    return axios.delete(url, { params });
-                });
+            if (!this.cursor || !this.score.measures.head.next) {
+                return;
             }
+
+            const measure = this.cursor.measure;
+            this.score.measures.remove(measure);
+
+            this.saveQueue.push(() => {
+                const url = musicScores.measure(this.score.id);
+                const params = {
+                    id : measure.id,
+                    rev : this.score.rev
+                };
+                return axios.delete(url, { params });
+            });
         },
         setTimeSig() {
-            if (this.cursor) {
-                this.$refs.timeSigDialog.show(this.cursor.measure.timeSig, data => {
-                    this.cursor.measure.timeSig = data.timeSig;
-                });
+            if (!this.cursor) {
+                return;
             }
+
+            this.$refs.timeSigDialog.show(this.cursor.measure.timeSig, data => {
+                this.cursor.measure.timeSig = data.timeSig;
+
+                this.saveQueue.push(() => {
+                    const url = musicScores.timeSig(this.score.id);
+                    const body = {
+                        data : {
+                            id : this.cursor.measure.id,
+                            timeSig : data.timeSig.getRaw()
+                        },
+                        rev : this.score.rev
+                    };
+                    return axios.post(url, body);
+                });
+            });
         },
         setKeySig() {
-            if (this.cursor) {
-                this.$refs.keySigDialog.show(this.cursor.bar.keySig, data => {
-                    this.cursor.bar.keySig = data.keySig;
-                });
+            if (!this.cursor) {
+                return;
             }
+
+            this.$refs.keySigDialog.show(this.cursor.bar.keySig, data => {
+                this.cursor.bar.keySig = data.keySig;
+
+                this.saveQueue.push(() => {
+                    const url = musicScores.keySig(this.score.id);
+                    const body = {
+                        data : {
+                            id : this.cursor.measure.id,
+                            index : this.cursor.barIndex,
+                            keySig : data.keySig
+                        },
+                        rev : this.score.rev
+                    };
+                    return axios.post(url, body);
+                });
+            });
         },
         setClef() {
-            if (this.cursor) {
-                this.$refs.clefDialog.show(this.cursor.bar.clef, data => {
-                    this.cursor.bar.clef = data.clef;
-                });
+            if (!this.cursor) {
+                return;
             }
+
+            this.$refs.clefDialog.show(this.cursor.bar.clef, data => {
+                this.cursor.bar.clef = data.clef;
+
+                this.saveQueue.push(() => {
+                    const url = musicScores.clef(this.score.id);
+                    const body = {
+                        data : {
+                            id : this.cursor.measure.id,
+                            index : this.cursor.barIndex,
+                            clef : data.clef
+                        },
+                        rev : this.score.rev
+                    };
+                    return axios.post(url, body);
+                });
+            });
         },
         addStaff() {
-            if (!this.score) {
+            if (!this.cursor) {
                 return;
             }
 
@@ -216,6 +264,15 @@ export default {
             if (!group.count) {
                 this.score.groups.splice(groupIndex, 1);
             }
+
+            this.saveQueue.push(() => {
+                const url = musicScores.staff(this.score.id);
+                const params = {
+                    index,
+                    rev : this.score.rev
+                };
+                return axios.delete(url, { params });
+            });
         },
         addTick() {
             if (!this.coNote || !this.cursor) {

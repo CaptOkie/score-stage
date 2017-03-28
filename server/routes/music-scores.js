@@ -12,6 +12,17 @@ function validString(item) {
     return types.isString(item) && item.length;
 }
 
+function getGroupIndex(barIndex, groups) {
+    var count = 0;
+    for (var i = 0; i < groups.length; ++i) {
+        count += groups[i].count;
+        if (count > barIndex) {
+            return i;
+        }
+    }
+    return undefined;
+}
+
 router.get(urls.musicScores(), function(req, res, next) {
 
     musicScores.getAllOwnedBy(req.user.id).then(scores => {
@@ -244,6 +255,132 @@ router.post(urls.musicScores.staff(':id'), function(req, res, next) {
                 }
                 res.json({ rev : newRev });
             });
+        });
+    }).catch(error => {
+        next(error || errors.internalServerError());
+    });
+});
+
+router.delete(urls.musicScores.staff(':id'), function(req, res, next) {
+    const id = req.params.id;
+    const rev = req.query.rev;
+    const owner = req.user.id;
+    const barIndex = req.query.index;
+
+    musicScores.getGroups(id, rev, owner).then(groups => {
+        if (!groups.length) {
+            return next(errors.conflict());
+        }
+        if (groups.length < 2 && groups[0].count < 2) {
+            return next(errors.badRequest());
+        }
+
+        const groupIndex = getGroupIndex(barIndex, groups);
+        if (groupIndex === undefined) {
+            return next(errors.badRequest());
+        }
+        const group = groups[groupIndex];
+        group.count--;
+        if (!group.count) {
+            groups.splice(groupIndex, 1);
+        }
+
+        return musicScores.getMeasures(id, rev, owner).then(measures => {
+            if (!measures.length) {
+                return next(errors.conflict());
+            }
+
+            for (var measure of measures) {
+                measure.bars.splice(barIndex, 1);
+            }
+
+            return musicScores.updateScore(id, rev, owner, measures, [], groups).then(newRev => {
+                if (!newRev) {
+                    return next(errors.conflict());
+                }
+                res.json({ rev : newRev });
+            });
+        });
+    }).catch(error => {
+        next(error || errors.internalServerError());
+    });
+});
+
+router.post(urls.musicScores.timeSig(':id'), function(req, res, next) {
+    const id = req.params.id;
+    const rev = req.body.rev;
+    const owner = req.user.id;
+    const data = req.body.data;
+
+    musicScores.getMeasure(id, rev, owner, data.id).then(measure => {
+        if (!measure) {
+            return next(errors.conflict());
+        }
+
+        measure.timeSig = data.timeSig;
+        return musicScores.updateScore(id, rev, owner, [ measure ]).then(newRev => {
+            if (!newRev) {
+                return next(errors.conflict());
+            }
+            res.json({ rev : newRev });
+        });
+    }).catch(error => {
+        next(error || errors.internalServerError());
+    });
+});
+
+router.post(urls.musicScores.keySig(':id'), function(req, res, next) {
+    const id = req.params.id;
+    const rev = req.body.rev;
+    const owner = req.user.id;
+    const data = req.body.data;
+    if (data.index < 0) {
+        return next(errors.badRequest());
+    }
+
+    musicScores.getMeasure(id, rev, owner, data.id).then(measure => {
+        if (!measure) {
+            return next(errors.conflict());
+        }
+        if (data.index >= measure.bars.length) {
+            return next(errors.badRequest());
+        }
+
+        measure.bars[data.index].keySig = data.keySig;
+        return musicScores.updateScore(id, rev, owner, [ measure ]).then(newRev => {
+            if (!newRev) {
+                return next(errors.conflict());
+            }
+            res.json({ rev : newRev });
+        });
+    }).catch(error => {
+        next(error || errors.internalServerError());
+    });
+});
+
+router.post(urls.musicScores.clef(':id'), function(req, res, next) {
+    const id = req.params.id;
+    const rev = req.body.rev;
+    const owner = req.user.id;
+    const data = req.body.data;
+    if (data.index < 0) {
+        return next(errors.badRequest());
+    }
+
+    musicScores.getMeasure(id, rev, owner, data.id).then(measure => {
+        if (!measure) {
+            return next(errors.conflict());
+        }
+        if (data.index >= measure.bars.length) {
+            return next(errors.badRequest());
+        }
+
+        measure.bars[data.index].clef = data.clef;
+        return musicScores.updateScore(id, rev, owner, [ measure ]).then(newRev => {
+            if (!newRev) {
+                return next(errors.conflict());
+            }
+            res.json({ rev : newRev });
         });
     }).catch(error => {
         next(error || errors.internalServerError());
