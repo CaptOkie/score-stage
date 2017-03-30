@@ -85,7 +85,7 @@ const LOCATION = window.location.pathname;
 
 export default {
     name : 'co-music-score',
-    props : [ 'coNote' ],
+    props : [ 'coNote', 'coCanEdit' ],
     data() {
         return { score : undefined, menuX : 0, menuY : 0, saveQueue : [] };
     },
@@ -105,12 +105,16 @@ export default {
     },
     methods : {
         contextmenu(event) {
+            if (!this.coCanEdit) {
+                return;
+            }
+
             this.menuX = event.clientX;
             this.menuY = event.clientY;
             this.$nextTick(() => this.$refs.menu.open());
         },
         addMeasure() {
-            if (!this.cursor) {
+            if (!this.coCanEdit || !this.cursor) {
                 return;
             }
 
@@ -133,7 +137,7 @@ export default {
             });
         },
         deleteMeasure() {
-            if (!this.cursor || !this.score.measures.head.next) {
+            if (!this.coCanEdit || !this.cursor || !this.score.measures.head.next) {
                 return;
             }
 
@@ -150,7 +154,7 @@ export default {
             });
         },
         setTimeSig() {
-            if (!this.cursor) {
+            if (!this.coCanEdit || !this.cursor) {
                 return;
             }
 
@@ -173,7 +177,7 @@ export default {
             });
         },
         setKeySig() {
-            if (!this.cursor) {
+            if (!this.coCanEdit || !this.cursor) {
                 return;
             }
 
@@ -197,7 +201,7 @@ export default {
             });
         },
         setClef() {
-            if (!this.cursor) {
+            if (!this.coCanEdit || !this.cursor) {
                 return;
             }
 
@@ -221,7 +225,7 @@ export default {
             });
         },
         addStaff() {
-            if (!this.cursor) {
+            if (!this.coCanEdit || !this.cursor) {
                 return;
             }
 
@@ -257,7 +261,7 @@ export default {
             });
         },
         deleteStaff() {
-            if (!this.cursor || (this.score.groups.length < 2 && this.score.groups[0].count < 2)) {
+            if (!this.coCanEdit || !this.cursor || (this.score.groups.length < 2 && this.score.groups[0].count < 2)) {
                 return;
             }
 
@@ -283,7 +287,7 @@ export default {
             });
         },
         addTick() {
-            if (!this.coNote || !this.cursor) {
+            if (!this.coCanEdit || !this.coNote || !this.cursor) {
                 return;
             }
 
@@ -332,7 +336,7 @@ export default {
             });
         },
         deleteTick() {
-            if (!this.cursor || this.cursor.tickInfo.before) {
+            if (!this.coCanEdit || !this.cursor || this.cursor.tickInfo.before) {
                 return;
             }
 

@@ -7,6 +7,7 @@ module.exports = {
         'register' : './pages/register-page/index.js',
         'login': './pages/login-page/index.js',
         'home': './pages/home-page/index.js',
+        'search': './pages/search-page/index.js',
         'music-score': './pages/music-score-page/index.js'
     },
     output: {

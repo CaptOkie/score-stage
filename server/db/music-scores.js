@@ -56,6 +56,12 @@ module.exports.prototype.create = function(score) {
     });
 };
 
+module.exports.prototype.search = function(query){
+    return this.mongo.req('musicScores').then(db => {
+        return db.musicScores.find({ $text : { $search : query } }).map(convertScore).toArray();
+    });
+};
+
 module.exports.prototype.get = function(id) {
     return this.mongo.req('musicScores', 'measures').then(db => {
         id = Mongo.getId(id);

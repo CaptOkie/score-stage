@@ -1,0 +1,8 @@
+extends layout
+
+block includes
+    link(rel="stylesheet", href="/search/index.css", type="text/css")
+    script(type="text/javascript", src="/search/index.js")
+
+block content
+    search-page#search-page(co-username=username, co-query=query)

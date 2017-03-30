@@ -43,6 +43,11 @@ passport.use(new LocalStrategy(
     }
 ));
 
+router.use(function(req, res, next) {
+    req.auth = req.auth || {};
+    next();
+});
+
 router.all([ urls.login(), urls.register() ], function(req, res, next) {
     if (req.user) {
         return res.redirect(urls.index());
@@ -113,9 +118,14 @@ router.post(urls.register(), function(req, res, next) {
     });
 });
 
-router.all([ urls.index(), urls.home(), urls.musicScores() + '/*', '*' ], function(req, res, next) {
-    // White list specific GET requests
-    if ((requests.isGet(req) && req.route.path !== '*') || req.user) {
+// White list of specific GET requests
+router.get([ urls.index(), urls.home(), urls.musicScores(':id'), urls.search() ], function(req, res, next) {
+    req.auth.inWhitelist = true;
+    next();
+});
+
+router.all('*', function(req, res, next) {
+    if (req.auth.inWhitelist || req.user) {
         return next();
     }
     if (requests.isHtml(req)) {

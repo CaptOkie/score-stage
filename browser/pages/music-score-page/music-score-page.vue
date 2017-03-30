@@ -3,7 +3,7 @@
         <md-whiteframe md-elevation="2">
             <co-toolbar :co-username="coUsername"></co-toolbar>
 
-            <md-tabs>
+            <md-tabs v-if="canEdit">
                 <md-tab id="notes" md-label="Note">
                     <md-layout md-row>
                         <div class="md-row co-option-group md-button-toggle md-theme-default">
@@ -28,7 +28,7 @@
         <md-layout md-row>
             <div class="md-flex-15 md-flex-small-0"></div>
             <div class="md-flex-70 md-flex-small-100 md-padding">
-                <co-music-score :co-note="note" style="min-height: 750px;"></co-music-score>
+                <co-music-score :co-can-edit="canEdit" :co-note="note" style="min-height: 750px;"></co-music-score>
             </div>
             <div class="md-flex-15 md-flex-small-0"></div>
         </md-layout>
@@ -55,6 +55,9 @@ export default {
     computed : {
         restClasses() {
             return { 'md-toggle' : this.note.rest };
+        },
+        canEdit() {
+            return (this.coUsername && true) || false;
         }
     },
     methods : {

@@ -3,6 +3,7 @@ const LOGIN = '/login/';
 const LOGOUT = '/logout/';
 const INDEX = '/';
 const HOME = '/home/';
+const SEARCH = '/search/';
 const MUSIC_SCORES = '/music-scores/';
 const MEASURE = 'measure/';
 const STAFF = 'staff/';
@@ -45,5 +46,6 @@ module.exports = {
     logout : () => LOGOUT,
     index : () => INDEX,
     home : () => HOME,
+    search : () => SEARCH,
     musicScores : musicScores
 };

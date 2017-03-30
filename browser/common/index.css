@@ -8,6 +8,25 @@ body {
     height: auto !important;
 }
 
+.co-search-input {
+    padding: 0 8px;
+    resize: none;
+    background: white;
+    font-family: Roboto, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    display: inline-block;
+    will-change: opacity, transform, color;
+    box-sizing: border-box;
+    margin: 8px;
+    border: none;
+    outline: none;
+    border-radius: 2px;
+    height: 36px;
+}
+
 .md-padding {
     padding: 16px;
 }
