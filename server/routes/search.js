@@ -16,7 +16,11 @@ router.get(urls.search(), function(req, res, next) {
         return next(errors.badRequest());
     }
 
+    const user = req.user && req.user.id;
     musicScores.search(query).then(scores => {
+        scores.forEach(score => {
+            score.isOwner = score.owner === user;
+        });
         res.json(scores);
     }).catch(error => {
         next(error || errors.internalServerError());

@@ -101,11 +101,14 @@ export default {
         },
         groups() {
             return this.score && this.score.groups;
+        },
+        canEdit() {
+            return this.coCanEdit || false;
         }
     },
     methods : {
         contextmenu(event) {
-            if (!this.coCanEdit) {
+            if (!this.canEdit) {
                 return;
             }
 
@@ -114,7 +117,7 @@ export default {
             this.$nextTick(() => this.$refs.menu.open());
         },
         addMeasure() {
-            if (!this.coCanEdit || !this.cursor) {
+            if (!this.canEdit || !this.cursor) {
                 return;
             }
 
@@ -137,7 +140,7 @@ export default {
             });
         },
         deleteMeasure() {
-            if (!this.coCanEdit || !this.cursor || !this.score.measures.head.next) {
+            if (!this.canEdit || !this.cursor || !this.score.measures.head.next) {
                 return;
             }
 
@@ -154,7 +157,7 @@ export default {
             });
         },
         setTimeSig() {
-            if (!this.coCanEdit || !this.cursor) {
+            if (!this.canEdit || !this.cursor) {
                 return;
             }
 
@@ -177,7 +180,7 @@ export default {
             });
         },
         setKeySig() {
-            if (!this.coCanEdit || !this.cursor) {
+            if (!this.canEdit || !this.cursor) {
                 return;
             }
 
@@ -201,7 +204,7 @@ export default {
             });
         },
         setClef() {
-            if (!this.coCanEdit || !this.cursor) {
+            if (!this.canEdit || !this.cursor) {
                 return;
             }
 
@@ -225,7 +228,7 @@ export default {
             });
         },
         addStaff() {
-            if (!this.coCanEdit || !this.cursor) {
+            if (!this.canEdit || !this.cursor) {
                 return;
             }
 
@@ -261,7 +264,7 @@ export default {
             });
         },
         deleteStaff() {
-            if (!this.coCanEdit || !this.cursor || (this.score.groups.length < 2 && this.score.groups[0].count < 2)) {
+            if (!this.canEdit || !this.cursor || (this.score.groups.length < 2 && this.score.groups[0].count < 2)) {
                 return;
             }
 
@@ -287,7 +290,7 @@ export default {
             });
         },
         addTick() {
-            if (!this.coCanEdit || !this.coNote || !this.cursor) {
+            if (!this.canEdit || !this.coNote || !this.cursor) {
                 return;
             }
 
@@ -336,7 +339,7 @@ export default {
             });
         },
         deleteTick() {
-            if (!this.coCanEdit || !this.cursor || this.cursor.tickInfo.before) {
+            if (!this.canEdit || !this.cursor || this.cursor.tickInfo.before) {
                 return;
             }
 
@@ -458,8 +461,10 @@ export default {
                 title : res.data.title,
                 measures : Measures.create(res.data.measures),
                 groups : res.data.groups.map(group => Group.create(group)),
-                rev : res.data.rev
+                rev : res.data.rev,
+                isOwner : res.data.isOwner
             };
+            this.$emit('co-score-loaded', this.score);
             watchSaveQueue();
         }, error => {
             const msg = (error.response && error.response.data.error) || error.message;

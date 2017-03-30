@@ -64,8 +64,10 @@ router.get(urls.musicScores(':id'), function(req, res, next) {
         return next();
     }
 
+    const user = req.user && req.user.id;
     musicScores.get(req.params.id).then(score => {
         if (score) {
+            score.isOwner = score.owner === user;
             return res.json(score);
         }
         next(errors.notFound());
