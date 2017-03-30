@@ -1,6 +1,6 @@
 <template>
     <div id="home-page">
-        <co-toolbar></co-toolbar>
+        <co-toolbar :co-username="coUsername"></co-toolbar>
 
         <md-layout md-row md-align="center">
             <div class="md-flex-small md-flex-medium-70 md-flex-50">
@@ -49,6 +49,7 @@ import axios from 'axios';
 
 export default {
     name : 'home',
+    props : [ 'coUsername' ],
     data() {
         return { scores : undefined };
     },

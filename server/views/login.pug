@@ -5,24 +5,4 @@ block includes
     script(type="text/javascript", src="/login/index.js")
 
 block content
-    md-layout#login-page(v-cloak, md-column)
-        md-layout(md-row, md-align="center")
-            h1.md-display-1.md-primary Score Stage
-        
-        md-layout.md-padding(md-row, md-align="center")
-            form.md-flex-xsmall-100.md-flex-small-60.md-flex-medium-50.md-flex-large-30.md-flex-xlarge-30(method="post", action=urls.login())
-                md-card
-                    md-card-content
-                        md-input-container
-                            md-icon person
-                            label Username
-                            md-input(required, name="username", type="text", autofocus)
-                        
-                        md-input-container(md-has-password)
-                            md-icon lock
-                            label Password
-                            md-input(required, name="password", type="password")
-                    
-                    md-card-actions
-                        md-button(href=urls.register()) Register
-                        md-button.md-raised.md-primary(type="submit") Login
+    #login-page

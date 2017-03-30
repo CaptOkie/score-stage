@@ -19,3 +19,11 @@ module.exports.internalServerError = function(msg) {
 module.exports.conflict = function(msg) {
     return error(msg || 'Conflict', 409);
 };
+
+module.exports.unauthorized = function(msg) {
+    return error(msg || 'Unauthorized', 401);
+};
+
+module.exports.forbidden = function(msg) {
+    return error(msg || 'Forbidden', 403);
+};

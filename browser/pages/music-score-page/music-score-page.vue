@@ -1,7 +1,7 @@
 <template>
     <div id="music-score-page">
         <md-whiteframe md-elevation="2">
-            <co-toolbar></co-toolbar>
+            <co-toolbar :co-username="coUsername"></co-toolbar>
 
             <md-tabs>
                 <md-tab id="notes" md-label="Note">
@@ -47,6 +47,7 @@ import { NOTES } from 'Components/co-music-score/constants';
 
 export default {
     name : 'home',
+    props : [ 'coUsername' ],
     data() {
         const note = { rest : false, duration : '4' };
         return { note, RESTS, NOTES };

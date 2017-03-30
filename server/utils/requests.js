@@ -13,3 +13,11 @@ module.exports.isHtml = function(req) {
 module.exports.isJson = function(req) {
     return isType(req, JSON);
 };
+
+function isMethod(req, type) {
+    return req.method === type;
+}
+
+module.exports.isGet = function(req) {
+    return isMethod(req, 'GET');
+};

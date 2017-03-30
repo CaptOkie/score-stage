@@ -6,6 +6,7 @@ const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
 const errors = require('../utils/errors');
 const types = require('../utils/types');
+const requests = require('../utils/requests');
 const Users = require('../db/users');
 const users = new Users();
 
@@ -112,12 +113,15 @@ router.post(urls.register(), function(req, res, next) {
     });
 });
 
-// router.all('*') seems to be more correct than router.use()
-router.all('*', function(req, res, next) {
-    if (req.user) {
+router.all([ urls.index(), urls.home(), urls.musicScores() + '/*', '*' ], function(req, res, next) {
+    // White list specific GET requests
+    if ((requests.isGet(req) && req.route.path !== '*') || req.user) {
         return next();
     }
-    res.redirect(urls.login());
+    if (requests.isHtml(req)) {
+        return res.redirect(urls.login());
+    }
+    next(errors.forbidden());
 });
 
 router.post(urls.logout(), function (req, res, next) {

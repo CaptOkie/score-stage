@@ -73,7 +73,8 @@ router.get(urls.musicScores(':id'), function(req, res, next) {
         next(error || errors.internalServerError());
     });
 }, function(req, res, next) {
-    res.render('music-score');
+    const data = { username : (req.user && req.user.username) || false };
+    res.render('music-score', data);
 });
 
 router.delete(urls.musicScores(':id'), function(req, res, next) {

@@ -1,12 +1,7 @@
 import 'Common/index.css';
 import Vue from 'vue';
-
-import 'Proxies/mdLayout';
-import 'Proxies/mdCard';
-import 'Proxies/mdInputContainer';
-import 'Proxies/mdButton';
-import 'Proxies/mdIcon';
+import loginPage from './login-page.vue';
 
 window.addEventListener('load', function() {
-    new Vue({ el : '#login-page' });
+    new Vue({ el : '#login-page', render : h => h(loginPage) });
 });
