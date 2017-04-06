@@ -1,0 +1,254 @@
+\documentclass[letterpaper,12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{enumerate}
+\usepackage{setspace}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\colorlet{punct}{red!60!black}
+\definecolor{background}{HTML}{EEEEEE}
+\definecolor{delim}{RGB}{20,105,176}
+\colorlet{numb}{magenta!60!black}
+
+\lstdefinelanguage{json}{
+    basicstyle=\footnotesize\ttfamily,
+    showstringspaces=false,
+    breaklines=true,
+    frame=lines,
+    backgroundcolor=\color{background},
+    literate=
+     *{0}{{{\color{numb}0}}}{1}
+      {1}{{{\color{numb}1}}}{1}
+      {2}{{{\color{numb}2}}}{1}
+      {3}{{{\color{numb}3}}}{1}
+      {4}{{{\color{numb}4}}}{1}
+      {5}{{{\color{numb}5}}}{1}
+      {6}{{{\color{numb}6}}}{1}
+      {7}{{{\color{numb}7}}}{1}
+      {8}{{{\color{numb}8}}}{1}
+      {9}{{{\color{numb}9}}}{1}
+      {:}{{{\color{punct}{:}}}}{1}
+      {,}{{{\color{punct}{,}}}}{1}
+      {\{}{{{\color{delim}{\{}}}}{1}
+      {\}}{{{\color{delim}{\}}}}}{1}
+      {[}{{{\color{delim}{[}}}}{1}
+      {]}{{{\color{delim}{]}}}}{1},
+}
+
+\edef\restoreparindent{\parindent=\the\parindent\relax}
+\usepackage[parfill]{parskip}
+\restoreparindent
+
+\title{
+    \vfill
+    {\Large SCHOOL} \\
+    {\Large COURSE} \\[0.75em]
+    {\Huge Score Stage} \\
+}
+\author{
+    ME \\
+    INSTRUCTOR
+}
+
+\begin{document}
+
+\begin{titlepage}
+    \maketitle
+    \vfill
+    \thispagestyle{empty}
+\end{titlepage}
+
+\tableofcontents
+\thispagestyle{empty}
+\newpage
+
+\spacing{1.3}
+
+\section{Introduction}
+
+Score Stage was inspired by a few different areas. The constant, rapid shift to everything being operated via the web,
+the modern ability to reproduce complex software systems as a web alternative, and the ability for large groups of
+people to collaborate instantly on open systems via web systems. Score Stage is the goal of bringing all these this to
+task of music score writing.
+
+First, with more systems moving towards web based platforms, music score writing should follow suit. This move brings
+multiple advantages. such as, all of an individual's music scores are automatically backed up, the music scores are
+available from any device with internet and a browser, and the user no longer has to install dedicated software on their
+devices. With these advantages it will be easier for users to write, edit, and collaborate on music from anywhere and at
+anytime.
+
+Next, with the emergences of web systems such as Google Docs, these systems show what is possible with modern day web
+technologies. Google Docs has managed to not only reproduce office suite software on a cloud platform, but it has
+improved upon it by adding real-time collaboration. With systems such as Google Docs as examples of what is possible,
+it is evident that a web based music writing system is possible.
+
+Finally, websites such as Github have large groups of people collaborating on many open software systems. Score Stage
+attempts to bring this style of collaboration to music score writing. Be it users attempting to write from ear what
+someone else wrote, or original composers looking to share their creations, both can benefit from the highly
+collaborative and open environment.
+
+\section{Web-based Music Score Editor}
+
+\subsection{Requirements}
+
+The first major hurdle that needs to be overcome to create a fully web based music score writing system, is the
+in-browser music score editor. This editor has two base requirements that have to be met. First, the editor
+needs to be a pure JavaScript Implementation (i.e. No browser plugins such as Flash or Java will be allowed to be used
+to create the editor). Second, the editor, while simple at first, will need to be able to grow to rival native systems.
+
+The editor must be a pure JavaScript implementation to allow for as much current and future support as possible. If
+plugins were allowed users would need to make sure they have the correct plugin as well as a compatible browser.
+This sort of issue is amplified by situations such as Apple not supporting Flash, and Chrome recently discontinuing
+support for Java. With a pure JavaScript implementation current or future plugin supports are no longer a concern.
+
+The editor will, in time, need to rival native music score editors. This is needed because for users to want to adopt
+a web based system, they will need most, if not all, the features available in the native versions. Also, for users to
+move their existing music scores to Score Stage they will need features for everything already used in their existing
+music scores.
+
+\subsection{Implementation}
+
+The ideal solution for the editor would be an existing open source editor. However, through extensive searching, there
+appears to be very little in the ways of open source, web-based music notation rendering/writing implementations. The
+most used, and basically only, open source JavaScript music notation library is called VexFlow. After studying what
+VexFlow aims to accomplish, it is determined that VexFlow is almost entirely designed to only render music notation. Due
+to this, the first thing that needs to be built is a JavaScript based music editor. The initial version only needs to be
+complex enough such that a stable starting point can be created for the rest of the system.
+
+The initial design used AngularJS and VexFlow, and started with doing just rendering. However, after working with
+Angular and VexFlow, it soon became apparent that Angular would not be a good candidate to handle the data binding. The
+issue with Angular was that VexFlow made custom DOM changes to render the music score because it creates an SVG.
+Angular's ability to do proper data binding requires the developer to stay within the Angular digest cycle, which is the
+system Angular uses to detect data changes. However, since VexFlow would go to the DOM on its own, these operations
+would happen outside of Angular's digest cycle. Thus Angular was replaced with VueJS. Also, due to the complexity that
+will be required for the editor, Webpack is used to allow JavaScript files to reference their own dependencies and build
+a single JavaScript file that will be included in the HTML page.
+
+\subsubsection*{Data Model}
+
+Before the editor can have user interaction, it must first be able to render the music score. Thus, the first task in
+implementing the editor is to implement a rendering logic and the corresponding data model. Since the editor will be
+written in JavaScript a JSON data model needs to be used. While the data model is initially designed for rendering, the
+data model needs to allow for portions to be easily added, removed, and updated. A desired feature of the data model is
+that the structure should force the data to be as valid as possible (i.e. it should be structured to not allow the data
+to be in an invalid state).
+
+To see the actual data model refer to Appendix A. A Tick is used to group notes into a chord, or in the case that a Tick
+has no notes, it is treated as a rest; thus, as long as a Tick has a duration, it is valid. A Bar simply contains all
+the ticks inside it. The Bar also contains the key signature and clef because it it legal for the clef and key signature
+to change between bars, and different staffs can have different key signatures and clefs in the same Measure. Since the
+Bars across all the staffs in a Measure must have the same time signature, it is stored in the Measure. The Measure also
+stores all the Bars for all the staffs in order. Since a music score is technically 2-Dimensional, in that it has staffs
+across the $ y $ and bars across the $ x $, only one of those parts can be structured to have no invalid state; thus,
+since bars are more related vertically than horizontally, the bars in the same measure are grouped together and need the
+same number needs to be in each measure. The Groups are the individual parts and define which staffs they cover. Groups
+are ordered from the first to the last with respect to the order of the bars in each Measure. Each Group also defines
+the number of staffs it covers. Since the bar count in Measures have to be kept in sync already, and groups are only
+used to show which staff it covers at render time, the groups are moved into their own list.
+
+\subsubsection*{Rendering}
+
+The desired rendered format for the music score is such that it looks like a sheet of music, thus measures will be
+spread across rows. It is desirable to move as much of the rendering to VexFlow since it is built specifically to render
+music scores. VexFlow, however, does not handle the actual layout of the music score. Thus determining the precise 
+placement of each measure and bar will have to be manually calculated. 
+
+The first task is rendering a single bar with its time signature, key signature, rests, and notes. To accomplish this
+VexFlow has a Stave type which will render the lines for a bar, the key signature, the time signature, and the clef. To
+render the rests and notes, VexFlow has the StaveNote, Beam, and Voice types. The StaveNote is an individual tick (i.e.
+rest or chord), the Beam is the beam that connects groups of, for example, eighth notes, and the Voice is what groups a
+list of StaveNotes together. Thus a Stave can be created, with the appropriate key signature, time signature, and clef.
+A Voice can be created which contains all the StaveNotes, and VexFlow can automatically generate Beams for a list of
+StaveNotes. The only part left is to determine how wide to draw the Stave. VexFlow does not assign a default width to
+Staves, but it can give a minimum width required to render a Voice. The minimum width for the Voice is manually
+multiplied by a bar scale constant to add more space between ticks. VexFlow also gives a padding for the beginning and
+end of the Stave, which is increased when a clef, time signature, or key signature is added. Thus the padding plus the
+desired Voice width is added together to determine the width of a Stave.
+
+The next task is to format a measure of bars. For a measure of bars to be formatted correctly, each bar must be the same
+width, all the notes must be formatted to be placed correctly across all bars, and each bar must sit below the previous
+bar. Each Stave has the dimensions $ x $, $ y $, $ width $, and $ height $, so this can be used to place bars in a
+measure below the previous one. Also as long as they all get the same $ x $ and have the same $ width $, then each $ y $
+can be set based on the previous Stave's $ y $ and $ height $ resulting in every bar being vertically and horizontally
+aligned in the measure. VexFlow offers the ability to join voices together, in a Formatter; this allows the voices to be
+formatted together so that they all line up when drawn. Since bars can have different key signatures and clefs, to get
+an equal width for each bar, the max beginning and ending padding across all the bars need to be calculated and then
+manually applied to each bar. Then the max width of all the voices needs to be calculated and each Voice needs to be
+joined and then formatted using the largest voice's width. With the maximum paddings and max Voice width, a common width
+can be applied to each Stave. Thus all the notes will now be aligned, and each Stave will be the same width.
+
+\section{Conclusion}
+
+\subsection{Results}
+
+\subsection{Future}
+
+\newpage
+
+\section{Appendices}
+
+\subsection{Appendix A -- Data Model}
+
+\begin{lstlisting}[language=json, caption=Note]
+{
+    "letter" : <String>,
+    "octave" : <Number>,
+    "accidental" : <String>
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=Tick]
+{
+    "duration" : <Number>,
+    "notes" : [ <Note> ]
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=Bar]
+{
+    "clef" : <String>,
+    "keySig" : <String>,
+    "ticks" : [ <Tick> ]
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=TimeSignature]
+{
+    "upper" : <Number>,
+    "lower" : <Number>
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=Measure]
+{
+    "timeSig" : <TimeSignature>,
+    "bars" : [ <Bar> ],
+    "id" : <String>,
+    "prev" : <String>,
+    "next" : <String>
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=Group]
+{
+    "name" : <String>,
+    "abbr" : <String>,
+    "count" : <Number>
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=MusicScore]
+{
+    "id" : <String>,
+    "title" : <String>,
+    "measures" : [ <Measure> ],
+    "groups" : [ <Group> ],
+    "rev" : <String>
+}
+\end{lstlisting}
+
+
+\end{document}
