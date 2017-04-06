@@ -92,8 +92,6 @@ collaborative and open environment.
 
 \section{Web-based Music Score Editor}
 
-\subsection{Requirements}
-
 The first major hurdle that needs to be overcome to create a fully web based music score writing system, is the
 in-browser music score editor. This editor has two base requirements that have to be met. First, the editor
 needs to be a pure JavaScript Implementation (i.e. No browser plugins such as Flash or Java will be allowed to be used
@@ -108,8 +106,6 @@ The editor will, in time, need to rival native music score editors. This is need
 a web based system, they will need most, if not all, the features available in the native versions. Also, for users to
 move their existing music scores to Score Stage they will need features for everything already used in their existing
 music scores.
-
-\subsection{Implementation}
 
 The ideal solution for the editor would be an existing open source editor. However, through extensive searching, there
 appears to be very little in the ways of open source, web-based music notation rendering/writing implementations. The
@@ -127,7 +123,7 @@ would happen outside of Angular's digest cycle. Thus Angular was replaced with V
 will be required for the editor, Webpack is used to allow JavaScript files to reference their own dependencies and build
 a single JavaScript file that will be included in the HTML page.
 
-\subsubsection*{Data Model}
+\subsection{Data Model}
 
 Before the editor can have user interaction, it must first be able to render the music score. Thus, the first task in
 implementing the editor is to implement a rendering logic and the corresponding data model. Since the editor will be
@@ -149,7 +145,7 @@ are ordered from the first to the last with respect to the order of the bars in 
 the number of staffs it covers. Since the bar count in Measures have to be kept in sync already, and groups are only
 used to show which staff it covers at render time, the groups are moved into their own list.
 
-\subsubsection*{Rendering}
+\subsection{Rendering}
 
 The desired rendered format for the music score is such that it looks like a sheet of music, thus measures will be
 spread across rows. It is desirable to move as much of the rendering to VexFlow since it is built specifically to render
@@ -162,11 +158,13 @@ render the rests and notes, VexFlow has the StaveNote, Beam, and Voice types. Th
 rest or chord), the Beam is the beam that connects groups of, for example, eighth notes, and the Voice is what groups a
 list of StaveNotes together. Thus a Stave can be created, with the appropriate key signature, time signature, and clef.
 A Voice can be created which contains all the StaveNotes, and VexFlow can automatically generate Beams for a list of
-StaveNotes. The only part left is to determine how wide to draw the Stave. VexFlow does not assign a default width to
-Staves, but it can give a minimum width required to render a Voice. The minimum width for the Voice is manually
-multiplied by a bar scale constant to add more space between ticks. VexFlow also gives a padding for the beginning and
-end of the Stave, which is increased when a clef, time signature, or key signature is added. Thus the padding plus the
-desired Voice width is added together to determine the width of a Stave.
+StaveNotes. VexFlow will also automatically apply the necessary modifiers to a note based on the key signature and
+accidental of the note itself (e.g. if the key signature is sharp for a specific note and the note itself is sharp,
+VexFlow will not render an accidental with the note). The only part left is to determine how wide to draw the Stave.
+VexFlow does not assign a default width to Staves, but it can give a minimum width required to render a Voice. The
+minimum width for the Voice is manually multiplied by a bar scale constant to add more space between ticks. VexFlow also
+gives a padding for the beginning and end of the Stave, which is increased when a clef, time signature, or key signature
+is added. Thus the padding plus the desired Voice width is added together to determine the width of a Stave.
 
 The next task is to format a measure of bars. For a measure of bars to be formatted correctly, each bar must be the same
 width, all the notes must be formatted to be placed correctly across all bars, and each bar must sit below the previous
@@ -179,6 +177,40 @@ an equal width for each bar, the max beginning and ending padding across all the
 manually applied to each bar. Then the max width of all the voices needs to be calculated and each Voice needs to be
 joined and then formatted using the largest voice's width. With the maximum paddings and max Voice width, a common width
 can be applied to each Stave. Thus all the notes will now be aligned, and each Stave will be the same width.
+
+Next, rows need to be created from all the measures. The first thing needed to do this is a maximum width for a row; the
+exact value and how it is gathered will be covered later. Since we already have the current with of each measure, to
+know when to start a new row with a measure is as simple as keeping track of the total width of the measures in the row
+and if adding a new measure would make the total width greater than the max width of the row, a new row is started with
+the current measure. If for some reason a single measure is wider than a row allows, that measure will still be its own
+row. With all the rows calculated, the $ x $ value of each Stave in each measure to account for it new vertical
+positioning. Since each row is now potentially only fractionally filled, the measures in each row needs to be rebalanced
+to take up the entire maximum width of the row. To balance the row, the padding at the start and end of each Stave is
+ignored, and only the width of the Voices in each measure is used to determine the ratio of space occupied by each
+measure in the row. This allows Staves with the same notes, but different padding to have their Voices displayed
+identically within the row. Each measure's ratio and the maximum row with is then used to calculate a new width for each
+Stave and Voice in the measure such that the total with of all the measures is the same as the maximum width of the row.
+
+Now that the whole score is roughly being rendered, it is time to add some details. These include excluding key
+signatures, time signatures, and clefs unless it is the beginning of a row, or it is different to the previous bar or
+measure. Also, if it is the last measure, then the ending bold double bar lines need to be added. Since each measure has a
+reference to its previous measure, and while iterating the bars the index of the bar is know, it is a simple
+matter of checking whether the previous measure or bar has a different time signature, key signature, or clef. When
+creating a new row we already know if the measure will be the first in the row, so the time signature, key signature,
+and clef can also be added then. Since each measure has a reference to the next measure, then if there is no next
+measure the ending bold double bar line is added.
+
+With the individual formatting complete for each bar, the group formatting needs to be added. This includes, adding
+the actual Groups at the beginning of each measure to show which Group each staff belongs to, and adding bar lines
+across the entire measure for special bar lines. To add the groups at the beginning of each row, a padding in front of
+each measure needs to be added to allow space for writing the Group abbreviation. This padding will simply be created by
+setting the $ x $ of the Staves in the first measure of each row to the padding value, and subtracting the padding
+value from the true max width to get the implemented max width for each row. With the space at the beginning of each
+row VexFlow's StaveConnector type can be used to draw a bar lines across Staves in each measure. If it is the first
+measure in the row, then a single line StaveConnector is drawn at the beginning of the measure across all the Staves.
+Then for each group a single line StaveConnector is drawn at the beginning and end across all the staffs belonging to
+the group; however, if it is the final measure, then the ending StaveConnector is replaced by a bold double bar line.
+These grouping StaveConnectors help show which staffs belong to the same group throughout the entire row.
 
 \section{Conclusion}
 
@@ -227,8 +259,8 @@ can be applied to each Stave. Thus all the notes will now be aligned, and each S
     "timeSig" : <TimeSignature>,
     "bars" : [ <Bar> ],
     "id" : <String>,
-    "prev" : <String>,
-    "next" : <String>
+    "prev" : <Measure>,
+    "next" : <Measure>
 }
 \end{lstlisting}
 
