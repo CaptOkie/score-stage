@@ -26,9 +26,10 @@ npm-debug.log
 *.sublime-project
 
 # latex
-*.aux
-*.dvi
-*.log
-*.pdf
-*.tex.backup
-*.toc
+report/*.aux
+report/*.dvi
+report/*.log
+report/*.pdf
+report/*.tex.backup
+report/*.toc
+report/*.lof

@@ -7,6 +7,8 @@
 \usepackage{setspace}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{float}
 
 \colorlet{punct}{red!60!black}
 \definecolor{background}{HTML}{EEEEEE}
@@ -62,6 +64,8 @@
 \end{titlepage}
 
 \tableofcontents
+\listoffigures
+
 \thispagestyle{empty}
 \newpage
 
@@ -90,7 +94,7 @@ attempts to bring this style of collaboration to music score writing. Be it user
 someone else wrote, or original composers looking to share their creations, both can benefit from the highly
 collaborative and open environment.
 
-\section{Web-based Music Score Editor}
+\section{Music Score Editor}
 
 The first major hurdle that needs to be overcome to create a fully web based music score writing system, is the
 in-browser music score editor. This editor has two base requirements that have to be met. First, the editor
@@ -209,8 +213,62 @@ value from the true max width to get the implemented max width for each row. Wit
 row VexFlow's StaveConnector type can be used to draw a bar lines across Staves in each measure. If it is the first
 measure in the row, then a single line StaveConnector is drawn at the beginning of the measure across all the Staves.
 Then for each group a single line StaveConnector is drawn at the beginning and end across all the staffs belonging to
-the group; however, if it is the final measure, then the ending StaveConnector is replaced by a bold double bar line.
-These grouping StaveConnectors help show which staffs belong to the same group throughout the entire row.
+the group; however, if it is the final measure, then the ending StaveConnector is replaced by a bold double bar line or
+if it is the first measure in the row, the beginning StaveConnector is replaced by a double bar line with the group's
+abbreviation as text. These group StaveConnectors help show which staffs belong to the same group throughout the entire
+row.
+
+\subsection{User Interaction}
+
+With the ability to render the full score, the user interaction needs to be added. It is assumed that a starting music
+score will have one bar and one group, allowing more to be added from there. Since all interaction in the music score
+relates to a specific location, the first part is adding a cursor and allowing the cursor to be moved. Next, key
+signatures, time signatures, and clefs need to be able to be set in their respective part. Then measures and staffs need
+to be added and deleted. Finally, notes and rests need to be added and deleted. With these parts, a basic music score
+editor will be functional.
+
+Even though VexFlow uses and SVG to render the entire music score, due to how the staffs are rendered, simple JavaScript
+events cannot be properly bound to the elements. If VexFlow surrounded different sections of the SVG into groups, then
+it may have been possible to use normal event handlers. Due to this limitation to find the location for a cursor, the
+$ x $ and $ y $ coordinates of the user's click needs to be read and then compared against, first the $ y $ of the row
+to determine the clicked row, then the $ x $ of the measures in the row to determine the clicked measure, and finally
+the $ y $ of the Stave to determine the clicked bar. With the proper bar located, the Stave and Voice can now be used to
+find the location in the bar that was clicked.
+
+First the $ x $ coordinate of the click is checked against the Tickables in the Voice. To determine if it was note
+or rest that was selected or if it was a space between the notes that was selected, a percentage based cutoff is used.
+The cutoff depends on the distance between either the start of the bar and the head of the first note, the end of one
+note and the start of the next note, or the end of the last note and the end of the bar. See Figure
+\ref{fig:hori-cutoff} for the exact horizontal cut off areas. If the $ x $ coordinate is in a space that does not border
+a note, as seen in Figure \ref{fig:hori-cutoff}, then the cursor is placed in the space in the matching space, otherwise
+the cursor is placed on the nearest note.
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.2]{imgs/hori-cutoff.png}
+    \end{center}
+    \caption{Horizontal Cutoff Zones}
+    \label{fig:hori-cutoff}
+\end{figure}
+
+Next, to determine the bar line that was clicked, the $ y $ coordinate is compared against all the lines in the bar to
+find the nearest line. A similar ratio based system as used with the $ x $ coordinate is used to determine if the cursor
+should be placed between two lines or directly on a line. If the $ y $ coordinate is within the \textit{Space Zone} as
+seen in Figure \ref{fig:vert-cutoff} then the cursor will be placed in the space between the two lines, but if the $ y $
+coordinate is within the \textit{Line Zone} as seen in Figure \ref{fig:vert-cutoff} then the cursor will be placed on
+the line within the zone. The line zones have to extend partially into the spaces between the lines because a line
+itself is not tall enough to allow it to be clicked easily. These zones are implicit for spaces and lines above and
+below the visible lines in the bar.
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.2]{imgs/vert-cutoff.png}
+    \end{center}
+    \caption{Vertical Cutoff Zones}
+    \label{fig:vert-cutoff}
+\end{figure}
+
+With a cursor that stores the exact location of a click, more complex user interaction can be implemented.
 
 \section{Conclusion}
 
