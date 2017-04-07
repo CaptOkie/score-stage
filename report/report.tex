@@ -361,16 +361,42 @@ speaking, multiple IDs would need to be tracked for each measure, except in the 
 for every following measure if a measure before gets deleted. So not only would each measure have a stable ID, each
 measure would have an unstable ID as well. This is becomes both time consuming in terms of always updating index values
 as necessary and complex in keeping both IDs in sync. Thus measures are moved into their own collection with an ID and
-without an index.
+without an index value; the IDs are not set as the \lstinline{_id} field because it is the \lstinline{id},
+\lstinline{rev} combinations that will be unique, not the \lstinline{id} alone.
 
 Now that each measure is its own document, a different implementation decision in MongoDB needs to be accounted for. In
-MongoDB only writes to the same document is atomic, even for a single update statement. For example, assume there is a 
+MongoDB only writes to the same document are atomic, even for a single update statement. For example, assume there is a 
 collection with multiple documents, all with the field \lstinline{foo = "bar"}, and an update attempts to set the
 \lstinline{foo} field in all documents in the collection to the value \lstinline{"diff"}. During the update process, if
 another operation attempts to read all the documents from the collection, it is possible for the read to get some 
 documents with \lstinline{foo = "bar"} and some documents with \lstinline{foo = "diff"}. Due to the this behavior, there
 needs to be a way to update all measures for a single music score in such a way that if a read operation occurs during
 the update process, the read will always return a valid version of the music score.
+
+To allow changes to be made to measures while keeping read results valid, each measure document is treated as immutable,
+except for the \lstinline{rev} field. To allow untouched measures to not need to be replaced, the \lstinline{rev} field
+is a list of valid revisions. This allows new measures to be written while the old measures exist, and measures
+that don't change remain untouched; thus, the first goal of the database design can be achieved and unmodified measures
+do not need to be replaced. The first operation during an update, is the generation of a new revision. Revisions need to
+generated as opposed to incremented because multiple updates could be attempted at the same time, so these updates all
+need a unique revision number. Then the updated measures are created with the new revision value, and a list of all new
+IDs are kept track of; the IDs of the measures to delete are added to these IDs because excluding the actual creation of
+the updated measures, the deletion process is the same as the cleanup process for old measures. Then all measures that
+were not updated and are not to be deleted have the new revision added to their list of revisions. At this point all the
+measures for the new revision exist in a valid state. Next the master revision in the music score is updated to the new
+revision value; if a concurrent update occurred, then this update will fail and the initial setup of the measures can
+easily be undone. With the master update complete, the music score is officially updated. To ensure the database does
+not grow too fast, all the outdated measures must now be cleaned up; this includes deleting all the measures with the
+old revision and whose ID is in the list of IDs created earlier and then removing all the remaining old revisions from
+the other measures' revision lists.
+
+Unfortunately, valid concurrent reads are not perfectly handled by the update process alone. In order to do a valid read
+of the music score with its measures, the music score has to be read first to obtain the current revision. The revision
+is then used to read all of the measures for the music score with a matching revision. Immediately after the first read
+another concurrent operation could change the current revision and start cleaning up old measures before the first
+operation starts reading the matching measures. Because of this edge case, after reading all the measures, a read
+operation needs to read the revision from the music score document again to ensure it hasn't changed. If it has changed
+the read operation needs to re-retrieve the measures with the new revision and perform the revision check again.
 
 \section{Conclusion}
 
