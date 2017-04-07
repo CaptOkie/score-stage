@@ -268,7 +268,34 @@ below the visible lines in the bar.
     \label{fig:vert-cutoff}
 \end{figure}
 
-With a cursor that stores the exact location of a click, more complex user interaction can be implemented.
+With a cursor that stores the exact location of a click, modifying the score can be implemented, starting with adding
+and removing measures. When a new measure is selected to be added, the new measure is created such that each bar in the
+currently selected measure is duplicated except without all the notes and rests. Thus each bar in the new measure will
+have the same time signature, key signature, and clef as the bar in the same staff as it. Then the new measure is added
+after the currently selected measure. To delete a measure, as long as there is more than one measure, the currently
+selected measure is removed from the list of measures. Due to reactivity in VueJS, when the list of measures is changed,
+the entire layout is recalculated and redrawn automatically.
+
+Continuing with the ability to expand the size of the music score, the next operations to implement is adding and
+removing staffs, which includes adding and deleting groups. In this situation, the cursor is less important and is
+purely used for user convenience. When the user selects to add a new staff, the user is prompted to select which group
+(or instrument) the user wishes to add the staff to. The currently selected staff is used to find the appropriate group
+and then that group is selected by default. The user can selected one of the existing groups, or they can create a new
+group. If an existing group is selected a new bar is spliced into each measure at the end of the selected groups
+section and the group's count is incremented. If the user selects to create a new group, a new bar is added to the end
+of each measure and a group is added at the end of the list of groups with a count of one. Now that staffs can be added,
+staffs need to be able to be deleted. To delete a staff, the currently selected staff is used to find the appropriate
+group. As long as at least one staff exists, then each bar for the staff is removed from each measure and the
+appropriate group's count is decreased by one. If the group's count reaches zero, then that group is also deleted. Due
+to VueJS reactivity system, both adding and removing staffs will automatically redraw the music score.
+
+Next the user needs to be able to change the time signature for each measure. To accomplish this, when the user selects
+to edit the time signature the user is given ability to enter the upper and lower values for the time signature. The
+default values in for the time signature inputs comes from the time signature of the currently selected measure. When
+the user is finished the time signature of the currently selected measure is set to the new value. VueJS will detect the
+change and the music score will automatically be redrawn.
+
+
 
 \section{Conclusion}
 
@@ -317,8 +344,8 @@ With a cursor that stores the exact location of a click, more complex user inter
     "timeSig" : <TimeSignature>,
     "bars" : [ <Bar> ],
     "id" : <String>,
-    "prev" : <Measure>,
-    "next" : <Measure>
+    "prev" : <String>,
+    "next" : <String>
 }
 \end{lstlisting}
 
