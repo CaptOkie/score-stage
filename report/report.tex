@@ -69,6 +69,18 @@
     \thispagestyle{empty}
 \end{titlepage}
 
+\section*{Abstract}
+
+Score Stage is designed to be a public repository of music scores, where users can create and edit their music scores
+right in the browser. A music score editor, built upon the open source JavaScript based music notation rendering library
+VexFlow, is designed to automatically push every small change the server to be persisted. Score Stage is designed to
+allow anyone, including those without accounts, are able to search and view all the music scores on Score Stage. In the
+end, a simple browser based music score editor successfully persists changes while a user edits a music score; however
+VexFlow struggles, in some cases, to properly format dynamic and incomplete music scores.
+
+\thispagestyle{empty}
+\newpage
+
 \tableofcontents
 \listoffigures
 
@@ -398,11 +410,66 @@ operation starts reading the matching measures. Because of this edge case, after
 operation needs to read the revision from the music score document again to ensure it hasn't changed. If it has changed
 the read operation needs to re-retrieve the measures with the new revision and perform the revision check again.
 
+\section{Application Design}
+
+The overall design of the Score Stage is heavily inspired by Github. On Github, repositories are public by default and
+an account is not needed to view the public repositories. This is the model that is adopted for Score Stage. Anyone can
+search for music scores that have been created without having to register or login. If a user wants to create or edit
+a music score, however, they must login and they are only able to create new music scores and edit the music scores they
+have previously created. Score Stage uses NodeJS and Express for the server logic, while VueJS is used to build the
+different UI components and to handle data binding and dynamic UI logic. Vue Material is the UI library which is used to
+implement the look and feel of Score Stage; it implements Google's Material Design specification using native VueJS
+bindings.
+
+When a user logs in, they are given a list of all the scores they have created and have the option to create a new
+score; all the have to specify is the first instrument they want and the title of the music score. Once a music score
+has been created, the user can open the score and they music score editor is opened. The user is able to select the
+duration of the note or rest and whether they are creating a note or rest. If the user right clicks on the rendered
+music score they are able to select if they would like to add/delete both staffs and measures. They are also given the
+option to edit the time signatures, key signatures, and clefs. Every change made by the user is automatically sent to
+the server, and a queue is kept of all the pending changes where only one change can occur at a time. Thus, the user can
+edit the music score at whatever pace they choose, and all their changes are automatically queued and sent to the
+server. As little information as possible is sent to the server for each edit because the server manually determines the
+change to apply based on the information sent to the server; it is similar to how the editor determines what change to
+make to the music score.
+
+The music score's area is not set to a predetermined width, the styling of the page determines the width of the music
+score dynamically. Due to the dynamic width calculation, when the browser, and subsequently the editor, changes sizes
+these size changes are detected and the layout of the music score is recalculated and redrawn. This means the user can
+change the size of the browser or zoom in and out of the page and the measures will continue to fit the amount of space
+available. The tracking of the width of the editor is a custom watcher that when updates is detected by VueJS causing
+the music score to be redistributed and redrawn.
+
 \section{Conclusion}
 
 \subsection{Results}
 
+The final result is still rough around the edges; however, the main goal was to implement a system where music scores
+could be written and viewed via a web browser, and this goal has been achieved in the simplest of manners. The editor
+is still very basic in terms of features, but it can make simple music scores with many instruments and staffs. While
+forking and merging music scores was never reached, the way music score changes are push to the server leads to that
+ability since each small change is pushed directly to the server.
+
+VexFlow performed much less of the rendering tasks than expected; it turned out to be a much more low level music score
+rendering API than original thought. There is still at least one bug in the music score editor where VexFlow
+struggles to format ticks across multiple bars when each bar has a different number of beats (e.g. when one bar is still
+empty and the bar above it is getting notes added to it). Bugs like this have led to the conclusion that while VexFlow
+is very good at rendering music notation if the full score is already properly defined, it struggles to handle
+dynamically changing music scores.
+
 \subsection{Future}
+
+Some major improvements that could be made to Score Stage mostly revolve around polishing the music score editor. First,
+the context menu (right-click menu) should be removed and all the operations should be moved to the tabs at the top of
+the editor; this would place all the controls in the same place. Some major missing features include, specifying the
+note's accidental, adding repeats, and adding ties. However, it would be recommended to not use VexFlow any longer and
+create a music rendering library specifically built to handle dynamic and inconsistent music scores.
+
+Some desired features in Score Stage as a whole would be persisting every change made to a music score and allowing
+music scores to be forked and merged. Persisting the music score changes would allow, first, the user to undo all
+actions every performed on the music score, even after reopening the music score, and second, it would lead directly to
+the ability to fork and then merge music scores because a change history is needed to apply the changes that make the
+two music scores different.
 
 \newpage
 
@@ -530,5 +597,20 @@ the read operation needs to re-retrieve the measures with the new revision and p
 }
 \end{lstlisting}
 
+\newpage
+
+\subsection{Appendix C -- Major Dependencies}
+
+\noindent VexFlow: \lstinline{http://www.vexflow.com/}
+
+\noindent VueJS: \lstinline{https://vuejs.org/}
+
+\noindent Vue Material: \lstinline{https://vuematerial.github.io/#/}
+
+\noindent NodeJS: \lstinline{https://nodejs.org/en/}
+
+\noindent MongoDB: \lstinline{https://www.mongodb.com/}
+
+\noindent Express: \lstinline{https://expressjs.com/}
 
 \end{document}
