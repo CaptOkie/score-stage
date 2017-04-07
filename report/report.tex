@@ -10,6 +10,8 @@
 \usepackage{graphicx}
 \usepackage{float}
 
+\renewcommand{\contentsname}{Table of Contents}
+
 \colorlet{punct}{red!60!black}
 \definecolor{background}{HTML}{EEEEEE}
 \definecolor{delim}{RGB}{20,105,176}
@@ -295,7 +297,16 @@ default values in for the time signature inputs comes from the time signature of
 the user is finished the time signature of the currently selected measure is set to the new value. VueJS will detect the
 change and the music score will automatically be redrawn.
 
+The ability for the user to edit the clefs of bars is implemented next. When the user selects to edit the clef, the
+user is given every possible clef as an option and the default selected clef is the clef of the currently selected bar.
+After selecting the new clef, the clef of the currently selected bar is updated. The change will automatically be
+detected by VueJS, and the music score will be redrawn.
 
+Allowing the user to change the key signature of a bar is implemented similar to editing clefs. Thus, when a user
+selects to edit the key signature, the user is given every possible key signature as an option and the default selected
+key signature is the key signature of the currently selected bar. After selecting the new key signature, the key
+signature of the currently selected bar is updated. As mentioned prior, VueJS will automatically detect the change and
+the music score will be redrawn.
 
 \section{Conclusion}
 
