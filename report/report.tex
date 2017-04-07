@@ -17,6 +17,10 @@
 \definecolor{delim}{RGB}{20,105,176}
 \colorlet{numb}{magenta!60!black}
 
+\lstset{
+    basicstyle=\ttfamily
+}
+
 \lstdefinelanguage{json}{
     basicstyle=\footnotesize\ttfamily,
     showstringspaces=false,
@@ -308,6 +312,66 @@ key signature is the key signature of the currently selected bar. After selectin
 signature of the currently selected bar is updated. As mentioned prior, VueJS will automatically detect the change and
 the music score will be redrawn.
 
+All that remains for user interaction is to allow notes and rests to be added and removed. How the user selects the
+duration and whether or not the tick is a rest will be covered later, so assume the user has already selected the
+settings for the note they wish to add. To add a note or a rest, the current cursor location is used to determine if a
+new tick needs to be created, or if the duration of an existing tick needs to be updated. If a new tick needs to be
+created it is spliced into the list of ticks at the cursor's location. If the user has selected a rest, then the tick
+is cleared of all notes, otherwise the cursor's line and the clef of bar is used to lookup the correct note and the note
+is added in the correct order. VexFlow expects notes to be ordered from highest to lowest. To delete a note, the
+cursor's line is used to create the correct note for the line and the note is used to attempt to delete an equal note
+from the selected tick. If it fails to delete the note, then the cursor isn't on a specific note, so the entire tick is
+deleted. If the tick is a rest or deleting the note removes all notes in the tick, then the entire tick is also deleted.
+VueJS will pick up any new or deleted ticks and notes and the music score will automatically be redrawn.
+
+\section{Database Design}
+
+MongoDB is the chosen database because it is a document database and with the JSON based data model for music scores it
+allows the music score to be easily stored in a structure as close to the data model as possible. The detailed structure
+of the MongoDB database can be seen in Appendix B. Before music scores can be persisted, an owner needs to be able to be
+assigned to each music score. Thus before music scores can be saved, users need to exist to be assigned as owners.
+Therefore a \lstinline{users} collection is required to get an ID for a user. The value of the \lstinline{_id} field for
+a user that creates a music score is set as the value for the \lstinline{owner} field in the \lstinline{musicScores}
+collection. A matching \lstinline{owner} field is added in the \lstinline{measures} collection. The value of the
+\lstinline{_id} field for a music score is set as the value for the \lstinline{score} field in the \lstinline{measures}
+collection to identify which measures belong to which music score.
+
+The structure of the database needs to accomplish two main goals. First, as little measures as possible are to be loaded
+from the database in order to perform the necessary music score changes. These measures will be modified by the server
+and then published back to the database to be persisted. Ideally, only the measures that are actually modified should be
+loaded from the database. Secondly, due to the concurrent nature of web applications, and the highly structured
+nature of the music scores, each music score update needs to be atomically performed and any concurrent modifications
+need to be detected and prevented. These two goals aim to make the updates to the music score efficient and aim to
+prevent placing the music scores into invalid states.
+
+To detect and prevent concurrent modifications, each music score has a \lstinline{rev} field, which is generated ID,
+that keeps track of the current revision of the music score. When an update attempt is performed, the expected revision
+is passed with the update operation; for the update to succeed, the current revision of the music score must match the
+expected revision of the music score. Each measure in a music score has a matching \lstinline{rev} field (the reason the
+field is a list is explained later), so for a measure to belong to the current music score one of its revisions
+must equal the revision in the music score document.
+
+To make each update atomic, the structure of the data is highly impacted by two implementation decisions in MongoDB.
+Measures must be in their own collections, and cannot be an array in the music score, because Mongo does not allow
+multiple elements in an array to be updated at the same time, unless the elements' indices are explicitly mentioned, and
+an item cannot be removed from an array using the items index. As an example, in order to delete a measure, the ID of
+the measure to delete and the index of both the next and previous measures would need to be known to perform the update
+in a single operation. Since an index is unique for each measure and an ID is unique for each measure, practically
+speaking, multiple IDs would need to be tracked for each measure, except in the case of the index the value would change
+for every following measure if a measure before gets deleted. So not only would each measure have a stable ID, each
+measure would have an unstable ID as well. This is becomes both time consuming in terms of always updating index values
+as necessary and complex in keeping both IDs in sync. Thus measures are moved into their own collection with an ID and
+without an index.
+
+Now that each measure is its own document, a different implementation decision in MongoDB needs to be accounted for. In
+MongoDB only writes to the same document is atomic, even for a single update statement. For example, assume there is a 
+collection with multiple documents, all with the field \lstinline{foo = "bar"}, and an update attempts to set the
+\lstinline{foo} field in all documents in the collection to the value \lstinline{"diff"}. During the update process, if
+another operation attempts to read all the documents from the collection, it is possible for the read to get some 
+documents with \lstinline{foo = "bar"} and some documents with \lstinline{foo = "diff"}. Due to the this behavior, there
+needs to be a way to update all measures for a single music score in such a way that if a read operation occurs during
+the update process, the read will always return a valid version of the music score.
+
 \section{Conclusion}
 
 \subsection{Results}
@@ -355,8 +419,8 @@ the music score will be redrawn.
     "timeSig" : <TimeSignature>,
     "bars" : [ <Bar> ],
     "id" : <String>,
-    "prev" : <String>,
-    "next" : <String>
+    "prev" : <Measure>,
+    "next" : <Measure>
 }
 \end{lstlisting}
 
@@ -375,6 +439,68 @@ the music score will be redrawn.
     "measures" : [ <Measure> ],
     "groups" : [ <Group> ],
     "rev" : <String>
+}
+\end{lstlisting}
+
+\subsection{Appendix B -- MongoDB Collections}
+
+\begin{lstlisting}[language=json, caption=users]
+{
+    "_id" : <ObjectId>,
+    "username" : <String>,
+    "password" : <String>
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=musicScores]
+{
+    "_id" : <ObjectId>,
+    "owner" : <ObjectId>,
+    "title" : <String>,
+    "groups" : [
+        {
+            "name" : <String>,
+            "abbr" : <String>,
+            "count" : <Number>
+        }
+    ],
+    "rev" : <ObjectId>
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=measures]
+{
+    "_id" : <ObjectId>,
+    "owner" : <ObjectId>,
+    "score" : <ObjectId>,
+    "id" : <String>,
+    "rev" : [
+        <ObjectId>
+    ],
+    "timeSig" : {
+        "upper" : <Number>,
+        "lower" : <Number>
+    },
+    "bars" : [
+        {
+            "clef" : <String>,
+            "keySig" : <String>,
+            "ticks" : [
+                {
+                    "duration" : <Number>,
+                    "notes" : [
+                        {
+                            "letter" : <String>,
+                            "octave" : <Number>,
+                            "accidental" : <String>
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "prev" : <String> or null,
+    "next" : <String> or null
 }
 \end{lstlisting}
 
