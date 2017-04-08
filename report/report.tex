@@ -74,9 +74,9 @@
 Score Stage is designed to be a public repository of music scores, where users can create and edit their music scores
 right in the browser. A music score editor, built upon the open source JavaScript based music notation rendering library
 VexFlow, is designed to automatically push every small change the server to be persisted. Score Stage is designed to
-allow anyone, including those without accounts, are able to search and view all the music scores on Score Stage. In the
-end, a simple browser based music score editor successfully persists changes while a user edits a music score; however
-VexFlow struggles, in some cases, to properly format dynamic and incomplete music scores.
+allow anyone, including those without accounts, the ability to search and view all the music scores on Score Stage. In
+the end, a simple browser based music score editor successfully persists changes while a user edits a music score;
+however VexFlow struggles, in some cases, to properly format dynamic and incomplete music scores.
 
 \thispagestyle{empty}
 \newpage
@@ -93,14 +93,14 @@ VexFlow struggles, in some cases, to properly format dynamic and incomplete musi
 
 Score Stage was inspired by a few different areas. The constant, rapid shift to everything being operated via the web,
 the modern ability to reproduce complex software systems as a web alternative, and the ability for large groups of
-people to collaborate instantly on open systems via web systems. Score Stage is the goal of bringing all these this to
-task of music score writing.
+people to collaborate instantly on open projects via the web. Score Stage is the goal of bringing all these things to
+the domain of music score writing.
 
 First, with more systems moving towards web based platforms, music score writing should follow suit. This move brings
 multiple advantages. such as, all of an individual's music scores are automatically backed up, the music scores are
-available from any device with internet and a browser, and the user no longer has to install dedicated software on their
-devices. With these advantages it will be easier for users to write, edit, and collaborate on music from anywhere and at
-anytime.
+available from any device with internet access and a browser, and the user no longer has to install dedicated software
+on their devices. With these advantages it will be easier for users to write, edit, and collaborate on music from
+anywhere and at anytime.
 
 Next, with the emergences of web systems such as Google Docs, these systems show what is possible with modern day web
 technologies. Google Docs has managed to not only reproduce office suite software on a cloud platform, but it has
@@ -115,14 +115,14 @@ collaborative and open environment.
 \section{Music Score Editor}
 
 The first major hurdle that needs to be overcome to create a fully web based music score writing system, is the
-in-browser music score editor. This editor has two base requirements that have to be met. First, the editor
-needs to be a pure JavaScript Implementation (i.e. No browser plugins such as Flash or Java will be allowed to be used
+browser based music score editor. This editor has two base requirements that have to be met. First, the editor
+needs to be a pure JavaScript implementation (i.e. No browser plugins such as Flash or Java will be allowed to be used
 to create the editor). Second, the editor, while simple at first, will need to be able to grow to rival native systems.
 
 The editor must be a pure JavaScript implementation to allow for as much current and future support as possible. If
 plugins were allowed users would need to make sure they have the correct plugin as well as a compatible browser.
 This sort of issue is amplified by situations such as Apple not supporting Flash, and Chrome recently discontinuing
-support for Java. With a pure JavaScript implementation current or future plugin supports are no longer a concern.
+support for Java. With a pure JavaScript implementation current or future plugin support is no longer a concern.
 
 The editor will, in time, need to rival native music score editors. This is needed because for users to want to adopt
 a web based system, they will need most, if not all, the features available in the native versions. Also, for users to
@@ -138,17 +138,17 @@ complex enough such that a stable starting point can be created for the rest of 
 
 The initial design used AngularJS and VexFlow, and started with doing just rendering. However, after working with
 Angular and VexFlow, it soon became apparent that Angular would not be a good candidate to handle the data binding. The
-issue with Angular was that VexFlow made custom DOM changes to render the music score because it creates an SVG.
+issue with Angular is that VexFlow makes custom DOM changes to render the music score because it creates an SVG.
 Angular's ability to do proper data binding requires the developer to stay within the Angular digest cycle, which is the
 system Angular uses to detect data changes. However, since VexFlow would go to the DOM on its own, these operations
-would happen outside of Angular's digest cycle. Thus Angular was replaced with VueJS. Also, due to the complexity that
+would happen outside of Angular's digest cycle. Thus Angular is replaced with VueJS. Also, due to the complexity that
 will be required for the editor, Webpack is used to allow JavaScript files to reference their own dependencies and build
 a single JavaScript file that will be included in the HTML page.
 
 \subsection{Data Model}
 
 Before the editor can have user interaction, it must first be able to render the music score. Thus, the first task in
-implementing the editor is to implement a rendering logic and the corresponding data model. Since the editor will be
+implementing the editor is to implement the rendering logic and the corresponding data model. Since the editor will be
 written in JavaScript a JSON data model needs to be used. While the data model is initially designed for rendering, the
 data model needs to allow for portions to be easily added, removed, and updated. A desired feature of the data model is
 that the structure should force the data to be as valid as possible (i.e. it should be structured to not allow the data
@@ -158,18 +158,18 @@ To see the actual data model refer to Appendix A. A Tick is used to group notes 
 has no notes, it is treated as a rest; thus, as long as a Tick has a duration, it is valid. A Bar simply contains all
 the ticks inside it. The Bar also contains the key signature and clef because it it legal for the clef and key signature
 to change between bars, and different staffs can have different key signatures and clefs in the same Measure. Since the
-Bars across all the staffs in a Measure must have the same time signature, it is stored in the Measure. The Measure also
-stores all the Bars for all the staffs in order. Since a music score is technically 2-Dimensional, in that it has staffs
-across the $ y $ and bars across the $ x $, only one of those parts can be structured to have no invalid state; thus,
-since bars are more related vertically than horizontally, the bars in the same measure are grouped together and need the
-same number needs to be in each measure. The Groups are the individual parts and define which staffs they cover. Groups
-are ordered from the first to the last with respect to the order of the bars in each Measure. Each Group also defines
-the number of staffs it covers. Since the bar count in Measures have to be kept in sync already, and groups are only
-used to show which staff it covers at render time, the groups are moved into their own list.
+Bars across all the staffs in a Measure must have the same time signature, the time signature is stored in the Measure.
+The Measure also stores all the Bars for all the staffs in order. Since a music score is technically 2-Dimensional, in
+that it has staffs across the $ y $ and bars across the $ x $, only one of those parts can be structured to have no
+invalid state; thus, since bars are more related vertically than horizontally, the bars in the same measure are grouped
+together and the same number needs to be in each measure. The Groups are the individual parts and define which staffs
+they cover. Groups are ordered from the first to the last with respect to the order of the bars in each Measure. Each
+Group also defines the number of staffs it covers. Since the bar count in Measures have to be kept in sync already, and
+groups are only used to show which staff it covers at render time, the groups are moved into their own list.
 
 \subsection{Rendering}
 
-The desired rendered format for the music score is such that it looks like a sheet of music, thus measures will be
+The desired rendering format for the music score is such that it looks like a sheet of music, thus measures will be
 spread across rows. It is desirable to move as much of the rendering to VexFlow since it is built specifically to render
 music scores. VexFlow, however, does not handle the actual layout of the music score. Thus determining the precise 
 placement of each measure and bar will have to be manually calculated. 
@@ -178,8 +178,8 @@ The first task is rendering a single bar with its time signature, key signature,
 VexFlow has a Stave type which will render the lines for a bar, the key signature, the time signature, and the clef. To
 render the rests and notes, VexFlow has the StaveNote, Beam, and Voice types. The StaveNote is an individual tick (i.e.
 rest or chord), the Beam is the beam that connects groups of, for example, eighth notes, and the Voice is what groups a
-list of StaveNotes together. Thus a Stave can be created, with the appropriate key signature, time signature, and clef.
-A Voice can be created which contains all the StaveNotes, and VexFlow can automatically generate Beams for a list of
+list of StaveNotes together. Thus a Stave can be created, with the appropriate key signature, time signature, and clef,
+a Voice can be created which contains all the StaveNotes, and VexFlow can automatically generate Beams for a list of
 StaveNotes. VexFlow will also automatically apply the necessary modifiers to a note based on the key signature and
 accidental of the note itself (e.g. if the key signature is sharp for a specific note and the note itself is sharp,
 VexFlow will not render an accidental with the note). The only part left is to determine how wide to draw the Stave.
@@ -192,7 +192,7 @@ The next task is to format a measure of bars. For a measure of bars to be format
 width, all the notes must be formatted to be placed correctly across all bars, and each bar must sit below the previous
 bar. Each Stave has the dimensions $ x $, $ y $, $ width $, and $ height $, so this can be used to place bars in a
 measure below the previous one. Also as long as they all get the same $ x $ and have the same $ width $, then each $ y $
-can be set based on the previous Stave's $ y $ and $ height $ resulting in every bar being vertically and horizontally
+can be set based on the previous Stave's $ y $ and $ height $, resulting in every bar being vertically and horizontally
 aligned in the measure. VexFlow offers the ability to join voices together, in a Formatter; this allows the voices to be
 formatted together so that they all line up when drawn. Since bars can have different key signatures and clefs, to get
 an equal width for each bar, the max beginning and ending padding across all the bars need to be calculated and then
@@ -205,13 +205,14 @@ exact value and how it is gathered will be covered later. Since we already have 
 know when to start a new row with a measure is as simple as keeping track of the total width of the measures in the row
 and if adding a new measure would make the total width greater than the max width of the row, a new row is started with
 the current measure. If for some reason a single measure is wider than a row allows, that measure will still be its own
-row. With all the rows calculated, the $ x $ value of each Stave in each measure to account for it new vertical
+row. With all the rows calculated, the $ y $ value of each Stave in each measure is set to account for it new vertical
 positioning. Since each row is now potentially only fractionally filled, the measures in each row needs to be rebalanced
 to take up the entire maximum width of the row. To balance the row, the padding at the start and end of each Stave is
 ignored, and only the width of the Voices in each measure is used to determine the ratio of space occupied by each
 measure in the row. This allows Staves with the same notes, but different padding to have their Voices displayed
-identically within the row. Each measure's ratio and the maximum row with is then used to calculate a new width for each
-Stave and Voice in the measure such that the total with of all the measures is the same as the maximum width of the row.
+identically within the row. Each measure's ratio and the maximum row width is then used to calculate a new width for
+each Stave and Voice in the measure such that the total width of all the measures is the same as the maximum width of
+the row.
 
 Now that the whole score is roughly being rendered, it is time to add some details. These include excluding key
 signatures, time signatures, and clefs unless it is the beginning of a row, or it is different to the previous bar or
@@ -228,7 +229,7 @@ across the entire measure for special bar lines. To add the groups at the beginn
 each measure needs to be added to allow space for writing the Group abbreviation. This padding will simply be created by
 setting the $ x $ of the Staves in the first measure of each row to the padding value, and subtracting the padding
 value from the true max width to get the implemented max width for each row. With the space at the beginning of each
-row VexFlow's StaveConnector type can be used to draw a bar lines across Staves in each measure. If it is the first
+row, VexFlow's StaveConnector type can be used to draw a bar lines across Staves in each measure. If it is the first
 measure in the row, then a single line StaveConnector is drawn at the beginning of the measure across all the Staves.
 Then for each group a single line StaveConnector is drawn at the beginning and end across all the staffs belonging to
 the group; however, if it is the final measure, then the ending StaveConnector is replaced by a bold double bar line or
@@ -245,10 +246,10 @@ signatures, time signatures, and clefs need to be able to be set in their respec
 to be added and deleted. Finally, notes and rests need to be added and deleted. With these parts, a basic music score
 editor will be functional.
 
-Even though VexFlow uses and SVG to render the entire music score, due to how the staffs are rendered, simple JavaScript
+Even though VexFlow uses an SVG to render the entire music score, due to how the staffs are rendered, simple JavaScript
 events cannot be properly bound to the elements. If VexFlow surrounded different sections of the SVG into groups, then
-it may have been possible to use normal event handlers. Due to this limitation to find the location for a cursor, the
-$ x $ and $ y $ coordinates of the user's click needs to be read and then compared against, first the $ y $ of the row
+it may have been possible to use normal event handlers. Due to this limitation, to find the location for a cursor the
+$ x $ and $ y $ coordinates of the user's click needs to be read and then compared against, first, the $ y $ of the row
 to determine the clicked row, then the $ x $ of the measures in the row to determine the clicked measure, and finally
 the $ y $ of the Stave to determine the clicked bar. With the proper bar located, the Stave and Voice can now be used to
 find the location in the bar that was clicked.
@@ -258,8 +259,8 @@ or rest that was selected or if it was a space between the notes that was select
 The cutoff depends on the distance between either the start of the bar and the head of the first note, the end of one
 note and the start of the next note, or the end of the last note and the end of the bar. See Figure
 \ref{fig:hori-cutoff} for the exact horizontal cut off areas. If the $ x $ coordinate is in a space that does not border
-a note, as seen in Figure \ref{fig:hori-cutoff}, then the cursor is placed in the space in the matching space, otherwise
-the cursor is placed on the nearest note.
+a note, as seen in Figure \ref{fig:hori-cutoff}, then the cursor is placed in the matching space, otherwise the cursor
+is placed on the nearest note.
 
 \begin{figure}[H]
     \begin{center}
@@ -270,13 +271,12 @@ the cursor is placed on the nearest note.
 \end{figure}
 
 Next, to determine the bar line that was clicked, the $ y $ coordinate is compared against all the lines in the bar to
-find the nearest line. A similar ratio based system as used with the $ x $ coordinate is used to determine if the cursor
-should be placed between two lines or directly on a line. If the $ y $ coordinate is within the \textit{Space Zone} as
-seen in Figure \ref{fig:vert-cutoff} then the cursor will be placed in the space between the two lines, but if the $ y $
-coordinate is within the \textit{Line Zone} as seen in Figure \ref{fig:vert-cutoff} then the cursor will be placed on
-the line within the zone. The line zones have to extend partially into the spaces between the lines because a line
-itself is not tall enough to allow it to be clicked easily. These zones are implicit for spaces and lines above and
-below the visible lines in the bar.
+find the nearest line. A similar ratio based system is used to determine if the cursor should be placed between two
+lines or directly on a line. If the $ y $ coordinate is within the \textit{Space Zone} as seen in Figure
+\ref{fig:vert-cutoff} then the cursor will be placed in the space between the two lines, but if the $ y $ coordinate is
+within the \textit{Line Zone} as seen in Figure \ref{fig:vert-cutoff} then the cursor will be placed on the line within
+the zone. The line zones have to extend partially into the spaces because a line itself is not tall enough to allow it
+to be clicked easily. These zones are implicit for spaces and lines above and below the visible lines in the bar.
 
 \begin{figure}[H]
     \begin{center}
@@ -286,20 +286,20 @@ below the visible lines in the bar.
     \label{fig:vert-cutoff}
 \end{figure}
 
-With a cursor that stores the exact location of a click, modifying the score can be implemented, starting with adding
+With a cursor that stores the exact location of a click, modifying the score can be implemented; starting with adding
 and removing measures. When a new measure is selected to be added, the new measure is created such that each bar in the
 currently selected measure is duplicated except without all the notes and rests. Thus each bar in the new measure will
-have the same time signature, key signature, and clef as the bar in the same staff as it. Then the new measure is added
-after the currently selected measure. To delete a measure, as long as there is more than one measure, the currently
-selected measure is removed from the list of measures. Due to reactivity in VueJS, when the list of measures is changed,
-the entire layout is recalculated and redrawn automatically.
+have the same time signature, key signature, and clef as the previous bar in the same staff. Then the new measure is
+added after the currently selected measure. To delete a measure, as long as there is more than one measure, the
+currently selected measure is removed from the list of measures. Due to the data binding in VueJS, when the list of
+measures changes, the entire layout is recalculated and redrawn automatically.
 
 Continuing with the ability to expand the size of the music score, the next operations to implement is adding and
 removing staffs, which includes adding and deleting groups. In this situation, the cursor is less important and is
-purely used for user convenience. When the user selects to add a new staff, the user is prompted to select which group
+mostly used for user convenience. When the user selects to add a new staff, the user is prompted to select which group
 (or instrument) the user wishes to add the staff to. The currently selected staff is used to find the appropriate group
 and then that group is selected by default. The user can selected one of the existing groups, or they can create a new
-group. If an existing group is selected a new bar is spliced into each measure at the end of the selected groups
+group. If an existing group is selected a new bar is spliced into each measure at the end of the selected group's
 section and the group's count is incremented. If the user selects to create a new group, a new bar is added to the end
 of each measure and a group is added at the end of the list of groups with a count of one. Now that staffs can be added,
 staffs need to be able to be deleted. To delete a staff, the currently selected staff is used to find the appropriate
@@ -318,7 +318,7 @@ user is given every possible clef as an option and the default selected clef is 
 After selecting the new clef, the clef of the currently selected bar is updated. The change will automatically be
 detected by VueJS, and the music score will be redrawn.
 
-Allowing the user to change the key signature of a bar is implemented similar to editing clefs. Thus, when a user
+Allowing the user to change the key signature of a bar is implemented similarly to editing clefs. Thus, when a user
 selects to edit the key signature, the user is given every possible key signature as an option and the default selected
 key signature is the key signature of the currently selected bar. After selecting the new key signature, the key
 signature of the currently selected bar is updated. As mentioned prior, VueJS will automatically detect the change and
@@ -329,7 +329,7 @@ duration and whether or not the tick is a rest will be covered later, so assume 
 settings for the note they wish to add. To add a note or a rest, the current cursor location is used to determine if a
 new tick needs to be created, or if the duration of an existing tick needs to be updated. If a new tick needs to be
 created it is spliced into the list of ticks at the cursor's location. If the user has selected a rest, then the tick
-is cleared of all notes, otherwise the cursor's line and the clef of bar is used to lookup the correct note and the note
+is cleared of all notes, otherwise the cursor's line and the clef of the bar is used to lookup the correct note and it
 is added in the correct order. VexFlow expects notes to be ordered from highest to lowest. To delete a note, the
 cursor's line is used to create the correct note for the line and the note is used to attempt to delete an equal note
 from the selected tick. If it fails to delete the note, then the cursor isn't on a specific note, so the entire tick is
@@ -356,7 +356,7 @@ nature of the music scores, each music score update needs to be atomically perfo
 need to be detected and prevented. These two goals aim to make the updates to the music score efficient and aim to
 prevent placing the music scores into invalid states.
 
-To detect and prevent concurrent modifications, each music score has a \lstinline{rev} field, which is generated ID,
+To detect and prevent concurrent modifications, each music score has a \lstinline{rev} field, which is a generated ID,
 that keeps track of the current revision of the music score. When an update attempt is performed, the expected revision
 is passed with the update operation; for the update to succeed, the current revision of the music score must match the
 expected revision of the music score. Each measure in a music score has a matching \lstinline{rev} field (the reason the
@@ -371,8 +371,8 @@ the measure to delete and the index of both the next and previous measures would
 in a single operation. Since an index is unique for each measure and an ID is unique for each measure, practically
 speaking, multiple IDs would need to be tracked for each measure, except in the case of the index the value would change
 for every following measure if a measure before gets deleted. So not only would each measure have a stable ID, each
-measure would have an unstable ID as well. This is becomes both time consuming in terms of always updating index values
-as necessary and complex in keeping both IDs in sync. Thus measures are moved into their own collection with an ID and
+measure would have an unstable ID as well. This is time consuming, in terms of always updating index values when
+necessary, and complex, in keeping both IDs in sync. Thus measures are moved into their own collection with an ID and
 without an index value; the IDs are not set as the \lstinline{_id} field because it is the \lstinline{id},
 \lstinline{rev} combinations that will be unique, not the \lstinline{id} alone.
 
@@ -389,18 +389,18 @@ To allow changes to be made to measures while keeping read results valid, each m
 except for the \lstinline{rev} field. To allow untouched measures to not need to be replaced, the \lstinline{rev} field
 is a list of valid revisions. This allows new measures to be written while the old measures exist, and measures
 that don't change remain untouched; thus, the first goal of the database design can be achieved and unmodified measures
-do not need to be replaced. The first operation during an update, is the generation of a new revision. Revisions need to
-generated as opposed to incremented because multiple updates could be attempted at the same time, so these updates all
-need a unique revision number. Then the updated measures are created with the new revision value, and a list of all new
-IDs are kept track of; the IDs of the measures to delete are added to these IDs because excluding the actual creation of
-the updated measures, the deletion process is the same as the cleanup process for old measures. Then all measures that
-were not updated and are not to be deleted have the new revision added to their list of revisions. At this point all the
-measures for the new revision exist in a valid state. Next the master revision in the music score is updated to the new
-revision value; if a concurrent update occurred, then this update will fail and the initial setup of the measures can
-easily be undone. With the master update complete, the music score is officially updated. To ensure the database does
-not grow too fast, all the outdated measures must now be cleaned up; this includes deleting all the measures with the
-old revision and whose ID is in the list of IDs created earlier and then removing all the remaining old revisions from
-the other measures' revision lists.
+do not need to be replaced. The first operation during an update is the generation of a new revision. Revisions need to
+be generated as opposed to incremented because multiple updates could be attempted at the same time, so these updates
+all need a unique revision number. Next, the updated measures are created with the new revision value, and a list of all
+new IDs are kept in a list; the IDs of the measures to delete are added to these IDs as well because, the deletion
+process is the same as the cleanup process for old measures. Then all measures that were not updated and are not to be
+deleted have the new revision added to their list of revisions. At this point all the measures for the new revision
+exist in a valid state. Next the master revision in the music score is updated to the new revision value; if a
+concurrent update occurs, then this update will fail and the initial setup of the measures can easily be undone. With
+the master update complete, the music score is officially updated. To ensure the database does not grow too fast, all
+the outdated measures must now be cleaned up; this includes deleting all the measures with the old revision and whose ID
+is in the list of IDs created earlier and then removing all the remaining old revisions from the other measures'
+revision lists.
 
 Unfortunately, valid concurrent reads are not perfectly handled by the update process alone. In order to do a valid read
 of the music score with its measures, the music score has to be read first to obtain the current revision. The revision
@@ -417,28 +417,28 @@ an account is not needed to view the public repositories. This is the model that
 search for music scores that have been created without having to register or login. If a user wants to create or edit
 a music score, however, they must login and they are only able to create new music scores and edit the music scores they
 have previously created. Score Stage uses NodeJS and Express for the server logic, while VueJS is used to build the
-different UI components and to handle data binding and dynamic UI logic. Vue Material is the UI library which is used to
-implement the look and feel of Score Stage; it implements Google's Material Design specification using native VueJS
-bindings.
+different UI components and to handle data binding and the dynamic UI logic. Vue Material is the UI library which is
+used to implement the look and feel of Score Stage; it implements Google's Material Design specification using native
+VueJS bindings.
 
 When a user logs in, they are given a list of all the scores they have created and have the option to create a new
 score; all the have to specify is the first instrument they want and the title of the music score. Once a music score
-has been created, the user can open the score and they music score editor is opened. The user is able to select the
-duration of the note or rest and whether they are creating a note or rest. If the user right clicks on the rendered
-music score they are able to select if they would like to add/delete both staffs and measures. They are also given the
-option to edit the time signatures, key signatures, and clefs. Every change made by the user is automatically sent to
-the server, and a queue is kept of all the pending changes where only one change can occur at a time. Thus, the user can
-edit the music score at whatever pace they choose, and all their changes are automatically queued and sent to the
-server. As little information as possible is sent to the server for each edit because the server manually determines the
-change to apply based on the information sent to the server; it is similar to how the editor determines what change to
-make to the music score.
+has been created, the user can open the score and the music score editor is opened. The user is able to select the
+duration of the tick and whether they are creating a note or rest. If the user right clicks on the rendered music score
+they are able to select if they would like to add/delete both staffs and measures. They are also given the option to
+edit the time signatures, key signatures, and clefs. Every change made by the user is automatically sent to the server,
+and a queue is kept of all the pending changes where only one change can occur at a time. Thus, the user can edit the
+music score at whatever pace they choose, and all their changes are automatically queued and sent to the server. As
+little information as possible is sent to the server for each edit because the server manually determines the change to
+apply based on the information sent to the server; it is similar to how the editor determines what change to make to the
+music score.
 
 The music score's area is not set to a predetermined width, the styling of the page determines the width of the music
 score dynamically. Due to the dynamic width calculation, when the browser, and subsequently the editor, changes sizes
 these size changes are detected and the layout of the music score is recalculated and redrawn. This means the user can
 change the size of the browser or zoom in and out of the page and the measures will continue to fit the amount of space
-available. The tracking of the width of the editor is a custom watcher that when updates is detected by VueJS causing
-the music score to be redistributed and redrawn.
+available. The tracking of the width of the editor is a custom watcher that when a size change is detected an event is
+triggered causing the music score to be redistributed and redrawn.
 
 \section{Conclusion}
 
